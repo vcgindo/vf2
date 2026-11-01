@@ -34,6 +34,10 @@ class ProductionRegisteredReadContractTests(unittest.TestCase):
     def test_production_v1_identity_is_not_a_whole_module_permission(self):
         from mta.presentation import registered_read_compatibility as historical
         config = configuration()
+        self.assertEqual(view.recipe_digest(config),
+            '4a8e21999d14a0aae89b6c5850bb2db38b3a34cd0073a15c91c4d46dc7ed2f38')
+        self.assertEqual(scoped_selection.registered_recipe_digest(config),
+            'b2a0a38bb20c045eefc00d22b6dc5fcab3bc4f01634dbbf00a03cf9462ca678b')
         with patch.object(historical, 'recipe', side_effect=AssertionError('Historical source profile')), \
                 patch.object(scoped_selection, '_current_recipe_digest',
                     side_effect=AssertionError('Unrelated source is not an anchor format')), \

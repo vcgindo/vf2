@@ -2,7 +2,7 @@
 
 Use [vf.ps1](../vf.ps1) for a compatible MTA patch on an already initialized, populated installation. Windows PowerShell 5.1 and PowerShell 7 are supported. Docker Desktop and the existing Compose project must be available, with MTA and the unchanged frontend/auth/MTO services running. Finish any active daily, calculation or action work first.
 
-**Qualification status:** the command is implemented; initial real populated-upgrade, recovery and next-day acceptance remain pending until the release owner closes them. This document does not certify production acceptance.
+**Qualification status:** populated upgrade, own next-day execution, scoped continuation, fresh installation and failure/recovery checks have passed in isolated real Docker/PostgreSQL installations. See [qualification and limits](UPGRADE_QUALIFICATION.md).
 
 ## Prepare the update
 
@@ -12,29 +12,27 @@ Backups stay outside the source folder. If operations storage is inside it, the 
 
 Open a normal PowerShell window in the installation folder. Keep Compose settings in the existing `.env`; do not set shell-level Compose file/path overrides.
 
-## Inspect, then upgrade
+## Upgrade
 
 Choose one target. Build the updated source:
 
 ```powershell
-.\vf.ps1 upgrade -Build -InspectOnly
+.\vf.ps1 upgrade -Build
 ```
 
 Or use the supplied MTA image, already loaded or pulled locally:
 
 ```powershell
-.\vf.ps1 upgrade -Image 'supplied-mta-image:release-tag' -InspectOnly
+.\vf.ps1 upgrade -Image 'supplied-mta-image:release-tag'
 ```
 
 Use the image reference provided with the release. No manually entered hashes, initialization IDs, SQL or Compose overrides are required. To choose a different backup location, add `-BackupDirectory 'E:\VectorFLOW-backups'` to the first command.
 
-Inspection authenticates the images and checks the existing installation, schema and selected business data while MTA remains active. With `-Build`, it also builds the target under a unique tag, retaining the current image for recovery. Inspection saves an upgrade journal. Continue that same operation with:
+The command checks, backs up and upgrades the installation. To preview the checks while MTA remains active, optionally add `-InspectOnly` to the chosen command. With `-Build`, this also builds the target under a unique tag, retaining the current image for recovery. The preview saves an upgrade journal; continue that same operation with:
 
 ```powershell
 .\vf.ps1 upgrade -Resume
 ```
-
-To perform inspection and upgrade together, omit `-InspectOnly` from the chosen first command.
 
 ## What the command does
 
