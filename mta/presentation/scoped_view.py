@@ -116,7 +116,7 @@ def _configuration(run):
 
 def recipe_for_configuration(configuration):
     from mta.presentation import registered_report_view
-    return (registered_report_view.recipe_digest()
+    return (registered_report_view.recipe_digest(configuration)
             if registered_report_view.applicable_configuration(configuration) else recipe_digest())
 
 

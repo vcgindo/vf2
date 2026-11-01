@@ -27,10 +27,30 @@ def applicable_run(run):
     return read_input(run, components=('report_registration_request',)).get('report_registration_request') is not None
 
 
-@once_per_request
-def recipe_digest():
-    # Preserve the existing graph identity only under the exact compatible
-    # reader profile. Native build/schema authority remains independent.
+def production_configuration(value):
+    """Select the supported metadata format, never grant read or write custody."""
+    if value is None:
+        return False
+    if not applicable_configuration(value) or set(value) != FIELDS:
+        raise PublicationUnavailable('registered_read_configuration_differs')
+    from mta.runtime.runtime_report_request import configuration as checked_reference
+    try:
+        config, _hook, _anchor, _policy = checked_reference(value['reference'])
+    except (ValueError, KeyError, TypeError) as error:
+        raise PublicationUnavailable('registered_read_configuration_differs') from error
+    if value['configuration_digest'] != digest(config):
+        raise PublicationUnavailable('registered_read_configuration_differs')
+    return value['reference']['purpose'] == 'production-generic-placement'
+
+
+def recipe_digest(configuration=None):
+    # The existing V1 reference identifier describes this supported graph and
+    # metadata format. Actual producer provenance belongs to the sealed capture
+    # and placement receipts, not a broad hash of unrelated reader modules.
+    # Historical TEST adapters retain their exact finite source profile.
+    from mta.presentation.registered_read_compatibility import RECIPE
+    if production_configuration(configuration):
+        return RECIPE
     from mta.presentation.registered_read_compatibility import recipe
     return recipe()
 
@@ -103,9 +123,11 @@ def bind(row, expected_digest, *, retained_parent=False):
     from mta.presentation import scoped_view, scoped_read_graph
     scoped_view.verify_guards(registered=True)
     if (not applicable_reference(row) or row.digest != expected_digest
-            or row.digest != digest(row.metadata) or row.recipe_digest != recipe_digest()):
+            or row.digest != digest(row.metadata)):
         raise PublicationUnavailable('registered_read_reference_identity_differs')
     config, request_digest = configuration(row.report_generation.run)
+    if row.recipe_digest != recipe_digest(config):
+        raise PublicationUnavailable('registered_read_reference_identity_differs')
     bpr, planning, git, expedition = scoped_read_graph.bind(row, retained_parent=retained_parent)
     files = scoped_view._files(row.report_generation.phase, row)
     actual = scoped_view._metadata(bpr, planning, git, expedition, files, config, request_digest,

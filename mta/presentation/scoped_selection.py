@@ -66,9 +66,13 @@ def publication_recipe_digest():
     return POSTBPR_SELECTION_RECIPE
 
 
-def registered_recipe_digest():
+def registered_recipe_digest(configuration=None):
     from mta.presentation import registered_report_view
-    from mta.presentation.registered_read_compatibility import selection_recipe
+    from mta.presentation.registered_read_compatibility import selection_recipe, SELECTION_RECIPE
+    if registered_report_view.production_configuration(configuration):
+        # V1 phase-anchor format; original run/phase/permission and reference
+        # seals still decide whether this selection may actually be served.
+        return SELECTION_RECIPE
     observed = digest(dict(selection=_current_recipe_digest(),registered=registered_report_view.recipe_digest()))
     return selection_recipe(observed)
 
@@ -76,8 +80,8 @@ def registered_recipe_digest():
 def recipe_for_run(run):
     from mta.presentation import registered_report_view
     if registered_report_view.applicable_run(run):
-        registered_report_view.configuration(run)
-        return registered_recipe_digest()
+        configuration, _request_digest = registered_report_view.configuration(run)
+        return registered_recipe_digest(configuration)
     from mta.runtime.input_reader import read_input
     from mta.runtime.production_scope import PUBLICATION_SCHEMA
     request=read_input(run,components=('scope_request',)).get('scope_request',{})

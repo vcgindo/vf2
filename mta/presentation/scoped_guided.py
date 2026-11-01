@@ -20,7 +20,7 @@ class GuidedBinding:
     def run(self): return self.view.run
 
     def identity(self,payload,actor):
-        from mta.presentation.registered_report_view import recipe_digest
+        from mta.presentation.registered_report_view import recipe_digest, applicable_reference
         catalogue=permission_catalogue()
         permissions={}
         for key,dimension in (('product_permissions','products'),('location_permissions','locations')):
@@ -45,7 +45,9 @@ class GuidedBinding:
                 aggregate=self.availability.aggregate),
             excess=dict(history=self.excess.history,generation=str(self.view.bpr.reports.generation.pk),
                 generation_digest=self.view.bpr.reports.generation.digest),
-            recipe=recipe_digest(),catalogue=digest(catalogue),permissions=permissions,actor=actor)
+            recipe=recipe_digest(self.view.reference.metadata['runtime_reports']
+                if applicable_reference(self.view.reference) else None),
+            catalogue=digest(catalogue),permissions=permissions,actor=actor)
 
     def response(self,payload,kind):
         from mta.presentation import views

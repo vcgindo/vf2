@@ -16,7 +16,7 @@ def bundle():
     run=Obj(pk='current-run',business_date=date(2026,10,26))
     parent=Obj(pk='parent-run')
     generation=Obj(pk='current-excess',digest='e'*64)
-    view=Obj(run=run,read_identity=dict(id='reference',digest='a'*64),action_revision=0,
+    view=Obj(run=run,reference=Obj(metadata={}),read_identity=dict(id='reference',digest='a'*64),action_revision=0,
         bpr=Obj(read_identity=dict(generation='current-report',remark_highwater=0),reports=Obj(generation=generation)))
     suggestions=Obj(btr=Obj(predecessor=parent),images={'suggestions':{'digest':'b'*64}},
         context=Obj(dbm={'DBMMaster':[dict(SKUCode='S',Norm=12)]}),attributes=MagicMock(return_value={}))
