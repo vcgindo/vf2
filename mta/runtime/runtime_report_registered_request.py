@@ -48,13 +48,17 @@ def _reconstruct(reference, binding):
     return stored
 
 
-def _attachment(scope_request, stored):
+def _attachment(scope_request, stored, *, producer_recipe=None):
     if registrations.decode(stored) != scope_request['runtime_reports']:
         raise ValueError('Executable request differs from registered definitions')
     from mta.runtime.production_scope_policy import SCHEMA as PRODUCTION_POLICY
     production = scope_request['dispositions']['schema'] == PRODUCTION_POLICY
+    if producer_recipe is None:
+        producer_recipe=recipe_digest(production=production)
+    else:
+        sha(producer_recipe)
     value = dict(schema=SCHEMA, scope_request_digest=digest(scope_request),
-                 registration=_binding(stored), attachment_recipe=recipe_digest(production=production))
+                 registration=_binding(stored), attachment_recipe=producer_recipe)
     value['attachment_digest'] = digest(value)
     return value
 
@@ -101,11 +105,14 @@ def request_for_execution(raw, expected_sha256, *, scope, command_key, registrat
     return dict(scope_request=inner, report_registration_request=outer)
 
 
-def _expected(value, scope_request):
+def _expected(value, scope_request, *, reading=False):
     if type(value) is not dict or set(value) != FIELDS or value['schema'] != SCHEMA:
         raise ValueError('Versioned registered placement request required')
     stored = _reconstruct(scope_request['runtime_reports'], value['registration'])
-    return _attachment(scope_request, stored)
+    from mta.runtime.production_scope_policy import SCHEMA as PRODUCTION_POLICY
+    original_recipe=(value['attachment_recipe'] if reading
+        and scope_request['dispositions']['schema']==PRODUCTION_POLICY else None)
+    return _attachment(scope_request, stored, producer_recipe=original_recipe)
 
 
 def validate_request(value, scope_request, *, run=None):
@@ -118,7 +125,7 @@ def validate_request(value, scope_request, *, run=None):
 def validate_read_request(value, scope_request):
     """Preserve original execution identity in an admitted compatible reader."""
     placement.validate_read_request(scope_request)
-    if value != _expected(value, scope_request):
+    if value != _expected(value, scope_request, reading=True):
         raise ValueError('Registered placement read attachment or configuration differs')
     return deepcopy(value)
 
@@ -168,7 +175,10 @@ def read_captured(run):
         initialization_id=binding['initialization_id'], source_digest=binding['source_digest'],
         certificate_id=binding['certificate_id'], certificate_digest=binding['certificate_digest'])
     stored = registrations._stored(owner)
-    if _attachment(raw['scope_request'], stored) != value:
+    from mta.runtime.production_scope_policy import SCHEMA as PRODUCTION_POLICY
+    original_recipe=(value['attachment_recipe']
+        if raw['scope_request']['dispositions']['schema']==PRODUCTION_POLICY else None)
+    if _attachment(raw['scope_request'], stored, producer_recipe=original_recipe) != value:
         raise ValueError('Captured registration differs from immutable typed custody')
     return deepcopy(value)
 

@@ -104,26 +104,31 @@ def recipe_digest(*, production=False):
             runtime_report_stage_storage,runtime_report_stage_work,runtime_report_placement_publication,runtime_report_execution,placement_master_publication)}))
     if production:
         from mta.runtime import production_scope_policy
-        from mta.runtime.generic_capture_compatibility import production_publication_recipe
-        return production_publication_recipe(digest(dict(recipe=observed,
-            policy=inspect.getsource(production_scope_policy))))
+        # This is the actual producer recipe of a NEW request, not an alias
+        # requiring every unrelated native file to equal a migration trial.
+        return digest(dict(recipe=observed,
+            policy=inspect.getsource(production_scope_policy)))
     from mta.runtime.retained_registered_execution_compatibility import publication_recipe
     return publication_recipe(observed)
+
+
+def _request_fields(scope,command_key,runtime_reports):
+    if (scope not in SCOPES or type(command_key) is not str or not 1<=len(command_key)<=120
+            or not command_key.strip() or '\0' in command_key):
+        raise ValueError('Explicit placement scope and bounded command key required')
+    reference=validate_reference(runtime_reports)
+    _config,hook,_anchor,policy=configuration(reference)
+    return dict(schema=SCHEMA,scope=scope,command_key=command_key,runtime_reports=reference,
+        report_hooks=hook,dispositions=policy)
 
 
 def request(scope,command_key,*,runtime_reports):
     """Versioned capture factory; old factories must not adopt this reference."""
     from release.native_identity import require_current
     from mta.runtime.phase_state import recipe_digest as phase_recipe
-    if (scope not in SCOPES or type(command_key) is not str or not 1<=len(command_key)<=120
-            or not command_key.strip() or '\0' in command_key):
-        raise ValueError('Explicit placement scope and bounded command key required')
-    reference=validate_reference(runtime_reports)
-    _config,hook,_anchor,policy=configuration(reference)
     from mta.runtime.production_scope_policy import SCHEMA as PRODUCTION_POLICY
-    value=dict(schema=SCHEMA,scope=scope,command_key=command_key,runtime_reports=reference,
-        report_hooks=hook,dispositions=policy,
-        publication_recipe=recipe_digest(production=policy['schema'] == PRODUCTION_POLICY))
+    value=_request_fields(scope,command_key,runtime_reports)
+    value['publication_recipe']=recipe_digest(production=value['dispositions']['schema'] == PRODUCTION_POLICY)
     value['compatibility_digest']=digest(dict(request=value,release=require_current(),phase_recipe=phase_recipe()))
     return value
 
@@ -142,20 +147,24 @@ def validate_request(value, *, run=None):
 
 
 def validate_read_request(value):
-    """Decode an immutable captured request without claiming execution rights.
+    """Decode supported metadata; callers still authenticate captured custody.
 
-    An admitted compatible reader has a different release identity. Its source
-    recipe must still match exactly; the original execution compatibility pin
-    is authenticated by captured input/receipt ownership, never replaced with
-    the reader's release. All mutation entries use validate_request instead.
+    Original producer digests are provenance, never authority to execute. Typed
+    registration, run/phase receipts and input/file pins are verified by the
+    consumers. Every mutation continues through strict validate_request().
     """
     from mta.runtime.ingestion_context import sha
-    if type(value) is not dict:
+    from mta.runtime.production_scope_policy import SCHEMA as PRODUCTION_POLICY
+    fields={'schema','scope','command_key','runtime_reports','report_hooks',
+        'dispositions','publication_recipe','compatibility_digest'}
+    if type(value) is not dict or set(value)!=fields or value['schema']!=SCHEMA:
         raise ValueError('Captured placement request required')
-    expected=request(value.get('scope'),value.get('command_key'),runtime_reports=value.get('runtime_reports'))
-    sha(value.get('compatibility_digest'))
-    if (set(value)!=set(expected) or any(value[key]!=item for key,item in expected.items()
-                                       if key!='compatibility_digest')):
+    expected=_request_fields(value['scope'],value['command_key'],value['runtime_reports'])
+    sha(value['compatibility_digest']);sha(value['publication_recipe'])
+    if expected['dispositions']['schema']!=PRODUCTION_POLICY:
+        # Exact finite historical TEST readers retain their old source checks.
+        expected=request(value['scope'],value['command_key'],runtime_reports=value['runtime_reports'])
+    if any(value[key]!=item for key,item in expected.items() if key!='compatibility_digest'):
         raise ValueError('Captured placement read recipe or configuration differs')
     return deepcopy(value)
 

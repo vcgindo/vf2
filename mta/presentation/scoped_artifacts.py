@@ -152,7 +152,25 @@ def _root(phase, value):
     return owned_path(root, relative)
 
 
-def _recipe():
+def _recipe(*, production=False):
+    """New production bytes identify their actual producer, never a release alias."""
+    if production:
+        from mta.application import (operational_inputs, operational_sqlcmd,
+            operational_input_capture, operational_input_archive, operational_upload_logs,
+            operational_io)
+        from mta.runtime.operational_archive import TRANSIT_COLUMNS
+        from mta.runtime import relational_state
+        from mta.domain import complete_daily_scalars
+        import mta.serialization as serialization
+        import mta.row_sequences as row_sequences
+        modules = (inspect.getmodule(_recipe), operational_inputs, operational_sqlcmd,
+            operational_input_capture, operational_input_archive, operational_upload_logs,
+            operational_io, complete_daily_scalars, serialization, row_sequences)
+        return digest(dict(schema=RECEIPT,
+            modules={module.__name__: inspect.getsource(module) for module in modules},
+            typed_decoder={function.__name__: inspect.getsource(function) for function in
+                (relational_state.load_image,relational_state.iter_image,relational_state.wire_value)},
+            csv_schema=operational_upload_logs._schema, transit_columns=TRANSIT_COLUMNS))
     from mta.runtime.retained_registered_execution_compatibility import artifact_recipe
     return artifact_recipe(digest(inspect.getsource(inspect.getmodule(_recipe))))
 
@@ -193,7 +211,7 @@ def prepare(phase_id, *, expected_digest, declaration_file, declaration_sha256):
         database_policy=('vectorflow-production-generic-scope-policy-v1'
                          if value['schema'] == PRODUCTION_SCHEMA else None))
     receipt = dict(schema=RECEIPT, declaration=value, declaration_sha256=declaration_sha256,
-        recipe_digest=_recipe(), phase_snapshot_digest=phase.snapshot.state_digest,
+        recipe_digest=_recipe(production=value['schema'] == PRODUCTION_SCHEMA), phase_snapshot_digest=phase.snapshot.state_digest,
         producer_images=owners, members={name: dict(size=len(raw), sha256=_sha(raw))
             for name, raw in members.items()}, download=result['download'])
     if len(json.dumps(receipt)) > 32768:
@@ -227,11 +245,34 @@ def verify(phase_id, *, expected_digest, declaration_file, declaration_sha256,
             raise ValueError('Scoped InputData independently pinned receipt differs')
     from mta.mdm.initialization_contract import object_pairs
     receipt = json.loads(raw, object_pairs_hook=object_pairs)
+    from mta.runtime.ingestion_context import sha
+    if (type(receipt) is not dict or set(receipt) != {'schema','declaration','declaration_sha256',
+            'recipe_digest','phase_snapshot_digest','producer_images','members','download'}):
+        raise ValueError('Scoped InputData receipt shape differs')
+    sha(receipt['recipe_digest'])
+    production = value['schema'] == PRODUCTION_SCHEMA
+    # Production v1 keeps its producer SHA as provenance. The independent pin
+    # or complete accepted-member rederivation below owns read custody.
     if (receipt['schema'] != RECEIPT or receipt['declaration'] != value
             or receipt['declaration_sha256'] != declaration_sha256
-            or receipt['recipe_digest'] != _recipe()
+            or (not production and receipt['recipe_digest'] != _recipe())
             or receipt['phase_snapshot_digest'] != phase.snapshot.state_digest):
         raise ValueError('Scoped InputData receipt owner differs')
+    names = {*PHYSICAL, *(value['importer_database']+'_'+name+'.CSV' for name in TABLES),
+             phase.run.business_date.strftime('%d_%m_%Y_12_00.txt')}
+    if type(receipt['members']) is not dict or set(receipt['members']) != names:
+        raise ValueError('Scoped InputData member roster differs')
+    for member in receipt['members'].values():
+        if (type(member) is not dict or set(member) != {'size','sha256'}
+                or type(member['size']) is not int or member['size'] < 0):
+            raise ValueError('Scoped InputData member metadata differs')
+        sha(member['sha256'])
+    download_metadata = receipt['download']
+    if (type(download_metadata) is not dict or set(download_metadata) != {'relative_path','sha256','size_bytes'}
+            or download_metadata['relative_path'] != 'download/InputData.zip'
+            or type(download_metadata['size_bytes']) is not int or download_metadata['size_bytes'] < 0):
+        raise ValueError('Scoped InputData download metadata differs')
+    sha(download_metadata['sha256'])
     if receipt_sha256 is None:
         # Offline idempotent prepare independently rederives member identities.
         # Runtime uses its separately deployed receipt SHA and never runs this.

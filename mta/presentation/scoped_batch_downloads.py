@@ -56,9 +56,14 @@ def _manifest(path, expected_sha256):
     value = json.loads(raw, object_pairs_hook=object_pairs)
     if (type(value) is not dict or set(value) != FIELDS or value['schema'] != producer.SCHEMA
             or value['digest'] != digest({k:v for k,v in value.items() if k != 'digest'})
-            or value['recipe_digest'] != producer.recipe_digest()
             or value['declaration'] not in (producer.TEST_DECLARATION, producer.PRODUCTION_DECLARATION)
             or type(value['declaration']['IsMTOEnvironment']) is not int):
+        _fail('manifest_identity_differs')
+    sha(value['recipe_digest'])
+    # Independently pinned production v1 metadata names the original producer;
+    # source/phase/configuration and every retained file/member still verify.
+    if (value['declaration'] == producer.TEST_DECLARATION
+            and value['recipe_digest'] != producer.recipe_digest()):
         _fail('manifest_identity_differs')
     original = {k:v for k,v in value.items() if k not in ('digest','payload_digest','files','wrappers')}
     if value['payload_digest'] != digest(original):

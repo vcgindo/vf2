@@ -30,10 +30,19 @@ PRODUCTION_DECLARATION = dict(purpose='production-generic-scoped', IsMTOEnvironm
     allocation_history='captured-accepted-bpr')
 
 
-def recipe_digest():
+def recipe_digest(*, production=False):
+    """Production recipes cover this batch producer and its actual byte codecs."""
     modules = (inspect.getmodule(recipe_digest), bor, exceptions, alerts, sqlcmd, files, operational_io,
                native_report_colours, complete_daily_scalars)
     observed = digest({module.__name__: inspect.getsource(module) for module in modules})
+    if production:
+        from mta.application import operational_inputs, r1_importer_master
+        import mta.serialization as serialization
+        import mta.row_sequences as row_sequences
+        return digest(dict(schema=SCHEMA,producer_sources=observed,
+            codecs={module.__name__: inspect.getsource(module) for module in
+                (operational_inputs,r1_importer_master,serialization,row_sequences)},
+            declaration=PRODUCTION_DECLARATION,colour_reference=native_report_colours.reference()))
     from mta.runtime.retained_registered_execution_compatibility import batch_recipe
     return batch_recipe(observed)
 
@@ -113,7 +122,8 @@ def payload(phase_id, *, expected_digest, declaration):
             sku_descriptions=sku, site_descriptions=site, equal=ascii_equal)) if exceptional else None))
     metadata = dict(schema=SCHEMA, run_id=str(phase.run_id), phase_id=str(phase.pk),
         phase_digest=phase.digest, snapshot_digest=phase.snapshot.state_digest,
-        business_date=today, declaration=deepcopy(declaration), recipe_digest=recipe_digest(), sources=sources,
+        business_date=today, declaration=deepcopy(declaration),
+        recipe_digest=recipe_digest(production=declaration == PRODUCTION_DECLARATION), sources=sources,
         colour_reference=deepcopy(colours), producer_sources=dict(bor=bor.SOURCES['report'],
             failed_force=alerts.SOURCES['force'], exceptions=exceptions.SOURCES,
             wrappers={key: files.SOURCES[key] for key in ('bor','force_norm','parent_norm','bpr_exceptions')}),

@@ -160,6 +160,29 @@ def _target_grants(cursor, original, prior_tables):
         logistics=True,production=True)
 
 
+def require_finished_work(cursor, owner):
+    """Routine patching starts from a stable accepted business-day boundary."""
+    # A preserved interrupted parent is historical when its explicit recovery
+    # child already published that same date. Do not rewrite or reject that
+    # accepted lineage merely because the parent remains incomplete evidence.
+    cursor.execute("SELECT EXISTS(SELECT 1 FROM mta.fresh_mta_calculationrun R "
+        "JOIN mta.fresh_mta_mdmdailyinputcapture C ON C.run_id=R.id "
+        "WHERE C.source_id=%s AND R.status='RUNNING' AND NOT EXISTS("
+        "SELECT 1 FROM mta.fresh_mta_dailyfeedattempt A "
+        "JOIN mta.fresh_mta_dailyfeedattempt B ON B.recovery_origin_id=A.id "
+        "WHERE A.run_id=R.id AND A.initialization_id=%s "
+        "AND B.initialization_id=A.initialization_id AND B.business_date=A.business_date "
+        "AND B.status='PUBLISHED')) OR "
+        "EXISTS(SELECT 1 FROM mta.fresh_mta_dailyfeedattempt A "
+        "WHERE A.initialization_id=%s AND A.status IN ('RUNNING','COMMITTED','PREPARED') "
+        "AND NOT EXISTS(SELECT 1 FROM mta.fresh_mta_dailyfeedattempt B "
+        "WHERE B.recovery_origin_id=A.id AND B.initialization_id=A.initialization_id "
+        "AND B.business_date=A.business_date AND B.status='PUBLISHED'))",
+        [owner.source_id,owner.pk,owner.pk])
+    if cursor.fetchone()!=(False,):
+        raise ValueError('Finish or diagnose the unfinished daily/scoped operation before a routine upgrade')
+
+
 def _previous_schema(cursor, owner, previous):
     """One maintenance-only adoption of a genuinely admitted historical schema.
 
@@ -201,6 +224,7 @@ def run(phase, initialization, previous, receipt):
     if phase=='inspect':
         with transaction.atomic(),connection.cursor() as cursor:
             cursor.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY')
+            require_finished_work(cursor,owner)
             adoption=_previous_schema(cursor,owner,previous)
             _executor,plan=migration_plan(previous)
             current_selected=selected(owner)
@@ -219,6 +243,7 @@ def run(phase, initialization, previous, receipt):
                     "AND pid<>pg_backend_pid() AND backend_type='client backend' LIMIT 1")
                 if cursor.fetchone() is not None:
                     raise ValueError('Upgrade requires stopped MTA and no other database client writers')
+                require_finished_work(cursor,owner)
                 adoption=_previous_schema(cursor,owner,previous)
                 executor,plan=migration_plan(previous)
                 before=snapshot(owner);selection_before=selected(owner)
