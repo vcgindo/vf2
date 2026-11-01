@@ -27,7 +27,10 @@ LABEL org.opencontainers.image.revision=$VF_NATIVE_RELEASE_COMMIT vectorflow.nat
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONPATH=/app VF_NATIVE_RELEASE_COMMIT=$VF_NATIVE_RELEASE_COMMIT VF_NATIVE_RELEASE_SHA256=$VF_NATIVE_RELEASE_SHA256
 COPY --from=dependencies /install/ /usr/local/
 COPY --from=admission /candidate/ /app/
+COPY identity.json /opt/vectorflow/release.json
+COPY tools/image_entrypoint.py /opt/vectorflow/image_entrypoint.py
 RUN groupadd --gid 10001 vectorflow && useradd --uid 10001 --gid 10001 vectorflow && mkdir -p /var/lib/vectorflow && chown 10001:10001 /var/lib/vectorflow
 WORKDIR /app
 USER 10001:10001
-ENTRYPOINT ["python", "-m", "release.service", "mta"]
+ENTRYPOINT ["python", "/opt/vectorflow/image_entrypoint.py"]
+CMD ["python", "-m", "release.service", "mta"]

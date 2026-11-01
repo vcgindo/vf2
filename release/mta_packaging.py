@@ -91,6 +91,8 @@ def prepare(root, destination, wheelhouse, *, commit, source_sha256, native_sha2
     if destination.exists() or root == destination or root in destination.parents:
         raise ValueError('Choose a new external build context; never overwrite')
     full, native = source(root, commit=commit, source_sha256=source_sha256, native_sha256=native_sha256)
+    if 'release/image_entrypoint.py' not in full['files']:
+        raise ValueError('Authenticated image entrypoint is absent from committed export')
     if not MTA_RELEASE_FILES <= native['files'].keys():
         raise ValueError('Required finite native release dependency is absent')
     wheels = verify_wheels(root, wheelhouse)
@@ -102,6 +104,11 @@ def prepare(root, destination, wheelhouse, *, commit, source_sha256, native_sha2
     identity = verify(application, expected_commit=commit, expected_sha256=native_sha256)
     (destination/'tools').mkdir()
     shutil.copyfile(root/'release/mta_packaging.py', destination/'tools/mta_packaging.py')
+    shutil.copyfile(root/'release/image_entrypoint.py', destination/'tools/image_entrypoint.py')
+    image_identity = dict(source_commit=commit, source_sha256=source_sha256, native_sha256=native_sha256,
+        packaging_tool_sha256=full['files']['release/mta_packaging.py'])
+    identity_bytes = (json.dumps(image_identity, sort_keys=True, indent=2)+'\n').encode('utf-8')
+    (destination/'identity.json').write_bytes(identity_bytes)
     shutil.copyfile(root/'release/mta.Dockerfile', destination/'Dockerfile')
     (destination/'wheels').mkdir()
     for row in wheels:
@@ -109,7 +116,9 @@ def prepare(root, destination, wheelhouse, *, commit, source_sha256, native_sha2
     expected = {'application/'+n:h for n,h in native['files'].items()}
     expected.update({'application/'+MANIFEST:native_sha256,
         'Dockerfile':full['files']['release/mta.Dockerfile'],
-        'tools/mta_packaging.py':full['files']['release/mta_packaging.py']})
+        'tools/mta_packaging.py':full['files']['release/mta_packaging.py'],
+        'tools/image_entrypoint.py':full['files']['release/image_entrypoint.py'],
+        'identity.json':hashlib.sha256(identity_bytes).hexdigest()})
     expected.update({'wheels/'+r['filename']:r['sha256'] for r in wheels})
     if files(destination) != expected:
         raise ValueError('Complete MTA build context differs')

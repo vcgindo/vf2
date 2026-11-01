@@ -57,8 +57,11 @@ class UpgradeOriginTests(unittest.TestCase):
                 upgrade.implementation_for(source)
 
     def test_current_release_keeps_original_strict_path(self):
-        source=SimpleNamespace(implementation_digest='a'*64)
+        release={'source_commit':'b'*40,'manifest_sha256':'c'*64}
+        source=SimpleNamespace(implementation_digest='a'*64,
+            receipt={'owned_namespace':{'release_identity':release}})
         with patch('mta.mdm.initialization.current_implementation_digest',return_value='a'*64), \
+             patch('mta.runtime.ingestion_admission._process_release',return_value=release), \
              patch('mta.mdm.initialization.implementation_digest',return_value='a'*64) as strict:
             self.assertEqual(upgrade.implementation_for(source),'a'*64)
             strict.assert_called_once()

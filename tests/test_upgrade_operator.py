@@ -54,16 +54,21 @@ class DockerStub {
    string phase = args[Array.IndexOf(args,"--phase")+1];
    string mount = args.First(a=>a.EndsWith(":/upgrade"));
    string operation = mount.Substring(0,mount.Length-9);
-   if (phase == "apply" && Environment.GetEnvironmentVariable("VF_UPGRADE_FAIL_APPLY") == "before") return 1;
-   if (phase == "verify" && !File.Exists(Path.Combine(folder,"applied"))) return 1;
+   if (phase == "apply" && Environment.GetEnvironmentVariable("VF_UPGRADE_FAIL_APPLY") == "before") {
+    File.WriteAllText(Path.Combine(folder,"rolledback"),"proved rollback"); return 1;
+   }
+   bool rolledback = phase == "verify" && !File.Exists(Path.Combine(folder,"applied")) && File.Exists(Path.Combine(folder,"rolledback"));
+   if (phase == "verify" && !File.Exists(Path.Combine(folder,"applied")) && !rolledback) return 1;
    if (phase == "apply") File.WriteAllText(Path.Combine(folder,"applied"),"committed");
-   string status = phase == "inspect" ? "INSPECTED" : phase == "apply" ? "APPLIED" : "VERIFIED";
+   string status = rolledback ? "APPLY_REQUIRED" : phase == "inspect" ? "INSPECTED" : phase == "apply" ? "APPLIED" : "VERIFIED";
    string receipt = "{\"status\":\"UPGRADE_DATABASE_"+status+"\",\"selected\":{\"run_id\":\"run-existing\",\"output_digest\":\"digest-existing\",\"business_date\":\"2026-10-19\"},\"pending_migrations\":[]}";
    File.WriteAllText(Path.Combine(operation,"database.json"),receipt,new UTF8Encoding(false));
    Console.WriteLine(receipt);
    if (phase == "apply" && Environment.GetEnvironmentVariable("VF_UPGRADE_FAIL_APPLY") == "after") return 1;
   } else if (args[0] == "cp") {
-   File.WriteAllBytes(args[2],new byte[]{80,71,68,77,80,0,1,2,10});
+   Directory.CreateDirectory(args[2]);
+   File.WriteAllBytes(Path.Combine(args[2],"base.tar.gz"),new byte[]{31,139,8,0,1,2,10});
+   File.WriteAllText(Path.Combine(args[2],"backup_manifest"),"{\"PostgreSQL-Backup-Manifest-Version\":2}",new UTF8Encoding(false));
   } else if (args.Contains("up")) {
    File.WriteAllText(Path.Combine(folder,"started"),target);
    if (Environment.GetEnvironmentVariable("VF_UPGRADE_FAIL_START") == "1") return 1;
@@ -127,7 +132,11 @@ class DockerStub {
                 self.assertEqual(set(previous), {'schema','source_commit','manifest_sha256','source_files_digest','migrations_digest','implementation_sha256'})
                 backup = Path(journal['backup']['path'])
                 self.assertEqual(backup.parent, root.parent / 'external backup')
-                self.assertEqual(journal['backup']['sha256'], hashlib.sha256(backup.read_bytes()).hexdigest())
+                self.assertEqual(journal['backup']['format'], 'postgres-basebackup-tar-gzip-fetch-v1')
+                self.assertEqual(set(journal['backup']['files']), {'base.tar.gz','backup_manifest'})
+                for name, record in journal['backup']['files'].items():
+                    raw = (backup / name).read_bytes()
+                    self.assertEqual(record, dict(bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest()))
                 self.assertFalse(list((root.parent / 'state').glob('*/compose.private.json')))
                 calls = self.calls(root)
                 build = next(c for c in calls if 'build' in c)
@@ -136,6 +145,9 @@ class DockerStub {
                 old_admission = next(c for c in calls if '--network' in c and OLD in c)
                 self.assertIn('json.dumps(require_current()', old_admission[-1])
                 self.assertEqual([c[c.index('--phase')+1] for c in calls if '--phase' in c], ['inspect','apply','verify'])
+                backup_call = next(c for c in calls if any('pg_basebackup ' in a for a in c))
+                self.assertIn('--wal-method=fetch', ' '.join(backup_call))
+                self.assertFalse(any('pg_dump ' in a for c in calls for a in c))
                 for call in calls:
                     if 'run' in call and 'provision' in call:
                         self.assertIn('--no-deps', call)
@@ -196,6 +208,7 @@ class DockerStub {
                 self.assertEqual(result.returncode, 0, result.stderr)
                 calls = self.calls(root)[before:]
                 self.assertFalse(any('apply' in c for c in calls))
+                self.assertFalse(any(c[0] == 'cp' or any('pg_basebackup ' in a for a in c) for c in calls))
                 self.assertEqual([c[c.index('--phase')+1] for c in calls if '--phase' in c], ['verify'])
                 self.assertEqual(self.journal(root)['status'], 'COMPLETE')
 
@@ -210,12 +223,40 @@ class DockerStub {
                 self.assertNotEqual(result.returncode, 0)
                 self.assertEqual((root.parent / 'state/upgrade.json').read_bytes(), original)
                 journal = self.journal(root)
-                Path(journal['backup']['path']).write_bytes(b'tampered')
+                Path(journal['backup']['path'], 'base.tar.gz').write_bytes(b'tampered')
                 before = len(self.calls(root))
                 result = self.run_upgrade(shell, root, '-Resume')
                 self.assertNotEqual(result.returncode, 0)
                 calls = self.calls(root)[before:]
                 self.assertFalse(any('--phase' in c or 'up' in c for c in calls))
+
+    def test_explicit_resume_after_proved_atomic_rollback_applies_once_without_new_backup(self):
+        for shell in ('powershell.exe', 'pwsh'):
+            with self.subTest(shell=shell):
+                root = self.fixture()
+                result = self.run_upgrade(shell, root, '-Image', 'supplied:target', VF_UPGRADE_FAIL_APPLY='before')
+                self.assertNotEqual(result.returncode, 0)
+                previous_backup = self.journal(root)['backup']
+                before = len(self.calls(root))
+                result = self.run_upgrade(shell, root, '-Resume')
+                self.assertEqual(result.returncode, 0, result.stderr)
+                calls = self.calls(root)[before:]
+                self.assertEqual([c[c.index('--phase')+1] for c in calls if '--phase' in c], ['verify','apply','verify'])
+                self.assertFalse(any(c[0] == 'cp' or any('pg_basebackup ' in a for a in c) for c in calls))
+                self.assertEqual(self.journal(root)['backup'], previous_backup)
+                self.assertEqual(self.journal(root)['status'], 'COMPLETE')
+
+    def test_backup_extra_file_blocks_resume_before_database_or_start(self):
+        for shell in ('powershell.exe', 'pwsh'):
+            with self.subTest(shell=shell):
+                root = self.fixture()
+                result = self.run_upgrade(shell, root, '-Image', 'supplied:target', VF_UPGRADE_FAIL_START='1')
+                self.assertNotEqual(result.returncode, 0)
+                Path(self.journal(root)['backup']['path'], 'unexpected.tar.gz').write_bytes(b'extra')
+                before = len(self.calls(root))
+                result = self.run_upgrade(shell, root, '-Resume')
+                self.assertNotEqual(result.returncode, 0)
+                self.assertFalse(any('--phase' in c or 'up' in c for c in self.calls(root)[before:]))
 
 
 if __name__ == '__main__':

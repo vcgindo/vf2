@@ -32,6 +32,7 @@ class MtaPackagingTests(unittest.TestCase):
             'vectorflow/settings.py':b'# settings\n',
             'baseline/operational-alert-source-pins.json':b'{"pins":[]}\n',
             'release/mta_packaging.py':(repository/'release/mta_packaging.py').read_bytes(),
+            'release/image_entrypoint.py':(repository/'release/image_entrypoint.py').read_bytes(),
             'frontend/src/unchanged.ts':b'// original frontend bytes\n',
             'mto/mto_app/unchanged.py':b'# original MTO bytes\n',
             'user-service/apps/unchanged.py':b'# original auth bytes\n',
@@ -72,6 +73,39 @@ class MtaPackagingTests(unittest.TestCase):
         self.assertNotIn('--rm=false',args)
         self.assertFalse(any(arg.startswith(('--memory','--cpu-')) for arg in args))
         self.assertEqual(self.runner.call_args.kwargs['env']['DOCKER_BUILDKIT'],'0')
+
+    def test_context_has_authenticated_bootstrap_and_canonical_image_identity_outside_application(self):
+        self.build()
+        context=self.work/'context'
+        self.assertEqual((context/'tools/image_entrypoint.py').read_bytes(),
+                         (self.root/'release/image_entrypoint.py').read_bytes())
+        expected=dict(source_commit=self.commit,source_sha256=self.pins['source_sha256'],
+                      native_sha256=self.pins['native_sha256'],
+                      packaging_tool_sha256=packaging.sha(self.root/'release/mta_packaging.py'))
+        self.assertEqual((context/'identity.json').read_bytes(),
+                         (json.dumps(expected,sort_keys=True,indent=2)+'\n').encode('utf-8'))
+        self.assertNotIn('release/image_entrypoint.py',packaging.files(context/'application'))
+        dockerfile=(context/'Dockerfile').read_text()
+        self.assertIn('COPY identity.json /opt/vectorflow/release.json',dockerfile)
+        self.assertIn('COPY tools/image_entrypoint.py /opt/vectorflow/image_entrypoint.py',dockerfile)
+        self.assertIn('ENTRYPOINT ["python", "/opt/vectorflow/image_entrypoint.py"]',dockerfile)
+        self.assertIn('CMD ["python", "-m", "release.service", "mta"]',dockerfile)
+
+    def test_missing_or_changed_bootstrap_rejected_before_docker(self):
+        path=self.root/'release/image_entrypoint.py'
+        raw=path.read_bytes()
+        path.write_bytes(b'# unauthenticated bootstrap\n')
+        with self.assertRaises(ValueError):self.build()
+        path.write_bytes(raw)
+        path.unlink()
+        with self.assertRaises(ValueError):self.build()
+        # Even an independently pinned export with no bootstrap has no
+        # supported fallback to unauthenticated host/application bytes.
+        del self.full['files']['release/image_entrypoint.py']
+        (self.root/'release-source.json').write_bytes(json.dumps(self.full).encode('utf-8'))
+        with self.assertRaisesRegex(ValueError,'Authenticated image entrypoint'):
+            self.build(source_sha256=packaging.sha(self.root/'release-source.json'))
+        self.runner.assert_not_called()
 
     def test_raw_checkout_rejected_before_docker(self):
         (self.root/'release-source.json').unlink()

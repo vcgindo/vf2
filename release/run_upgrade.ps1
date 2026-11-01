@@ -48,6 +48,35 @@ function SaveJournal {
     else { [IO.File]::Move($temporary,$journalPath) }
 }
 function WriteSnapshot { Write-VfUtf8 $privateConfig ($config | ConvertTo-Json -Depth 100) }
+function BackupFiles([string]$Root) {
+    if (-not (Test-Path -LiteralPath $Root -PathType Container)) { throw 'Physical upgrade backup directory is missing' }
+    $result = @{}
+    foreach ($file in Get-ChildItem -LiteralPath $Root -Recurse -Force) {
+        if ($file.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Physical backup cannot contain symbolic links' }
+        if (-not $file.PSIsContainer) {
+            $name = Get-VfRelativePath $Root $file.FullName
+            if ($name -notin @('base.tar.gz','pg_wal.tar.gz','backup_manifest') -or $file.Length -eq 0) {
+                throw 'Unsupported physical backup file/tablespace layout; dedicated cluster prerequisites require diagnosis'
+            }
+            $result[$name] = @{bytes=$file.Length;sha256=(Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()}
+        }
+    }
+    if (-not $result.ContainsKey('base.tar.gz') -or -not $result.ContainsKey('backup_manifest')) { throw 'Physical cluster backup is incomplete' }
+    return $result
+}
+function VerifyBackup {
+    $backup = $journal.backup
+    if ($backup.format -ne 'postgres-basebackup-tar-gzip-fetch-v1' -or $backup.project -ne $journal.project -or
+        $backup.initialization -ne $journal.initialization -or $backup.previous_image -ne $journal.previous_image) {
+        throw 'Existing upgrade backup ownership/format differs'
+    }
+    $actual = BackupFiles $backup.path
+    if ($actual.Count -ne $backup.files.Count) { throw 'Physical backup file roster changed' }
+    foreach ($name in $actual.Keys) {
+        if (-not $backup.files.ContainsKey($name) -or $actual[$name].bytes -ne $backup.files[$name].bytes -or
+            $actual[$name].sha256 -ne $backup.files[$name].sha256) { throw 'Physical backup file bytes changed' }
+    }
+}
 function SaveDeploymentEnvironment([string]$Files) {
     $path = Join-Path $projectRoot '.env'
     $text = [IO.File]::ReadAllText($path)
@@ -72,7 +101,9 @@ function DatabasePhase([string]$Phase) {
         '--previous-release','/upgrade/previous-native.json','--receipt','/upgrade/database.json')
     $receipt = ConvertFrom-VfJson ([IO.File]::ReadAllText((Join-Path $operationRoot 'database.json')))
     $expected = @{inspect='UPGRADE_DATABASE_INSPECTED';apply='UPGRADE_DATABASE_APPLIED';verify='UPGRADE_DATABASE_VERIFIED'}[$Phase]
-    if ($receipt.status -ne $expected) { throw "Database $Phase did not reach its required checkpoint" }
+    if ($receipt.status -ne $expected -and -not ($Phase -eq 'verify' -and $receipt.status -eq 'UPGRADE_DATABASE_APPLY_REQUIRED')) {
+        throw "Database $Phase did not reach its required checkpoint"
+    }
     return $receipt
 }
 try {
@@ -177,17 +208,17 @@ try {
     $databaseFile = Join-Path $operationRoot 'database.json'
     $database = if (Test-Path -LiteralPath $databaseFile) { ConvertFrom-VfJson ([IO.File]::ReadAllText($databaseFile)) } else { $null }
     if ($journal.backup) {
-        if ($journal.backup.project -ne $journal.project -or $journal.backup.initialization -ne $journal.initialization -or
-            $journal.backup.previous_image -ne $journal.previous_image -or -not (Test-Path -LiteralPath $journal.backup.path) -or
-            (Get-FileHash -LiteralPath $journal.backup.path -Algorithm SHA256).Hash.ToLowerInvariant() -ne $journal.backup.sha256) {
-            throw 'Existing upgrade backup ownership/integrity differs'
-        }
+        VerifyBackup
     }
     if ($journal.apply_started -or $database.status -in @('UPGRADE_DATABASE_APPLIED','UPGRADE_DATABASE_VERIFIED')) {
         # A lost post-commit response is reconciled from actual DB state by the
         # read-only helper. Failure never causes automatic application replay.
         $database = DatabasePhase 'verify'
-        $journal.applied = $true
+        if ($database.status -eq 'UPGRADE_DATABASE_APPLY_REQUIRED') {
+            if (-not $Resume) { throw 'Database proved an atomic rollback; inspect evidence then explicitly resume the upgrade' }
+            $journal.applied = $false
+            $journal.apply_started = $false
+        } else { $journal.applied = $true }
     } else {
         $database = DatabasePhase 'inspect'
     }
@@ -208,25 +239,26 @@ try {
         $journal.maintenance=$true; $journal.phase='MAINTENANCE'; SaveJournal
         $null = ComposeCall -Arguments @('stop','mta')
         if ($journal.backup) {
-            if (-not (Test-Path -LiteralPath $journal.backup.path) -or
-                (Get-FileHash -LiteralPath $journal.backup.path -Algorithm SHA256).Hash.ToLowerInvariant() -ne $journal.backup.sha256) { throw 'Existing upgrade backup is missing or changed' }
+            VerifyBackup
         } else {
             $null = New-Item -ItemType Directory -Force -Path $journal.backup_directory
-            $backupPath = Join-Path $journal.backup_directory ('mta-' + (Split-Path $operationRoot -Leaf) + '.dump')
+            $backupPath = Join-Path $journal.backup_directory ('postgres-' + (Split-Path $operationRoot -Leaf))
             if (Test-Path -LiteralPath $backupPath) { throw 'Unreceipted backup exists; preserve and diagnose it' }
-            $remote = '/tmp/vectorflow-' + [guid]::NewGuid().ToString('N') + '.dump'
+            $remote = '/tmp/vectorflow-backup-' + [guid]::NewGuid().ToString('N')
             $admin = $config.services.provision.environment.PG_ADMIN_USER
             $databaseName = $config.services.provision.environment.MTA_DB_NAME
             if (-not $admin -or -not $databaseName) { throw 'Existing PostgreSQL admin/database configuration required' }
-            $null = ComposeCall -Arguments @('exec','-T','postgres','sh','-ec',
-                'export PGPASSWORD="$(cat "$POSTGRES_PASSWORD_FILE")"; pg_dump -h 127.0.0.1 -U "$1" -d "$2" -Fc -f "$3"',
-                'upgrade-backup',$admin,$databaseName,$remote)
+            try {
+                $null = ComposeCall -Arguments @('exec','-T','postgres','sh','-ec',
+                    'export PGPASSWORD="$(cat "$POSTGRES_PASSWORD_FILE")"; pg_basebackup --host=127.0.0.1 --username="$1" --format=tar --gzip --wal-method=fetch --checkpoint=fast --pgdata="$2" --no-password',
+                    'upgrade-backup',$admin,$remote)
+            } catch { throw 'Physical PostgreSQL backup failed. Verify existing replication/WAL/tablespace prerequisites; no logical-dump fallback or settings change is permitted.' }
             $postgres = ComposeCall -Arguments @('ps','-q','postgres')
             if (-not $postgres) { throw 'Existing PostgreSQL container missing' }
             $null = DockerCall -Arguments @('cp',($postgres + ':' + $remote),$backupPath)
-            $null = ComposeCall -Arguments @('exec','-T','postgres','rm','--',$remote)
-            if ((Get-Item -LiteralPath $backupPath).Length -eq 0) { throw 'Empty upgrade backup' }
-            $journal.backup = @{path=$backupPath;sha256=(Get-FileHash -LiteralPath $backupPath -Algorithm SHA256).Hash.ToLowerInvariant();
+            $backupFiles = BackupFiles $backupPath
+            $journal.backup = @{path=$backupPath;files=$backupFiles;format='postgres-basebackup-tar-gzip-fetch-v1';
+                recovery='Offline coordinated restore of this dedicated PostgreSQL cluster with its MTA work/configuration/secrets; never restore automatically';
                 database=$databaseName;project=$journal.project;initialization=$journal.initialization;previous_image=$journal.previous_image}
             $journal.phase='BACKED_UP'; SaveJournal
         }
@@ -234,6 +266,7 @@ try {
         $database = DatabasePhase 'apply'
         $journal.applied=$true; $journal.phase='DATABASE_APPLIED'; SaveJournal
         $database = DatabasePhase 'verify'
+        if ($database.status -ne 'UPGRADE_DATABASE_VERIFIED') { throw 'Applied upgrade did not verify; preserve maintenance and use explicit -Resume after diagnosis' }
     }
     # One fixed image override; preserve the original private Compose file list.
     $deployment = Join-Path $stateRoot 'compose.deployment.json'

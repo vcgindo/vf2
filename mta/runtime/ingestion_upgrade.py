@@ -62,13 +62,16 @@ def _origin(source):
         if scoped['source_digest']!=source.digest or digest(source.receipt)!=source.digest:
             raise ValueError('Upgrade audit source differs')
         return scoped
-    # Do not change ordinary fresh-release checks or infer authority from a hash.
+    # Same implementation bytes are not the same source artifact. In particular
+    # a presentation-only patch still needs original-owner validation, without a
+    # current-commit database permission. Never infer authority from a hash.
     from mta.mdm.initialization import current_implementation_digest
-    if source.implementation_digest==current_implementation_digest():
-        return None
     from mta.runtime.ingestion_admission import _process_release,_admit,registration
     import os
     release=_process_release(os.environ.get('VF_NATIVE_RELEASE_COMMIT'),os.environ.get('VF_NATIVE_RELEASE_SHA256'))
+    if (source.implementation_digest==current_implementation_digest()
+            and source.receipt.get('owned_namespace',{}).get('release_identity')==release):
+        return None
     from mta.runtime.initialization_models import ProductionInitialization
     owner=ProductionInitialization.objects.get(source=source)
     with connection.cursor() as cursor:
