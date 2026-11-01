@@ -222,6 +222,6 @@ docker compose up -d --no-build --wait
 docker compose ps
 ```
 
-Keep the same clone, `.env`, input/access files and generated Compose overrides. Restart neither installs nor calculates. Do not apply `git pull` plus a rebuild to an initialized source-bound database as an undocumented upgrade; this is a clean-install guide.
+Keep the same clone, `.env`, input/access files and generated Compose overrides. Restart neither installs nor calculates. For an existing populated installation, use the [routine upgrade command](release/UPGRADE.md). Updating source and rebuilding alone does not perform the database/readiness checks; do not install or initialize again.
 
 Installation/SMTP details: [SOURCE_BUILD.md](release/SOURCE_BUILD.md). Small October sample: [CSV_STARTER_RUN.md](release/CSV_STARTER_RUN.md). Daily schema/recovery: [CSV_DAILY_RUN.md](release/CSV_DAILY_RUN.md). Prebuilt-package operations: [release/RUNBOOK.md](release/RUNBOOK.md).

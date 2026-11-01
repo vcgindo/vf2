@@ -31,7 +31,7 @@ function DockerCall([string[]]$Arguments, [switch]$Json) {
     $text = $outTask.GetAwaiter().GetResult(); $diagnostic = $errTask.GetAwaiter().GetResult()
     $code = $process.ExitCode; $process.Dispose()
     # Resolved config can contain secrets. Never log its contents or command arguments.
-    if ($operationRoot -and $Arguments -notcontains 'config') {
+    if ($operationRoot -and $Arguments -notcontains 'config' -and $Arguments -notcontains 'inspect') {
         Add-Content -LiteralPath (Join-Path $operationRoot 'commands.log') -Encoding utf8 -Value ($text + "`n" + $diagnostic + "`nEXIT=$code")
     }
     if ($code -ne 0) { throw "Upgrade Docker operation failed (exit $code); preserve the upgrade journal and diagnostics" }

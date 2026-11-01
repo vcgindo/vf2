@@ -155,6 +155,9 @@ def _target_grants(cursor, original, prior_tables):
                     sql.Identifier(table),sql.Literal(domain)))
     cursor.execute('RESET ROLE')
     require_guard_coverage(cursor)
+    from mta.mdm.owned_namespace import _check_application_grants
+    _check_application_grants(_application_catalogue(cursor),original,
+        logistics=True,production=True)
 
 
 def _previous_schema(cursor, owner, previous):

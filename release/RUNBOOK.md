@@ -2,6 +2,8 @@
 
 **DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
 
+For an existing populated installation, use [UPGRADE.md](UPGRADE.md); do not repeat blank installation.
+
 For repository-owned CSV daily processing after onboarding, see [CSV_DAILY_RUN.md](CSV_DAILY_RUN.md). It reuses the native calculation and presentation preparation; no daily work occurs during installation.
 
 This replaces the historical bd309169/8080 destructive reinstall procedure. Run each numbered step manually, in order, in the same PowerShell session on a NEW target. Stop at the first failure and retain its output. Do not reset, reprovision, adopt an old installation or replay an accepted day.
