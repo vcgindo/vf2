@@ -65,8 +65,12 @@ def preserved(before, after):
             raise ValueError('Upgrade changed preserved metadata population: '+table)
         # Sort by stable existing fields, not a newly added column.
         columns=set().union(*(row.keys() for row in old_rows)) if old_rows else set()
-        project=lambda rows:sorted([{k:row.get(k) for k in columns} for row in rows],
-            key=lambda row:json.dumps(row,sort_keys=True))
+        if any(not columns <= row.keys() for row in new_rows):
+            raise ValueError('Upgrade removed accepted metadata fields: '+table)
+        # Python equality conflates True/1 and 1/1.0. Keep their JSON types and
+        # an explicitly present NULL distinct from a removed original field.
+        project=lambda rows:sorted(json.dumps({k:row[k] for k in columns},sort_keys=True)
+            for row in rows)
         if project(old_rows) != project(new_rows):
             raise ValueError('Upgrade changed accepted metadata: '+table)
 

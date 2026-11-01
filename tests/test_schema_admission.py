@@ -86,6 +86,16 @@ class PreservedMetadataTests(unittest.TestCase):
                 {'accepted':before['accepted']+[{'id':'three','Norm':10}]}):
             with self.assertRaises(ValueError):preserved(before,after)
 
+    def test_original_metadata_types_and_present_null_fields_cannot_change(self):
+        from release.upgrade_database import preserved
+        for old,new in ((True,1),(1,1.0),(False,0)):
+            with self.subTest(old=old,new=new),self.assertRaises(ValueError):
+                preserved({'accepted':[dict(id='one',value=old)]},
+                          {'accepted':[dict(id='one',value=new)]})
+        with self.assertRaisesRegex(ValueError,'removed accepted metadata fields'):
+            preserved({'accepted':[dict(id='one',value=None)]}, {'accepted':[dict(id='one')]})
+
+
 
 class MigrationHistoryTests(unittest.TestCase):
     def test_authenticated_prefix_is_allowed_but_unknown_or_missing_migrations_are_not(self):

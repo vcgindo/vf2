@@ -153,7 +153,7 @@ def _root(phase, value):
 
 
 def _recipe(*, production=False):
-    """New production bytes identify their actual producer, never a release alias."""
+    """Identify byte production; a sealed v1 archive keeps that original provenance."""
     if production:
         from mta.application import (operational_inputs, operational_sqlcmd,
             operational_input_capture, operational_input_archive, operational_upload_logs,
