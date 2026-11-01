@@ -243,7 +243,7 @@ class AcceptedPublicationTest(unittest.TestCase):
             with self.assertRaisesRegex(PublicationUnavailable, 'bad reference'):
                 accepted._btr_ready(self.run)
 
-    def test_ownership_requires_qualified_ancestry_or_original_guarded_certification(self):
+    def test_ownership_uses_certified_schema_and_guards_without_current_code_authority(self):
         from mta.runtime.accepted_state_transition import PINS
         with ExitStack() as stack:
             cursor = Mock()
@@ -251,28 +251,22 @@ class AcceptedPublicationTest(unittest.TestCase):
             context.return_value.__enter__.return_value = cursor
             cursor.fetchall.return_value = [(name,) for name, _ in PINS]
             guards = stack.enter_context(patch('mta.runtime.accepted_state_ownership.verify_guards', return_value=True))
-            stack.enter_context(patch('mta.runtime.mdm_daily_models.MdmDailyInputCapture.objects.values_list'))
-            stack.enter_context(patch('mta.runtime.initialization_models.ProductionInitialization.objects.values_list'))
-            stack.enter_context(patch('mta.runtime.ingestion_admission._process_release',
-                                      return_value={'manifest_sha256': 'current'}))
-            stack.enter_context(patch('mta.runtime.ingestion_authority.read', return_value='authority'))
-            cert = dict(release_digest='original', schema_digest='schema', guard_digest='guard')
-            anchor = dict(target_release='original')
-            effective = stack.enter_context(patch('mta.runtime.ingestion_admission.effective_schema',
-                return_value=(cert, anchor, 'schema', 'guard', 'receipt')))
-            extension = stack.enter_context(patch('mta.runtime.ingestion_authority.read_schema_transition',
-                                                   return_value=None))
-            approved = stack.enter_context(patch('mta.runtime.accepted_state_transition.approved_receipt',
-                                                  return_value=False))
+            capture = stack.enter_context(patch('mta.runtime.mdm_daily_models.MdmDailyInputCapture.objects.values_list'))
+            capture.return_value.get.return_value = 'original-source'
+            owner = stack.enter_context(patch('mta.runtime.initialization_models.ProductionInitialization.objects.values_list'))
+            owner.return_value.get.return_value = 'original-initialization'
+            release = {'manifest_sha256': 'new-reader'}
+            stack.enter_context(patch('mta.runtime.ingestion_admission._process_release', return_value=release))
+            admit = stack.enter_context(patch('mta.runtime.ingestion_admission._admit'))
+            stack.enter_context(patch('mta.runtime.ingestion_authority.read',
+                side_effect=AssertionError('No direct current-code authority lookup')))
             self.assertTrue(accepted._qualified_ownership(self.run))
-            extension.return_value = 'foreign extension'
-            self.assertFalse(accepted._qualified_ownership(self.run))
-            approved.return_value = True
-            self.assertTrue(accepted._qualified_ownership(self.run))
-            approved.assert_called_with('foreign extension')
-            extension.return_value = None
-            effective.return_value = (cert, anchor, 'changed schema', 'guard', 'receipt')
-            self.assertFalse(accepted._qualified_ownership(self.run))
+            admit.assert_called_once_with(cursor, 'original-initialization', release, pending=True)
+            for failure in ('changed schema', 'foreign certificate', 'missing revision guard'):
+                admit.side_effect = ValueError(failure)
+                with self.assertRaisesRegex(ValueError, failure):
+                    accepted._qualified_ownership(self.run)
+            admit.side_effect = None
             cursor.fetchall.return_value = [(PINS[0][0],)]
             self.assertFalse(accepted._qualified_ownership(self.run))
             guards.return_value = False

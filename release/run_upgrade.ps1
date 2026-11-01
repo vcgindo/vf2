@@ -64,11 +64,53 @@ function BackupFiles([string]$Root) {
     if (-not $result.ContainsKey('base.tar.gz') -or -not $result.ContainsKey('backup_manifest')) { throw 'Physical cluster backup is incomplete' }
     return $result
 }
+function ApplicationFiles([string]$Root) {
+    if (-not (Test-Path -LiteralPath $Root -PathType Container)) { throw 'Matching application recovery files are missing' }
+    $result = @{}
+    foreach ($file in Get-ChildItem -LiteralPath $Root -Recurse -Force) {
+        if ($file.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Application backup cannot contain symbolic links' }
+        if (-not $file.PSIsContainer) {
+            $name = Get-VfRelativePath $Root $file.FullName
+            $result[$name] = @{bytes=$file.Length;sha256=(Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()}
+        }
+    }
+    foreach ($name in @('original.env','binding.json','compose.original.private.json','mta-work/selection.json')) {
+        if (-not $result.ContainsKey($name)) { throw 'Matching application recovery files are incomplete' }
+    }
+    return $result
+}
+function CaptureApplicationBackup {
+    $root = $journal.application_directory
+    foreach ($name in $journal.original_files.Keys) {
+        $path = Join-Path $root $name
+        if (-not (Test-Path -LiteralPath $path -PathType Leaf) -or
+            (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant() -ne $journal.original_files[$name]) {
+            throw 'Original private recovery files changed after inspection'
+        }
+    }
+    # A harmless same-image restart between inspection and maintenance can
+    # replace the container ID. Reconcile its actual image after stopping it.
+    $container = ComposeCall -Arguments @('ps','-a','-q','mta')
+    if (-not $container) { throw 'Stopped MTA is missing; preserve backup and diagnose' }
+    $old = @(DockerCall -Arguments @('inspect',$container) -Json)[0]
+    if ($old.State.Running -or $old.Image -ne $journal.previous_image) { throw 'Original MTA must be stopped before its recovery files are captured' }
+    $work = Join-Path $root 'mta-work'
+    if (Test-Path -LiteralPath $work) { throw 'Unreceipted MTA work backup exists; preserve and diagnose it' }
+    $null = New-Item -ItemType Directory -Path $work
+    $null = DockerCall -Arguments @('cp',($container + ':/var/lib/vectorflow/.'),$work)
+    return @{path=$root;files=(ApplicationFiles $root)}
+}
 function VerifyBackup {
     $backup = $journal.backup
     if ($backup.format -ne 'postgres-basebackup-tar-gzip-fetch-v1' -or $backup.project -ne $journal.project -or
         $backup.initialization -ne $journal.initialization -or $backup.previous_image -ne $journal.previous_image) {
         throw 'Existing upgrade backup ownership/format differs'
+    }
+    $application = ApplicationFiles $backup.application.path
+    if ($application.Count -ne $backup.application.files.Count) { throw 'Application backup file roster changed' }
+    foreach ($name in $application.Keys) {
+        if (-not $backup.application.files.ContainsKey($name) -or $application[$name].bytes -ne $backup.application.files[$name].bytes -or
+            $application[$name].sha256 -ne $backup.application.files[$name].sha256) { throw 'Application backup file bytes changed' }
     }
     $actual = BackupFiles $backup.path
     if ($actual.Count -ne $backup.files.Count) { throw 'Physical backup file roster changed' }
@@ -138,8 +180,14 @@ try {
         $journal = @{schema='vectorflow-upgrade-v1';status='ADMITTED';phase='ADMISSION';project=$config.name;
             initialization=$binding.initialization_id;operation_root=$operationRoot;requested_image=$Image;
             build=[bool]$Build;maintenance=$false;apply_started=$false;applied=$false;binding_sha256=$bindingHash}
-        $journal.backup_directory = if ($BackupDirectory) { Resolve-VfProjectPath $projectRoot $BackupDirectory } else { $operationRoot }
         $sourcePrefix = [IO.Path]::GetFullPath($projectRoot).TrimEnd([char[]]'\/') + [IO.Path]::DirectorySeparatorChar
+        $defaultBackup = $operationRoot
+        if ([IO.Path]::GetFullPath($operationRoot).StartsWith($sourcePrefix,[StringComparison]::OrdinalIgnoreCase)) {
+            # A normal installation keeps operations under data/operations.
+            # Select an external sibling automatically, without operator wiring.
+            $defaultBackup = Join-Path (Join-Path (Split-Path $projectRoot -Parent) ($config.name + '-backups')) (Split-Path $operationRoot -Leaf)
+        }
+        $journal.backup_directory = if ($BackupDirectory) { Resolve-VfProjectPath $projectRoot $BackupDirectory } else { $defaultBackup }
         $backupPrefix = [IO.Path]::GetFullPath($journal.backup_directory).TrimEnd([char[]]'\/') + [IO.Path]::DirectorySeparatorChar
         if ($backupPrefix.StartsWith($sourcePrefix,[StringComparison]::OrdinalIgnoreCase)) {
             throw 'Keep production backups outside the source distribution; configure external operations storage or pass -BackupDirectory'
@@ -150,6 +198,18 @@ try {
         $running = @(DockerCall -Arguments @('inspect',$mta) -Json)[0]
         if (-not $running.State.Running -or $running.Image -notmatch '^sha256:[0-9a-f]{64}$') { throw 'Cannot authenticate current running MTA image' }
         $journal.previous_image = $running.Image
+        $journal.previous_container = $mta
+        # Retain the original private deployment before source-image overrides.
+        # These recovery files are never printed and stay outside Git.
+        $journal.application_directory = Join-Path $journal.backup_directory ('application-' + (Split-Path $operationRoot -Leaf))
+        $null = New-Item -ItemType Directory -Force -Path $journal.application_directory
+        Write-VfUtf8 (Join-Path $journal.application_directory 'compose.original.private.json') ($config | ConvertTo-Json -Depth 100)
+        [IO.File]::Copy((Join-Path $projectRoot '.env'),(Join-Path $journal.application_directory 'original.env'),$false)
+        [IO.File]::Copy($bindingFile,(Join-Path $journal.application_directory 'binding.json'),$false)
+        $journal.original_files = @{}
+        foreach ($name in @('compose.original.private.json','original.env','binding.json')) {
+            $journal.original_files[$name] = (Get-FileHash -LiteralPath (Join-Path $journal.application_directory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
+        }
         $journal.retained_services = @{}
         foreach ($service in @('frontend','auth','mto')) {
             if ($config.services[$service]) {
@@ -257,7 +317,8 @@ try {
             if (-not $postgres) { throw 'Existing PostgreSQL container missing' }
             $null = DockerCall -Arguments @('cp',($postgres + ':' + $remote),$backupPath)
             $backupFiles = BackupFiles $backupPath
-            $journal.backup = @{path=$backupPath;files=$backupFiles;format='postgres-basebackup-tar-gzip-fetch-v1';
+            $applicationBackup = CaptureApplicationBackup
+            $journal.backup = @{path=$backupPath;files=$backupFiles;application=$applicationBackup;format='postgres-basebackup-tar-gzip-fetch-v1';
                 recovery='Offline coordinated restore of this dedicated PostgreSQL cluster with its MTA work/configuration/secrets; never restore automatically';
                 database=$databaseName;project=$journal.project;initialization=$journal.initialization;previous_image=$journal.previous_image}
             $journal.phase='BACKED_UP'; SaveJournal

@@ -46,7 +46,7 @@ class DockerStub {
    Console.WriteLine(json.Serialize(new[]{new {Id=target}}));
   } else if (args[0] == "inspect") {
    string image = File.Exists(Path.Combine(folder,"started")) ? target : oldImage;
-   Console.WriteLine(json.Serialize(new[]{new {Image=image,State=new {Running=true}}}));
+   Console.WriteLine(json.Serialize(new[]{new {Image=image,State=new {Running=!File.Exists(Path.Combine(folder,"stopped"))}}}));
   } else if (args.Contains("--network")) {
    if (args.Contains(oldImage)) Console.WriteLine(json.Serialize(new {schema="vectorflow-native-release-source-v1",source_commit=new string('c',40),manifest_sha256=new string('e',64),source_files_digest=new string('f',64),migrations_digest=new string('1',64),implementation_sha256=new string('2',64)}));
    else Console.WriteLine("{\"schema\":\"vectorflow-native-release-source-v1\",\"source_commit\":\""+new string('d',40)+"\",\"files\":{}}");
@@ -67,14 +67,23 @@ class DockerStub {
    if (phase == "apply" && Environment.GetEnvironmentVariable("VF_UPGRADE_FAIL_APPLY") == "after") return 1;
   } else if (args[0] == "cp") {
    Directory.CreateDirectory(args[2]);
-   File.WriteAllBytes(Path.Combine(args[2],"base.tar.gz"),new byte[]{31,139,8,0,1,2,10});
-   File.WriteAllText(Path.Combine(args[2],"backup_manifest"),"{\"PostgreSQL-Backup-Manifest-Version\":2}",new UTF8Encoding(false));
+   if (args[1].Contains(":/var/lib/vectorflow/")) {
+    File.WriteAllText(Path.Combine(args[2],"selection.json"),"{\"run_id\":\"run-existing\"}",new UTF8Encoding(false));
+    Directory.CreateDirectory(Path.Combine(args[2],"daily"));
+    File.WriteAllText(Path.Combine(args[2],"daily/native-day.json"),"retained original work",new UTF8Encoding(false));
+   } else {
+    File.WriteAllBytes(Path.Combine(args[2],"base.tar.gz"),new byte[]{31,139,8,0,1,2,10});
+    File.WriteAllText(Path.Combine(args[2],"backup_manifest"),"{\"PostgreSQL-Backup-Manifest-Version\":2}",new UTF8Encoding(false));
+   }
+  } else if (args.Contains("stop")) {
+   File.WriteAllText(Path.Combine(folder,"stopped"),"stopped");
   } else if (args.Contains("up")) {
    File.WriteAllText(Path.Combine(folder,"started"),target);
+   if (File.Exists(Path.Combine(folder,"stopped"))) File.Delete(Path.Combine(folder,"stopped"));
    if (Environment.GetEnvironmentVariable("VF_UPGRADE_FAIL_START") == "1") return 1;
   } else if (args.Contains("release.daily_serving_check")) {
    Console.WriteLine("{\"ready\":true,\"run_id\":\"run-existing\",\"output_digest\":\"digest-existing\"}");
-  } else if (args.Contains("ps")) { Console.WriteLine(args.Last()+"-container"); }
+  } else if (args.Contains("ps")) { Console.WriteLine(args.Last()+((args.Last()=="mta" && Environment.GetEnvironmentVariable("VF_UPGRADE_RESTARTED")=="1") ? "-restarted-container" : "-container")); }
   return 0;
  }
 }''', encoding='utf-8')
@@ -116,7 +125,8 @@ class DockerStub {
         return [json.loads(line) for line in (root / 'calls.jsonl').read_text().splitlines()]
 
     def journal(self, root):
-        return json.loads((root.parent / 'state/upgrade.json').read_text())
+        state = json.loads((root / 'config.json').read_text())['x-vectorflow-daily']['state_dir']
+        return json.loads((Path(state) / 'upgrade.json').read_text())
 
     def test_build_backup_apply_and_only_mta_replacement_in_both_shells(self):
         for shell in ('powershell.exe', 'pwsh'):
@@ -174,6 +184,23 @@ class DockerStub {
                     actual = json.loads(resolved.stdout)
                     self.assertEqual(actual['services']['mta']['image'], TARGET)
                     self.assertEqual(actual['services']['provision']['environment']['PG_ADMIN_USER'], 'postgres')
+
+    def test_default_internal_operations_chooses_external_backup_in_both_shells(self):
+        for shell in ('powershell.exe', 'pwsh'):
+            with self.subTest(shell=shell):
+                root = self.fixture()
+                config = json.loads((root / 'config.json').read_text())
+                state = root / 'data/operations'
+                state.mkdir(parents=True)
+                config['x-vectorflow-daily']['state_dir'] = str(state)
+                (root / 'config.json').write_text(json.dumps(config))
+                result = self.run_upgrade(shell, root, '-Build')
+                self.assertEqual(result.returncode, 0, result.stderr)
+                journal = self.journal(root)
+                backup = Path(journal['backup']['path'])
+                self.assertFalse(backup.is_relative_to(root))
+                self.assertEqual(backup.parent.parent, root.parent / 'owned-project-backups')
+                self.assertEqual(journal['status'], 'COMPLETE')
 
     def test_inspection_stages_image_without_backup_stop_or_apply_and_resumes(self):
         for shell in ('powershell.exe', 'pwsh'):
@@ -245,6 +272,36 @@ class DockerStub {
                 self.assertFalse(any(c[0] == 'cp' or any('pg_basebackup ' in a for a in c) for c in calls))
                 self.assertEqual(self.journal(root)['backup'], previous_backup)
                 self.assertEqual(self.journal(root)['status'], 'COMPLETE')
+
+    def test_inspect_resume_allows_same_image_container_restart(self):
+        for shell in ('powershell.exe', 'pwsh'):
+            with self.subTest(shell=shell):
+                root = self.fixture()
+                result = self.run_upgrade(shell, root, '-Build', '-InspectOnly')
+                self.assertEqual(result.returncode, 0, result.stderr)
+                result = self.run_upgrade(shell, root, '-Resume', VF_UPGRADE_RESTARTED='1')
+                self.assertEqual(result.returncode, 0, result.stderr)
+                work_copy = next(c for c in self.calls(root) if c[0]=='cp' and ':/var/lib/vectorflow/' in c[1])
+                self.assertEqual(work_copy[1], 'mta-restarted-container:/var/lib/vectorflow/.')
+
+    def test_changed_application_recovery_files_block_resume(self):
+        for shell in ('powershell.exe', 'pwsh'):
+            with self.subTest(shell=shell):
+                root = self.fixture()
+                result = self.run_upgrade(shell, root, '-Image', 'supplied:target', VF_UPGRADE_FAIL_START='1')
+                self.assertNotEqual(result.returncode, 0)
+                backup = self.journal(root)['backup']['application']
+                files = backup['files']
+                self.assertIn('mta-work/daily/native-day.json', files)
+                original_env = (Path(backup['path']) / 'original.env').read_text()
+                self.assertIn('KEEP="private unchanged"', original_env)
+                self.assertNotIn('compose.deployment.json', original_env)
+                self.assertFalse(Path(self.journal(root)['operation_root'], 'original-compose.private.json').exists())
+                Path(backup['path'], 'mta-work/selection.json').write_bytes(b'tampered')
+                before = len(self.calls(root))
+                result = self.run_upgrade(shell, root, '-Resume')
+                self.assertNotEqual(result.returncode, 0)
+                self.assertFalse(any('--phase' in c or 'up' in c for c in self.calls(root)[before:]))
 
     def test_backup_extra_file_blocks_resume_before_database_or_start(self):
         for shell in ('powershell.exe', 'pwsh'):

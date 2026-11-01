@@ -13,6 +13,10 @@ There are two installation routes. Both must end at a blank application; master/
 
 Do not use the historical root runbook, preview Compose files or workstation validation scripts to install a production target. Public deployment/cutover needs its destination, HTTPS/WSS, capacity and recovery decisions; localhost acceptance does not establish those.
 
+## Update an existing installation
+
+Use the repository-owned [routine upgrade command](release/UPGRADE.md) for compatible MTA patches and forward migrations. Preserve the existing deployment configuration and data; do not repeat installation or initialization.
+
 ## Repository layout
 
 | Path | Purpose |

@@ -16,7 +16,6 @@ def _qualified_ownership(run):
     from mta.runtime.accepted_state_ownership import verify_guards
     from mta.runtime import accepted_state_transition as ownership
     from mta.runtime import ingestion_admission as ingestion
-    from mta.runtime import ingestion_authority as authority
     from mta.runtime.initialization_models import ProductionInitialization
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
 
@@ -31,15 +30,13 @@ def _qualified_ownership(run):
         owner = ProductionInitialization.objects.values_list('id', flat=True).get(source_id=source)
         release = ingestion._process_release(os.environ.get('VF_NATIVE_RELEASE_COMMIT'),
                                              os.environ.get('VF_NATIVE_RELEASE_SHA256'))
-        body = authority.read(cursor, owner, release['manifest_sha256'])
-        cert, anchor, schema, guard, _ = ingestion.effective_schema(cursor, body)
-        extension = authority.read_schema_transition(cursor, anchor)
-        if extension is not None:
-            return ownership.approved_receipt(extension)
-        # A fresh original certification may already cover these guards. An
-        # old certification with a later, unqualified extension cannot qualify.
-        return (anchor['target_release'] == cert['release_digest']
-                and schema == cert['schema_digest'] and guard == cert['guard_digest'])
+        # Authenticate the running reader, then validate the original certified
+        # installation and actual migrated schema/guards. A code patch is not
+        # a new producer of this accepted publication and needs no DB authority
+        # row keyed by its manifest. Exact accepted-state guards above remain
+        # mandatory for this bounded startup path.
+        ingestion._admit(cursor, owner, release, pending=True)
+        return True
 
 
 def _summary_ready(run):
