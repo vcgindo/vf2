@@ -71,6 +71,7 @@ class DockerStub {
     File.WriteAllText(Path.Combine(args[2],"selection.json"),"{\"run_id\":\"run-existing\"}",new UTF8Encoding(false));
     Directory.CreateDirectory(Path.Combine(args[2],"daily"));
     File.WriteAllText(Path.Combine(args[2],"daily/native-day.json"),"retained original work",new UTF8Encoding(false));
+
    } else {
     File.WriteAllBytes(Path.Combine(args[2],"base.tar.gz"),new byte[]{31,139,8,0,1,2,10});
     File.WriteAllText(Path.Combine(args[2],"backup_manifest"),"{\"PostgreSQL-Backup-Manifest-Version\":2}",new UTF8Encoding(false));
@@ -272,6 +273,40 @@ class DockerStub {
                 self.assertFalse(any(c[0] == 'cp' or any('pg_basebackup ' in a for a in c) for c in calls))
                 self.assertEqual(self.journal(root)['backup'], previous_backup)
                 self.assertEqual(self.journal(root)['status'], 'COMPLETE')
+
+    def test_nested_backup_hashes_beyond_windows_max_path_in_both_shells(self):
+        root = self.root / 'long-backup'
+        root.mkdir()
+        for name in ('original.env','binding.json','compose.original.private.json'):
+            (root/name).write_bytes(b'original')
+        (root/'mta-work').mkdir()
+        (root/'mta-work/selection.json').write_bytes(b'selected')
+        deep = root/'mta-work'/('x'*170)/'native-day.json'
+        extended = '\\\\?\\'+str(deep)
+        os.makedirs(os.path.dirname(extended), exist_ok=True)
+        with open(extended, 'wb') as stream:
+            stream.write(b'deep retained bytes')
+        self.assertGreater(len(str(deep)), 260)
+        text = (ROOT/'release/run_upgrade.ps1').read_text()
+        functions = text[text.index('function UpgradeFileHash'):text.index('function VerifyBackup')]
+        script = self.root/'hash-long.ps1'
+        script.write_text("param([string]$Root)\n. '"+str(ROOT/'release/powershell_compat.ps1')+"'\n"+functions+
+                          "\nApplicationFiles $Root | ConvertTo-Json -Depth 8\n")
+        try:
+            for shell in ('powershell.exe','pwsh'):
+                with self.subTest(shell=shell):
+                    result = subprocess.run([shell,'-NoProfile','-File',str(script),str(root)],
+                                            env=self.env,capture_output=True,text=True)
+                    self.assertEqual(result.returncode,0,result.stderr)
+                    files = json.loads(result.stdout)
+                    relative = deep.relative_to(root).as_posix()
+                    self.assertEqual(files[relative],dict(bytes=19,sha256=hashlib.sha256(b'deep retained bytes').hexdigest()))
+        finally:
+            # Remove only the two exact paths this test created, using the same
+            # Windows API spelling; ordinary tempfile cleanup cannot see them.
+            assert deep.is_relative_to(root.resolve())
+            os.unlink(extended)
+            os.rmdir('\\\\?\\'+str(deep.parent))
 
     def test_inspect_resume_allows_same_image_container_restart(self):
         for shell in ('powershell.exe', 'pwsh'):

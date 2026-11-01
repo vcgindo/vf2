@@ -48,6 +48,17 @@ function SaveJournal {
     else { [IO.File]::Move($temporary,$journalPath) }
 }
 function WriteSnapshot { Write-VfUtf8 $privateConfig ($config | ConvertTo-Json -Depth 100) }
+function UpgradeFileHash([string]$Path) {
+    # Windows PowerShell 5.1 Get-FileHash cannot open a valid nested backup
+    # path at MAX_PATH. Stream the same SHA256 through the extended Win32 path.
+    $full = [IO.Path]::GetFullPath($Path)
+    if ($full.StartsWith('\\')) { $full = '\\?\UNC\' + $full.Substring(2) }
+    else { $full = '\\?\' + $full }
+    $stream = [IO.File]::OpenRead($full)
+    $hash = [Security.Cryptography.SHA256]::Create()
+    try { return [BitConverter]::ToString($hash.ComputeHash($stream)).Replace('-','').ToLowerInvariant() }
+    finally { $stream.Dispose(); $hash.Dispose() }
+}
 function BackupFiles([string]$Root) {
     if (-not (Test-Path -LiteralPath $Root -PathType Container)) { throw 'Physical upgrade backup directory is missing' }
     $result = @{}
@@ -58,7 +69,7 @@ function BackupFiles([string]$Root) {
             if ($name -notin @('base.tar.gz','pg_wal.tar.gz','backup_manifest') -or $file.Length -eq 0) {
                 throw 'Unsupported physical backup file/tablespace layout; dedicated cluster prerequisites require diagnosis'
             }
-            $result[$name] = @{bytes=$file.Length;sha256=(Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()}
+            $result[$name] = @{bytes=$file.Length;sha256=(UpgradeFileHash $file.FullName)}
         }
     }
     if (-not $result.ContainsKey('base.tar.gz') -or -not $result.ContainsKey('backup_manifest')) { throw 'Physical cluster backup is incomplete' }
@@ -71,7 +82,7 @@ function ApplicationFiles([string]$Root) {
         if ($file.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Application backup cannot contain symbolic links' }
         if (-not $file.PSIsContainer) {
             $name = Get-VfRelativePath $Root $file.FullName
-            $result[$name] = @{bytes=$file.Length;sha256=(Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()}
+            $result[$name] = @{bytes=$file.Length;sha256=(UpgradeFileHash $file.FullName)}
         }
     }
     foreach ($name in @('original.env','binding.json','compose.original.private.json','mta-work/selection.json')) {
