@@ -27,6 +27,7 @@ $binding = Get-Item -LiteralPath $daily.binding_file
 $profile = Join-Path $binding.DirectoryName 'config/scope-validation.json'
 if ($scopePolicy -eq 'retained-test' -and -not (Test-Path -LiteralPath $profile -PathType Leaf)) { throw 'The retained-test mode requires config/scope-validation.json; choose generic explicitly for the packaged production profile' }
 $stateRoot = [IO.Path]::GetFullPath($daily.state_dir)
+Assert-VfUpgradeIdle -StateRoot $stateRoot
 $null = New-Item -ItemType Directory -Force -Path $stateRoot
 $operationRoot = Join-Path $stateRoot ('scope-' + [guid]::NewGuid().ToString('N'))
 $null = New-Item -ItemType Directory -Path $operationRoot

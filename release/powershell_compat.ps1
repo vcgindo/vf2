@@ -94,3 +94,12 @@ function Write-VfEnvironment([string]$Root, [hashtable]$Changes) {
         [IO.File]::Replace($candidate,$path,[NullString]::Value)
     } finally { Remove-Item -LiteralPath $candidate -Force -ErrorAction SilentlyContinue }
 }
+
+function Assert-VfUpgradeIdle([string]$StateRoot) {
+    $path=Join-Path $StateRoot 'upgrade.json'
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { return }
+    $upgrade=ConvertFrom-VfJson ([IO.File]::ReadAllText($path))
+    if ($upgrade.ContainsKey('maintenance') -and $upgrade.maintenance -eq $true) {
+        throw 'Production upgrade maintenance is active. Preserve the journal and use ./vf.ps1 upgrade -Resume before daily/scoped work.'
+    }
+}

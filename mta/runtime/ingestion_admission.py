@@ -355,10 +355,11 @@ class CertifiedReadiness:
 
 @stage('release_admission')
 def _admit(cursor, initialization_id, release, *, pending=False):
-    body = authority.read(cursor, initialization_id, release['manifest_sha256'])
-    if body['target_commit'] != release['source_commit']:
-        raise ValueError('Release authority targets another commit')
-    cert = validate_activation(cursor, body)
+    # Artifact authentication belongs to _process_release/require_current.
+    # Database compatibility belongs to its actual schema and original sealed
+    # owners, not an append-only permission for every application commit.
+    from mta.runtime.schema_admission import validate as validate_schema
+    cert = validate_schema(cursor, initialization_id, release)
     from mta.runtime.initialization_models import ProductionInitialization
     from mta.runtime.ingestion_models import IngestionRevisionState, MasterInputRevision
     owner = ProductionInitialization.objects.values('source__digest', 'input_digest', 'configuration_digest',

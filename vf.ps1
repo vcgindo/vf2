@@ -5,18 +5,33 @@ DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend pre
 #>
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory,Position=0)][ValidateSet('csv-sample','csv-init','csv-day','csv-scope')][string]$Operation,
+    [Parameter(Mandatory,Position=0)][ValidateSet('csv-sample','csv-init','csv-day','csv-scope','upgrade')][string]$Operation,
     [Parameter(Position=1)][string]$BusinessDate,
     [ValidateSet('Full','UptoBPR','PostBPR','UptoDBM','PostDBM')][string]$Scope,
     [switch]$InspectOnly,
     [switch]$Resume,
-    [switch]$Reconcile
+    [switch]$Reconcile,
+    [switch]$Build,
+    [string]$Image,
+    [string]$BackupDirectory
 )
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
 . "$PSScriptRoot/release/powershell_compat.ps1"
 Push-Location $PSScriptRoot
 try {
+    if ($Operation -eq 'upgrade') {
+        if ($BusinessDate -or $Scope -or $Reconcile) { throw 'upgrade takes -Build or -Image, optional -InspectOnly, -Resume and -BackupDirectory' }
+        & "$PSScriptRoot/release/run_upgrade.ps1" -Build:$Build -Image $Image -InspectOnly:$InspectOnly -Resume:$Resume -BackupDirectory $BackupDirectory
+        return
+    }
+    if ($Build -or $Image -or $BackupDirectory) { throw '-Build, -Image and -BackupDirectory belong to upgrade' }
+    $configText = & docker compose --profile daily config --format json
+    if ($LASTEXITCODE -ne 0) { throw 'Compose configuration failed' }
+    $config = ConvertFrom-VfJson ($configText -join "`n")
+    if ($config['x-vectorflow-daily']['state_dir']) {
+        Assert-VfUpgradeIdle (Resolve-VfProjectPath $PSScriptRoot $config['x-vectorflow-daily']['state_dir'])
+    }
     if ($Operation -eq 'csv-scope') {
         if (-not $BusinessDate -or -not $Scope) { throw 'Usage: ./vf.ps1 csv-scope YYYY-MM-DD -Scope Full|UptoBPR|PostBPR|UptoDBM|PostDBM' }
         & "$PSScriptRoot/release/run_csv_scope.ps1" -BusinessDate $BusinessDate -Scope $Scope -InspectOnly:$InspectOnly -Resume:$Resume -Reconcile:$Reconcile
@@ -24,9 +39,6 @@ try {
     }
     if ($Scope) { throw '-Scope belongs to csv-scope; other commands retain their existing behavior' }
     if ($Reconcile) { throw '-Reconcile belongs to csv-scope' }
-    $configText = & docker compose --profile daily config --format json
-    if ($LASTEXITCODE -ne 0) { throw 'Compose configuration failed' }
-    $config = ConvertFrom-VfJson ($configText -join "`n")
     if ($Operation -eq 'csv-day') {
         if (-not $BusinessDate) { throw 'Usage: ./vf.ps1 csv-day YYYY-MM-DD' }
         & "$PSScriptRoot/release/run_daily.ps1" -BusinessDate $BusinessDate -InspectOnly:$InspectOnly -Resume:$Resume

@@ -123,10 +123,11 @@ def export(repository, revision, destination):
     value = dict(restriction='**DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**', schema=SCHEMA, source_commit=commit, files=dict(sorted(records.items())),
         default_data_import=False, qualification='Source export only; image/platform/install/UI proof is separate. Required native SQL/migrations/security/source-integrity libraries retained; no customer/test DB, computed output seed or secret copied.')
     destination.mkdir(parents=True, exist_ok=True)
-    (destination/'release-source.json').write_text(json.dumps(value,indent=2)+'\n',encoding='utf-8')
+    # Generated identities must hash to the same bytes on Windows and Linux.
+    (destination/'release-source.json').write_bytes((json.dumps(value,indent=2)+'\n').encode('utf-8'))
     from release.native_identity import declaration, MANIFEST
     native = declaration(destination, commit, records)
-    (destination/MANIFEST).write_text(json.dumps(native, sort_keys=True, indent=2)+'\n', encoding='utf-8')
+    (destination/MANIFEST).write_bytes((json.dumps(native, sort_keys=True, indent=2)+'\n').encode('utf-8'))
     return value
 
 

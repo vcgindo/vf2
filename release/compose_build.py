@@ -42,7 +42,7 @@ def build(repository, output):
                       commit=commit, source_sha256=source_sha, native_sha256=native_sha)
     identity = dict(source_commit=commit, source_sha256=source_sha, native_sha256=native_sha,
                     packaging_tool_sha256=context['packaging_tool_sha256'])
-    (output / 'identity.json').write_text(json.dumps(identity, sort_keys=True, indent=2) + '\n')
+    (output / 'identity.json').write_bytes((json.dumps(identity, sort_keys=True, indent=2) + '\n').encode('utf-8'))
     print(json.dumps(identity, sort_keys=True))
 
 

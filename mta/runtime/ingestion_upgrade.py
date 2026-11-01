@@ -81,40 +81,30 @@ def _origin(source):
 
 
 def _certified_origin(cursor,source,owner,release,original,capability):
-    """An explicitly activated current-schema advance of a genuine fresh origin.
+    """Preserve the actual producer after schema-based reader admission.
 
     No producer is inferred from a matching hash or a caller's metadata. The
     original immutable registration/certificate/integration and live target
-    authority must all join. Historical baseline auditing stays pinned above.
+    schema admission have already joined in _origin. There is no permission
+    row for the currently executing application commit. Historical baseline
+    auditing stays pinned above for the old format that actually needs it.
     """
     from mta.runtime.ingestion_admission import _certificate
-    from mta.runtime.ingestion_authority import read
     cert=_certificate(owner.pk)
-    authority=read(cursor,owner.pk,release['manifest_sha256'])
+    from mta.runtime.ingestion_context import sha
+    sha(cert['receipt_digest']);sha(cert['populations']['integration'])
     origin=capability['release_identity']
     if (digest(source.receipt)!=source.digest or cert['source_digest']!=source.digest
             or str(cert['initialization_id'])!=str(owner.pk)
-            or authority['initialization_id']!=str(owner.pk)
             or str(cert['namespace'])!=original['registration_id']
-            or authority['namespace']!=original['registration_id']
             or cert['database_name']!=original['database_name']
             or cert['database_oid']!=original['database_oid']
-            or authority['database_name']!=original['database_name']
-            or authority['database_oid']!=original['database_oid']
-            or authority['source_digest']!=source.digest
-            or authority['target_commit']!=release['source_commit']
-            or authority['target_release']!=release['manifest_sha256']
             or cert['release_digest']!=origin['manifest_sha256']
             or source.implementation_digest!=capability['implementation_sha256']
             or original['adapter_sha256']!=capability['implementation_sha256']
             or origin['implementation_sha256']!=capability['implementation_sha256']
-            or authority['original_commit']!=origin['source_commit']
-            or authority['original_release']!=origin['manifest_sha256']
-            or authority['original_registration_digest']!=digest(original)
-            or authority['original_capability_digest']!=capability['receipt_digest']
-            or authority['certification_digest']!=cert['receipt_digest']
             or source.receipt.get('owned_namespace')!={**capability,'artifact_sha256':original['artifact_sha256']}):
-        raise ValueError('Certified fresh origin differs from its original activated authority')
+        raise ValueError('Certified fresh origin differs from its original producer')
     return dict(source_digest=source.digest,capability=capability,original=original,
                 integration_digest=cert['populations']['integration'])
 

@@ -38,10 +38,18 @@ def configuration_identity(*, access=None):
 @once_per_request
 def recipe_identity():
     from mta.presentation import daily_preparation
-    from mta.presentation import expedite_child_sources, planning_expedite_sql, planning_git_sql, daily_git_count
-    from mta.presentation import daily_git_charts, daily_git_custom, daily_git_read, daily_git_preparation, git_read
-    value = dict(roster=daily_preparation.roster_identity(), layers=daily_preparation.required_layers(), coordinator=inspect.getsource(daily_preparation), publication=inspect.getsource(prepare), daily_shipment_consumers={module.__name__: inspect.getsource(module) for module in (expedite_child_sources, planning_expedite_sql, planning_git_sql, daily_git_count, daily_git_charts, daily_git_custom, daily_git_read, daily_git_preparation, git_read)})
-    return digest(value)
+    # Coordinator implementation is artifact provenance, not a persisted data
+    # format. Layer producers retain their own source/dependency identities.
+    return digest(dict(contract='daily-ui-publication-v1',
+        roster=daily_preparation.roster_identity(),layers=daily_preparation.required_layers()))
+
+
+def supported_recipe(recipe):
+    # The deployed v1 format predates an explicit coordinator contract. This
+    # single historical decoder boundary preserves that format without rewriting
+    # old receipts. Future code-only patches use recipe_identity unchanged.
+    return recipe in (recipe_identity(),
+        '229b0219c8fa70cb4c9e503345d1450e233d4b555c06fe5331bbdf8354d4c870')
 
 
 def source_identity(run):
@@ -97,11 +105,19 @@ def prepare(run_id, *, expected_output_digest):
         identities = dict(output_digest=run.output_digest, source_digest=source_identity(run),
             configuration_digest=configuration_identity(), recipe_digest=recipe_identity())
         publication, created = DailyUiPublication.objects.get_or_create(run=run, defaults=identities)
-        if any(getattr(publication, key) != value for key, value in identities.items()):
+        # The recorded coordinator recipe identifies its original producer.
+        # It is not a data-format contract and a new coordinator must not force
+        # regeneration/resealing of unchanged accepted layers. Source, output,
+        # configuration, finite layer roster and layer-specific readers remain
+        # strict; new layer builders still issue their own typed receipts.
+        if any(getattr(publication, key) != value for key, value in identities.items()
+               if key != 'recipe_digest'):
             raise PublicationUnavailable('daily_publication_identity_changed')
         if publication.status == 'READY':
             require_ready(run)
             return publication
+        if publication.recipe_digest != identities['recipe_digest']:
+            raise PublicationUnavailable('incomplete_publication_producer_changed')
         attempt = DailyUiPublicationAttempt.objects.create(publication=publication)
         layers = dict(publication.layers)
         results = {}
@@ -113,6 +129,9 @@ def prepare(run_id, *, expected_output_digest):
                             cursor.execute("SELECT set_config('fresh.daily_publication_build', %s, true)", [str(run.pk)])
                         if name in layers and layers[name].get('status') == 'READY':
                             result = layers[name]
+                            verify_layer = __import__('mta.presentation.daily_preparation',
+                                fromlist=['verify_layer']).verify_layer
+                            verify_layer(run,name,result['receipt'])
                         else:
                             with stage('ui_layer_prepare',layer=name):
                                 result = dict(status='READY', receipt=bounded(prepare_layer(run, name)))
@@ -159,7 +178,7 @@ def require_ready(run, *, verify_rows=False):
     if publication is None:
         raise PublicationUnavailable('daily_ui_publication_not_ready')
     if (publication.output_digest != run.output_digest or publication.source_digest != source_identity(run)
-            or publication.recipe_digest != recipe_identity()
+            or not supported_recipe(publication.recipe_digest)
             or set(publication.layers) != set(layers_required)
             or any(value.get('status') != 'READY' for value in publication.layers.values())
             or publication.seal_digest != seal_identity(publication)):

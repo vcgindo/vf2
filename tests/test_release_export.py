@@ -76,7 +76,7 @@ class ReleaseExportTests(unittest.TestCase):
                               ('frontend/tsconfig.paths.json', b'{"compilerOptions":{"baseUrl":"."}}\n'),
                               ('mta/mdm/initialization.py', b"IMPLEMENTATION_FILES = ('mdm/initialization.py',)\n"),
                               ('mta/runtime/migrations/0142_native_evidence_default.py', b'# migration\n'),
-                              ('vectorflow/settings.py', b'# settings\n'),
+                              ('vectorflow/settings.py', b'# settings\r\n'),
                               ('baseline/production-state-schema.json', b'{}\n'),
                               (schema_name, schema),
                               ('baseline/manifest.json', b'not-exported'),
@@ -97,13 +97,21 @@ class ReleaseExportTests(unittest.TestCase):
                 'mta/mdm/initialization.py', 'mta/runtime/migrations/0142_native_evidence_default.py',
                 'vectorflow/settings.py', 'baseline/production-state-schema.json', schema_name, *delivery_commands})
             self.assertEqual((destination/schema_name).read_bytes(), schema)
+            self.assertEqual((destination/'vectorflow/settings.py').read_bytes(), b'# settings\r\n')
+            self.assertEqual(receipt['files']['vectorflow/settings.py'],
+                             hashlib.sha256(b'# settings\r\n').hexdigest())
             self.assertEqual(receipt['files'][schema_name], schema_sha)
             self.assertEqual((destination/'.dockerignore').read_bytes(),b'**/secrets\n')
             self.assertFalse((destination/'release/secrets/password').exists())
             self.assertEqual(json.loads((destination/'release-source.json').read_text())['source_commit'],'a'*40)
+            self.assertEqual((destination/'release-source.json').read_bytes(),
+                             (json.dumps(receipt, indent=2) + '\n').encode('utf-8'))
             from release.native_identity import MANIFEST
             native = json.loads((destination/MANIFEST).read_text())
+            self.assertEqual((destination/MANIFEST).read_bytes(),
+                             (json.dumps(native, sort_keys=True, indent=2) + '\n').encode('utf-8'))
             self.assertEqual(native['source_commit'], 'a'*40)
+            self.assertEqual(native['files'], {name: receipt['files'][name] for name in native['files']})
             self.assertEqual(native['files'][schema_name], schema_sha)
             for name, raw in delivery_commands.items():
                 self.assertEqual((destination/name).read_bytes(), raw)
@@ -112,3 +120,42 @@ class ReleaseExportTests(unittest.TestCase):
             self.assertNotIn('release/.dockerignore', native['files'])
             with self.assertRaisesRegex(ValueError,'existing targets'):
                 export(root/'repository','HEAD',destination)
+
+    def test_build_identity_has_canonical_bytes_and_authenticates_export_descriptors(self):
+        from release.compose_build import build
+
+        commit = 'a' * 40
+        source_raw = b'{\n  "source_commit": "' + commit.encode('ascii') + b'"\n}\n'
+        native_raw = b'{\n  "files": {}\n}\n'
+
+        def export_files(repository, revision, destination):
+            self.assertEqual(revision, commit)
+            frontend = destination / 'frontend'
+            frontend.mkdir(parents=True)
+            (frontend / 'tsconfig.json').write_bytes(b'{"extends":"./tsconfig.paths.json"}\n')
+            (frontend / 'tsconfig.paths.json').write_bytes(b'{}\n')
+            (destination / 'release-source.json').write_bytes(source_raw)
+            (destination / 'release-native-source.json').write_bytes(native_raw)
+            return {'source_commit': commit}
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            repository = root / 'repository'
+            (repository / '.git').mkdir(parents=True)
+            output = root / 'build'
+            with patch('release.compose_build.require_clean'), \
+                    patch('release.compose_build.subprocess.check_output', return_value=commit.encode('ascii')), \
+                    patch('release.compose_build.export', side_effect=export_files), \
+                    patch('release.compose_build.wheels') as wheels, \
+                    patch('release.compose_build.prepare', return_value={'packaging_tool_sha256': 'b' * 64}) as prepare, \
+                    patch('builtins.print'):
+                build(repository, output)
+            expected = dict(source_commit=commit, source_sha256=hashlib.sha256(source_raw).hexdigest(),
+                            native_sha256=hashlib.sha256(native_raw).hexdigest(), packaging_tool_sha256='b' * 64)
+            self.assertEqual((output / 'identity.json').read_bytes(),
+                             (json.dumps(expected, sort_keys=True, indent=2) + '\n').encode('utf-8'))
+            self.assertEqual(json.loads((output / 'identity.json').read_bytes()), expected)
+            wheels.assert_called_once_with(output / 'export', output / 'wheels')
+            prepare.assert_called_once_with(output / 'export', output / 'mta-context', output / 'wheels',
+                                           commit=commit, source_sha256=expected['source_sha256'],
+                                           native_sha256=expected['native_sha256'])

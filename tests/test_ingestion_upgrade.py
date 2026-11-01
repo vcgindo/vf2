@@ -102,12 +102,16 @@ class CertifiedFreshOriginTests(unittest.TestCase):
                 patch('mta.runtime.ingestion_authority.read',return_value=authority):
             return upgrade._certified_origin(None,source,owner,release,original,capability)
 
-    def test_exact_original_source_and_live_target_authority_required(self):
+    def test_original_source_preserved_without_current_commit_authority(self):
         values=self.fixture()
         self.assertEqual(self.resolve(values)['integration_digest'],'3'*64)
-        for key in values[-1]:
-            changed=deepcopy(values);changed[-1][key]='foreign'
-            with self.subTest(key=key),self.assertRaises(ValueError):self.resolve(changed)
+        # The caller has already admitted the live schema. Its original data
+        # producer does not change when another authenticated image reads it.
+        changed=deepcopy(values);changed[2].update(source_commit='9'*40,manifest_sha256='8'*64)
+        self.assertEqual(self.resolve(changed),self.resolve(values))
+        with patch('mta.runtime.ingestion_authority.read',side_effect=AssertionError('No current-commit authority lookup')), \
+                patch('mta.runtime.ingestion_admission._certificate',return_value=values[-2]):
+            upgrade._certified_origin(None,*values[:5])
         for key in ('initialization_id','namespace','database_name','database_oid','source_digest','release_digest','receipt_digest'):
             changed=deepcopy(values);changed[-2][key]='foreign'
             with self.subTest(certificate=key),self.assertRaises(ValueError):self.resolve(changed)

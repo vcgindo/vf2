@@ -23,7 +23,7 @@ MTA_RELEASE_FILES = frozenset('release/' + name for name in (
     '__init__.py', 'configuration.py', 'metadata_access.py', 'mta_settings.py', 'phase_selection.py',
     'native_identity.py', 'native_schema.py', 'provision.py', 'register_mta.py', 'initialize_csv.py', 'csv_onboarding.py', 'upgrade_ingestion.py', 'advance_ingestion.py',
     'service.py', 'daily_serving_check.py', 'owned-namespace.sql', 'requirements-mta.lock',
-    'mta-wheels.lock.json', 'images.lock.json', 'mta.Dockerfile'))
+    'mta-wheels.lock.json', 'images.lock.json', 'mta.Dockerfile', 'upgrade_database.py'))
 HISTORICAL_SETTINGS = ('VF_MDM_SELECTIVE_COMPATIBILITY_SHA256',
     'VF_MDM_REPORT_COMPATIBILITY_SHA256', 'VF_MDM_READ_COMPATIBILITY_SHA256',
     'VF_MDM_LOGISTICS_COMPATIBILITY_SHA256', 'VF_MDM_SEALED_EXPORT_SHA256',

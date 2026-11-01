@@ -30,6 +30,7 @@ $inputRoot = [IO.Path]::GetFullPath($daily.input_dir)
 $bindingFile = Get-Item -LiteralPath $daily.binding_file
 if ($bindingFile.PSIsContainer) { throw 'Binding must be a file' }
 $stateRoot = [IO.Path]::GetFullPath($daily.state_dir)
+Assert-VfUpgradeIdle -StateRoot $stateRoot
 $null = New-Item -ItemType Directory -Force -Path $stateRoot
 $lock = $null
 $maintenance = $false
