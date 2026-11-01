@@ -153,7 +153,7 @@ def _root(phase, value):
 
 
 def _recipe(*, production=False):
-    """Identify byte production; a sealed v1 archive keeps that original provenance."""
+    """Hash the current producer/codecs; sealed v1 archives keep their producer hash."""
     if production:
         from mta.application import (operational_inputs, operational_sqlcmd,
             operational_input_capture, operational_input_archive, operational_upload_logs,
