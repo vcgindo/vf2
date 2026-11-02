@@ -48,7 +48,7 @@ interface ActionToolBarProps {
   onChangeHorizon?: (value: number) => void;
   onApplyFilter?: (params: any) => void;
   planningCount?: PlanningCounts;
-  genericRecordCount: number;
+  genericRecordCount: number | undefined;
   onExportToExcelCallBack: any;
   multiFilter: any;
   setMultiFilter: any;

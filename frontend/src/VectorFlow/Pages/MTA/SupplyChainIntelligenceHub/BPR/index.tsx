@@ -176,7 +176,7 @@ const BPR = ()=>{
             />
               </Wrapper>
               
-                {BPRRowData?.length > 0 && 
+                {BPRRowData?.length > 0 && recordCount !== undefined &&
                 <>
                 <VFPagination
                     selectedRows={0}
