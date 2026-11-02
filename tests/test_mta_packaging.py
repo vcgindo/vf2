@@ -63,6 +63,7 @@ class MtaPackagingTests(unittest.TestCase):
         self.assertEqual(value['status'],'MTA_IMAGE_BUILD_COMPLETED_INSPECTION_STILL_REQUIRED')
         actual=packaging.files(self.work/'context/application')
         self.assertEqual(set(actual),set(self.native['files'])|{identity.MANIFEST})
+        self.assertIn('release/execution_settings_command.py',actual)
         self.assertFalse(any(n.startswith(('frontend/','mto/','user-service/')) for n in actual))
         self.assertNotIn('release/mta_packaging.py',actual)
         self.assertNotIn('release/optional_initialize.py',actual)
