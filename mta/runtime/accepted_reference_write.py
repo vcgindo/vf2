@@ -61,7 +61,12 @@ def _capture(run, raw, initialization, readiness, attempt, parent, *,
     preparation = run.production_manifest.get('ingestion_preparation')
     if not isinstance(preparation, dict):
         raise ValueError('Accepted reference capture preparation is absent')
-    expected = seed(readiness, reused=preparation.get('qualified_master_reuse') is True)
+    settings_ref=raw.get('execution_settings')
+    if settings_ref is not None:
+        from mta.runtime.execution_settings import require_snapshot
+        require_snapshot(initialization,raw['profile'],settings_ref,run.business_date)
+    expected = seed(readiness, reused=preparation.get('qualified_master_reuse') is True,
+        execution_settings=settings_ref)
     if preparation != expected:
         raise ValueError('Accepted reference capture preparation differs')
     if attempt is not None and (attempt.initialization_id != initialization.pk

@@ -16,6 +16,7 @@ from mta.application import persistent_master
 from mta.runtime import capture_preparation, execution_settings, run_input_references
 from mta.runtime.input_v3 import PROFILE_POPULATION_PATHS
 from mta.serialization import digest
+from tests import test_accepted_reference_write as accepted_harness
 
 
 class UnreadablePopulation(Sequence):
@@ -105,6 +106,87 @@ class CaptureConfigurationBindingTests(unittest.TestCase):
         self.assertEqual(body['execution_settings'], reference)
         self.assertEqual(capture_preparation.effective_configuration(body), 'e' * 64)
         self.assertTrue(body['qualified_master_reuse'])
+
+
+class AcceptedSettingsCaptureRegressionTests(unittest.TestCase):
+    def fixture(self):
+        harness = accepted_harness.AcceptedReferenceWriteTests()
+        f = harness.fixture()
+        # Keep the original initialization/certificate sealed. Only the new run
+        # carries the effective profile and its separately owned version.
+        f.raw['profile']['delivery']['batch'] = {'AutoDBMActive': 1}
+        f.owners.pop('input/profile')
+        version = SimpleNamespace(pk='settings-version', initialization_id=str(f.initialized.pk),
+            revision=2, effective_date=f.run.business_date, values_digest='e' * 64,
+            profile_digest=digest(f.raw['profile']))
+        ref = execution_settings.reference(version)
+        f.raw['execution_settings'] = ref
+        f.run.production_manifest['ingestion_preparation'] = capture_preparation.seed(
+            f.readiness, reused=True, execution_settings=ref)
+        self.rehash(f)
+        return harness, f, version
+
+    def rehash(self, f):
+        f.run.input_digest = accepted_harness.input_storage.content_root(f.raw, f.content_identity,
+            owner_references=f.owners, batch_references=f.batch)
+
+    def test_matching_frozen_reference_is_admitted_without_rebinding_initialization(self):
+        harness, f, version = self.fixture()
+        original_configuration = f.initialized.configuration_digest
+        with accepted_harness.opening_scope(), harness.metadata(f), \
+             patch('mta.runtime.execution_setting_models.ExecutionSettingsVersion.objects.get',
+                   return_value=version) as get_version, harness.issue(f):
+            capability = accepted_harness.accepted._for_write(f.run, f.raw,
+                accepted_harness.run_identity(f.run), f.owners, f.batch, f.content_identity)
+            self.assertIsNotNone(capability)
+            self.assertEqual(capability.seed['execution_settings'], f.raw['execution_settings'])
+            self.assertEqual(capability.seed['configuration_digest'], original_configuration)
+            self.assertEqual(capture_preparation.effective_configuration(capability.seed),
+                             digest(f.raw['profile']))
+            self.assertNotEqual(digest(f.raw['profile']), original_configuration)
+            get_version.assert_called_once_with(pk=version.pk, initialization=f.initialized,
+                                                status='COMMITTED')
+        self.assertEqual(f.initialized.configuration_digest, original_configuration)
+
+    def test_mismatched_preparation_and_raw_references_are_denied(self):
+        for mismatch in ('body-version', 'body-omitted', 'raw-omitted'):
+            harness, f, version = self.fixture()
+            body = f.run.production_manifest['ingestion_preparation']
+            if mismatch == 'body-version':
+                body['execution_settings'] = dict(f.raw['execution_settings'], revision=99)
+            elif mismatch == 'body-omitted':
+                body.pop('execution_settings')
+            else:
+                f.raw.pop('execution_settings')
+                self.rehash(f)
+            with self.subTest(mismatch=mismatch), accepted_harness.opening_scope(), \
+                 harness.metadata(f), \
+                 patch('mta.runtime.execution_setting_models.ExecutionSettingsVersion.objects.get',
+                       return_value=version), self.assertRaisesRegex(ValueError, 'preparation differs'):
+                with harness.issue(f):
+                    self.fail('Mismatched settings preparation must not issue a capability')
+
+    def test_foreign_and_future_version_denied_by_real_snapshot_validation(self):
+        for mismatch in ('foreign', 'future'):
+            harness, f, version = self.fixture()
+            if mismatch == 'foreign':
+                version.initialization_id = 'foreign-initialization'
+            else:
+                version.effective_date = date(2026, 4, 10)
+                ref = execution_settings.reference(version)
+                f.raw['execution_settings'] = ref
+                f.run.production_manifest['ingestion_preparation'] = capture_preparation.seed(
+                    f.readiness, reused=True, execution_settings=ref)
+                self.rehash(f)
+            with self.subTest(mismatch=mismatch), accepted_harness.opening_scope(), \
+                 harness.metadata(f), \
+                 patch('mta.runtime.execution_setting_models.ExecutionSettingsVersion.objects.get',
+                       return_value=version) as get_version:
+                with self.assertRaisesRegex(ValueError, 'ownership/date/profile differs'):
+                    with harness.issue(f):
+                        self.fail('Foreign/future settings must not issue a capability')
+                get_version.assert_called_once_with(pk=version.pk, initialization=f.initialized,
+                                                    status='COMMITTED')
 
 
 class PersistentMasterSettingsBindingTests(unittest.TestCase):

@@ -437,7 +437,8 @@ def resume(*, origin_run_id, execution_revision, expected, archive_path, second_
                 input_digest=old.input_digest,input_payload={},
                 opening_key=(digest(dict(identity=raw['opening']['identity'],revision=execution_revision))
                              if parent is None else None),
-                production_manifest={'ingestion_preparation':seed(ready,reused=False)})
+                production_manifest={'ingestion_preparation':seed(ready,reused=False,
+                    execution_settings=raw.get('execution_settings'))})
             finite_attempt={} if finite_continuation is None else {'recovery_origin':attempt}
             attempt_arguments=dict(initialization=owner,business_date=attempt.business_date,
                 batch_id=attempt.batch_id,batch_digest=attempt.batch_digest,binding_digest=attempt.binding_digest,
