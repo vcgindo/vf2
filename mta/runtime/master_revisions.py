@@ -16,6 +16,9 @@ STATIC_TABLES = ('MasterData','SKUDescriptionTbl','SiteDescriptionTbl',
 
 def validate(value, initialization_id):
     """Validate bounded roots without reconstructing any population."""
+    from mta.runtime.execution_settings import PARTITION_CONTRACT, validate_partition
+    if isinstance(value,dict) and value.get('contract') == PARTITION_CONTRACT:
+        return validate_partition(value,initialization_id)
     if isinstance(value,dict) and value.get('contract') == PHASE_CONTRACT:
         return _validate_phase(value,initialization_id)
     from mta.runtime.models import CalculationRun

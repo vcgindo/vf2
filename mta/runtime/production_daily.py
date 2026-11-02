@@ -298,6 +298,8 @@ def inspect_execution(raw, expected_sha256, *, initialization_id, source_digest,
         frame=_inspection_frame(owner, predecessor_id, retry_capture_id)
         try:
             require_initialization(owner.source)
+            from mta.runtime.execution_settings import daily_frame
+            frame=daily_frame(owner,frame,decode(raw,expected_sha256)['day']['business_date'],retry_capture_id)
         except (ValueError,ObjectDoesNotExist) as error:
             problem('/initialization','native initialization seal',error)
         if owner.source.digest != source_digest:
@@ -332,7 +334,12 @@ def inspect_execution(raw, expected_sha256, *, initialization_id, source_digest,
                 if owner is None or current_certified_opening(owner) is None:
                     parent_profile=read_input(parent,components=('profile',))['profile']
                     if frame is not None and digest(parent_profile)!=digest(frame['profile']):
-                        problem('/predecessor/profile','own persisted predecessor','Persisted predecessor configuration differs')
+                        try:
+                            from mta.runtime.execution_settings import compatible_profiles
+                            compatible_profiles(owner,parent_profile,frame['profile'],frame.get('execution_settings'),
+                                decode(raw,expected_sha256)['day']['business_date'])
+                        except ValueError as error:
+                            problem('/predecessor/profile','own persisted predecessor',error)
                 # Closing is already produced: never recompute its completion.
         except (ValueError,TypeError,KeyError,IndexError,ObjectDoesNotExist) as error:
             problem('/predecessor','own persisted predecessor',error)
@@ -414,6 +421,7 @@ def inspection_request(raw,sha256,owner,frame,parent,parent_context,pick_root,*,
         content_digest=owner.input_digest,configuration_digest=owner.configuration_digest)
     request=digest(request_input(day=day,profile=frame['profile'],initial=initial,lineage=lineage,
         initialization_binding=binding,daily_input_sha256=sha256,complete_pick=True,
+        execution_settings=frame.get('execution_settings'),
         pick_output_root=resolved_pick_root(pick_root),scope_request=scope_request,report_registration_request=report_registration_request))
     return day,prior,request,binding
 
@@ -567,6 +575,8 @@ def _prepare_execution(raw, expected_sha256, *, initialization_id, source_digest
         elif predecessor_output_digest is not None or value['consumer_opening'] is None:
             raise ValueError('Initial native day requires explicit consumer opening and no predecessor digest')
         frame = _daily_initialization(owner, parent, retry_capture_id, handle)
+        from mta.runtime.execution_settings import daily_frame
+        frame = daily_frame(owner,frame,value['day']['business_date'],retry_capture_id)
         day = working_day(raw, frame['profile'])
         if day['raw_non_nms'] and not frame['profile']['import_non_nms']:
             raise ValueError('Non-NMS feed requires its initialized active configuration')
@@ -587,7 +597,8 @@ def _prepare_execution(raw, expected_sha256, *, initialization_id, source_digest
         production_initialization=owner, daily_input_sha256=expected_sha256,
         consumer_opening=value['consumer_opening'], report_disposition=report_disposition,
         feed_attempt=feed_attempt, prepared_arguments=prepared_arguments, prepared_state=prepared_state,
-        scope_request=scope_request,report_registration_request=report_registration_request)
+        scope_request=scope_request,report_registration_request=report_registration_request,
+        execution_settings=frame.get('execution_settings'))
 
 
 class _NativeCaptureInputs:
@@ -601,7 +612,7 @@ class _NativeCaptureInputs:
     FIELDS = ('day', 'profile', 'predecessor', 'opening', 'mdm_source', 'mdm_retry',
         'pick_output_root', 'production_initialization', 'daily_input_sha256',
         'consumer_opening', 'report_disposition', 'feed_attempt', 'prepared_arguments',
-        'prepared_state', 'scope_request', 'report_registration_request')
+        'prepared_state', 'scope_request', 'report_registration_request', 'execution_settings')
 
     def __init__(self, arguments):
         self._arguments = arguments

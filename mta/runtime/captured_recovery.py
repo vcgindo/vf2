@@ -322,10 +322,11 @@ def resume(*, origin_run_id, execution_revision, expected, archive_path, second_
             input_sha256=owner.input_sha256,content_digest=owner.input_digest,
             configuration_digest=owner.configuration_digest)
         if (raw.get('daily_input_sha256') != attempt.input_sha256
-                or digest(raw['profile']) != owner.configuration_digest
                 or raw.get('initialization_binding') != binding
                 or raw['day']['business_date'] != old.business_date.isoformat()):
             raise ValueError('Frozen native request/initialization differs')
+        from mta.runtime.execution_settings import require_snapshot
+        require_snapshot(owner,raw['profile'],raw.get('execution_settings'),old.business_date)
         from mta.runtime.input_storage import logical_digest
         if logical_digest(old,raw) != old.input_digest:
             raise ValueError('Complete retained typed input content differs')

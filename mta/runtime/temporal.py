@@ -36,7 +36,7 @@ def resolved_pick_root(value):
 
 
 @stage('opening_copy_digest')
-def prepare_native_opening(owner, frame, profile, opening, predecessor):
+def prepare_native_opening(owner, frame, profile, opening, predecessor, *, execution_settings=None, business_date=None):
     """Do complete immutable root copying/comparison before the writer snapshot.
 
     The caller must compare this exact seal with the locked initialization and
@@ -44,7 +44,9 @@ def prepare_native_opening(owner, frame, profile, opening, predecessor):
     """
     identity = (sealed_identity(owner), owner.source.digest)
     if storage(frame['profile']) != profile:
-        raise ValueError('Native daily configuration differs from its initialization')
+        from mta.runtime.execution_settings import require_snapshot, compatible_profiles
+        require_snapshot(owner,profile,execution_settings,business_date)
+        compatible_profiles(owner,frame['profile'],profile,execution_settings,business_date)
     if predecessor is not None:
         return identity, None
     with stage('opening_normalization'):
@@ -66,7 +68,7 @@ def request_input(*, day, profile, initial, lineage, report_exceptions=None,
                   finalization_binding=None, initialization_binding=None,
                   daily_input_sha256=None, complete_pick=False, pick_output_root=None,
                   pick_config_sha256=None, shipment_sha256=None, scope_request=None,
-                  report_registration_request=None):
+                  report_registration_request=None, execution_settings=None):
     """Exact pre-capture identity shared by execution and read-only inspection."""
     raw=dict(schema='fresh-daily-chain-v1',day=day,profile=profile,opening=initial,
              lineage=lineage,report_exceptions=storage(report_exceptions or {}))
@@ -78,6 +80,7 @@ def request_input(*, day, profile, initial, lineage, report_exceptions=None,
     if pick_config_sha256 is not None: raw['pick_config_sha256']=pick_config_sha256
     if shipment_sha256 is not None: raw['shipment_sha256']=shipment_sha256
     if scope_request is not None: raw['scope_request']=storage(scope_request)
+    if execution_settings is not None: raw['execution_settings']=storage(execution_settings)
     if report_registration_request is not None:
         from mta.runtime.runtime_report_registered_request import attach_input
         raw=attach_input(raw,report_registration_request)
@@ -208,7 +211,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 shipment_sha256=None, production_initialization=None, daily_input_sha256=None,
                 consumer_opening=None, report_disposition=None, feed_attempt=None,
                 prepared_arguments=None, prepared_state=None, _captured_retry=None,
-                scope_request=None, report_registration_request=None, _native_preparation=None):
+                scope_request=None, report_registration_request=None, execution_settings=None, _native_preparation=None):
     if _native_preparation is not None:
         from mta.runtime.production_daily import _NativeCaptureInputs
         if (type(_native_preparation) is not _NativeCaptureInputs
@@ -217,12 +220,12 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                     finalization_config, shipment_sha256, production_initialization,
                     daily_input_sha256, consumer_opening, report_disposition, feed_attempt,
                     prepared_arguments, prepared_state, _captured_retry, scope_request,
-                    report_registration_request))):
+                    report_registration_request, execution_settings))):
             raise ValueError('Native capture input handoff cannot replace supplied arguments')
         (day, profile, predecessor, opening, mdm_source, mdm_retry, pick_output_root,
             production_initialization, daily_input_sha256, consumer_opening,
             report_disposition, feed_attempt, prepared_arguments, prepared_state,
-            scope_request, report_registration_request) = _native_preparation.take(execution_revision)
+            scope_request, report_registration_request, execution_settings) = _native_preparation.take(execution_revision)
         _native_preparation = None
     if _captured_retry is not None:
         # The finite-reference kind uses this same production owner. Its
@@ -232,7 +235,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 feed_attempt,prepared_arguments,prepared_state,production_initialization,
                 report_exceptions,pick_output_root,pick_config_sha256,finalization_config,
                 shipment_sha256,daily_input_sha256,consumer_opening,report_disposition,scope_request,
-                report_registration_request)):
+                report_registration_request,execution_settings)):
             raise ValueError('Captured continuation cannot replace its frozen native arguments')
         from mta.runtime.captured_recovery import resume
         return resume(execution_revision=execution_revision, **_captured_retry)
@@ -260,6 +263,8 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
         finalization = configuration(profile)
         finalization_binding = None
         native = production_initialization is not None
+        if execution_settings is not None and not native:
+            raise ValueError('Execution settings require their owned production initialization')
         if report_registration_request is not None:
             from mta.runtime.runtime_report_registered_request import validate_request as validate_registered
             validate_registered(report_registration_request,scope_request)
@@ -325,7 +330,8 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             prepared_owner = prepare_opening(production_initialization.source)
             prepared_frame = frame_for_daily(prepared_owner, predecessor)
             prepared_seal, prepared_root = prepare_native_opening(
-                prepared_owner, prepared_frame, profile, opening, predecessor)
+                prepared_owner, prepared_frame, profile, opening, predecessor,
+                execution_settings=execution_settings,business_date=day['business_date'])
             del prepared_frame, prepared_owner
         # Acquire before REPEATABLE READ establishes its first snapshot, including
         # before any source FK/header locks. Release after freezing, not calculation.
@@ -369,6 +375,15 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 initialization_binding = dict(id=str(initialized.pk), source_digest=initialized.source.digest,
                     input_sha256=initialized.input_sha256, content_digest=initialized.input_digest,
                     configuration_digest=initialized.configuration_digest)
+                from mta.runtime.execution_settings import require_snapshot, resolve
+                require_snapshot(initialized,profile,execution_settings,today)
+                if mdm_retry is None:
+                    # Same source lock as settings apply. Never capture an older
+                    # preview after a concurrent complete settings commit.
+                    original=frame_for_daily(initialized,predecessor)['profile']
+                    _,locked_settings=resolve(initialized,original,today)
+                    if locked_settings!=execution_settings:
+                        raise ValueError('Execution settings changed before locked admission; retry inspection')
                 if report_registration_request is not None:
                     if prepared_state is None:
                         raise ValueError('Registered report capture requires certified admission')
@@ -401,7 +416,10 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                     if configuration(parent_profile) != finalization:
                         raise ValueError('Generic finalization predecessor configuration differs')
                     if digest(parent_profile) != digest(profile):
-                        raise ValueError('Generic finalization requires its own unchanged configuration')
+                        if not native:
+                            raise ValueError('Generic finalization requires its own unchanged configuration')
+                        from mta.runtime.execution_settings import compatible_profiles
+                        compatible_profiles(initialized,parent_profile,profile,execution_settings,today)
                     parent_capture = getattr(parent, 'mdm_input_capture', None)
                     selected_source_id = mdm_source.pk if mdm_source is not None else None
                     if mdm_retry is not None:
@@ -454,7 +472,8 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 initialization_binding=initialization_binding,daily_input_sha256=daily_input_sha256,
                 complete_pick=complete_pick,pick_output_root=pick_output_root,
                 pick_config_sha256=pick_config_sha256,shipment_sha256=shipment_sha256,
-                scope_request=scope_request,report_registration_request=report_registration_request)
+                scope_request=scope_request,report_registration_request=report_registration_request,
+                execution_settings=execution_settings)
             capture_snapshot=None; origin_capture=None; request_digest=None
             if mdm_source is not None or mdm_retry is not None:
                 from mta.mdm.daily_input import (apply_refresh_setting,

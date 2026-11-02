@@ -12,6 +12,9 @@ def owners(initialized, raw, base_revision_id, *, unchanged, parent=None):
         return dict(kind=kind,owner_id=str(owner.pk),path=path,
             manifest_digest=owner.input_manifest_digest,content_digest=owner.input_digest)
     for path in ('input/profile','input/opening'):
+        if path=='input/profile' and raw.get('execution_settings') is not None:
+            if raw['execution_settings']['profile_digest']!=initialized.configuration_digest:
+                continue  # The effective profile is sealed once by this run.
         if path=='input/opening' and raw['opening'] is None:
             continue
         result[path]=reference(initialized,'INITIALIZATION',path)

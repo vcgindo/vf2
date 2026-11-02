@@ -43,14 +43,16 @@ def verify(capture, *, sealed=True):
     from mta.runtime.input_reader import read_input
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
     run = capture.run
-    profile = read_input(run, components=('profile',))['profile']
+    frozen=read_input(run, components=('profile','execution_settings'))
+    profile=frozen['profile']
+    from mta.runtime.execution_settings import require_snapshot
+    require_snapshot(capture.initialization,profile,frozen.get('execution_settings'),run.business_date)
     policy = validate_policy(profile)
     daily = MdmDailyInputCapture.objects.get(run=run)
     if (policy != _policy(capture) or run.kind != 'DAILY_CHAIN'
             or capture.source_id != daily.source_id
             or capture.source_id != capture.initialization.source_id
             or capture.configuration_digest != capture.initialization.configuration_digest
-            or digest(profile) != capture.configuration_digest
             or capture.business_date != run.business_date
             or capture.predecessor_id != run.predecessor_id
             or capture.origin_id != daily.origin_id
@@ -176,7 +178,9 @@ def bind(run, daily, profile):
     initialized = ProductionInitialization.objects.get(source=daily.source)
     admitted = _production_initialization(run, initialized) is not None
     if not admitted and initialized.configuration_digest != digest(profile):
-        raise ValueError('Native audit policy differs from initialized configuration')
+        from mta.runtime.input_reader import read_input
+        from mta.runtime.execution_settings import require_snapshot
+        require_snapshot(initialized,profile,read_input(run,components=('execution_settings',)).get('execution_settings'),run.business_date)
     parent = None
     if run.predecessor_id:
         parent = _verify_consumer(NativeUploadAudit.objects.select_related('run','initialization','predecessor__run')

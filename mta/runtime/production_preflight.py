@@ -726,7 +726,14 @@ def daily(raw, sha256, *, frame=None, predecessor=None, initialization_id=None,
                 c.check('/day/order_feed','r1_order_input.validate_order_input',lambda:validate_order_input(source,day.get('business_date')))
             if isinstance(frame,dict) and configuration_digest is not None:
                 if digest(frame.get('profile')) != configuration_digest:
-                    c.add('/configuration_digest','ProductionInitialization','CONFIGURATION_DIFFERS','Initialization configuration identity differs')
+                    from mta.runtime.execution_settings import require_snapshot
+                    from mta.runtime.models import ProductionInitialization
+                    def effective_profile():
+                        owner=ProductionInitialization.objects.get(pk=initialization_id)
+                        if owner.configuration_digest!=configuration_digest:
+                            raise ValueError('Original initialization configuration differs')
+                        require_snapshot(owner,frame['profile'],frame.get('execution_settings'),day['business_date'])
+                    c.check('/configuration_digest','admitted execution settings',effective_profile)
             if isinstance(frame,dict):
                 batch=frame.get('profile',{}).get('delivery',{}).get('batch',{})
                 if isinstance(batch,dict):

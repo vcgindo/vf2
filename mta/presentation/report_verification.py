@@ -260,8 +260,9 @@ def audit_native_rows(run, source):
         with stage('native_certified_opening'):
             require_initialization(capture.source)
         with stage('native_profile_values'):
-            if digest(read_input(run, components=('profile',))['profile']) != owner.configuration_digest:
-                raise ValueError('Native initialization profile values changed')
+            from mta.runtime.execution_settings import require_snapshot
+            raw=read_input(run,components=('profile','execution_settings'))
+            require_snapshot(owner,raw['profile'],raw.get('execution_settings'),run.business_date)
         with stage('native_complete_input_audit'):
             verify_root(run)
             _audit_input(run)
