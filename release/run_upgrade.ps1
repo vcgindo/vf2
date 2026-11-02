@@ -251,6 +251,10 @@ try {
     if (-not $journal.target_image) {
         if ($journal.build) {
             $config.services.mta.image = $journal.target_tag
+            # Persisted deployment overrides may retain a deleted source folder
+            # from an earlier handoff. -Build owns the current checkout's MTA
+            # recipe; it must not inherit that historical build context.
+            $config.services.mta.build = @{context=$projectRoot;dockerfile='release/compose.Dockerfile';target='mta'}
             WriteSnapshot
             $null = ComposeCall -Arguments @('build','mta')
         }

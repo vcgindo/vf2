@@ -42,6 +42,10 @@ class DockerStub {
   string oldImage = "sha256:" + new string('a',64), target = "sha256:" + new string('b',64);
   if (args.Contains("config")) {
    if (!args.Contains("--quiet")) Console.WriteLine(File.ReadAllText(Path.Combine(folder,"config.json")));
+  } else if (args.Contains("build")) {
+   string configuration = args[Array.IndexOf(args,"-f")+1];
+   File.Copy(configuration,Path.Combine(folder,"build-config.json"),true);
+   if (Environment.GetEnvironmentVariable("VF_UPGRADE_FAIL_BUILD") == "1") return 1;
   } else if (args.Length > 1 && args[0] == "image" && args[1] == "inspect") {
    Console.WriteLine(json.Serialize(new[]{new {Id=target}}));
   } else if (args[0] == "inspect") {
@@ -202,6 +206,48 @@ class DockerStub {
                 self.assertFalse(backup.is_relative_to(root))
                 self.assertEqual(backup.parent.parent, root.parent / 'owned-project-backups')
                 self.assertEqual(journal['status'], 'COMPLETE')
+
+    def test_deleted_historical_build_context_uses_current_checkout_on_resume(self):
+        for shell in ('powershell.exe', 'pwsh'):
+            with self.subTest(shell=shell):
+                root = self.fixture()
+                config = json.loads((root / 'config.json').read_text())
+                deleted = root.parent / 'deleted-copy64-code'
+                self.assertFalse(deleted.exists())
+                config['services']['mta']['build'] = dict(context=str(deleted),
+                    dockerfile=str(deleted / 'obsolete.Dockerfile'), target='obsolete')
+                (root / 'config.json').write_text(json.dumps(config))
+                original_env = (root / '.env').read_bytes()
+                result = self.run_upgrade(shell, root, '-Build', VF_UPGRADE_FAIL_BUILD='1')
+                self.assertNotEqual(result.returncode, 0)
+                before = self.journal(root)
+                self.assertEqual(before['phase'], 'ADMISSION')
+                self.assertFalse(before['maintenance'])
+                self.assertFalse(before['apply_started'])
+                self.assertFalse(before['applied'])
+                self.assertEqual((root / '.env').read_bytes(), original_env)
+                self.assertFalse(any('stop' in c or '--phase' in c for c in self.calls(root)))
+                for attempt in (1, 2):
+                    build = json.loads((root / 'build-config.json').read_text())['services']['mta']['build']
+                    self.assertEqual(build, dict(context=str(root),
+                        dockerfile='release/compose.Dockerfile', target='mta'))
+                    if attempt == 1:
+                        result = self.run_upgrade(shell, root, '-Resume')
+                        self.assertEqual(result.returncode, 0, result.stderr)
+                after = self.journal(root)
+                self.assertEqual(after['status'], 'COMPLETE')
+                self.assertEqual(before['operation_root'], after['operation_root'])
+                self.assertEqual(before['target_tag'], after['target_tag'])
+                self.assertEqual([c[c.index('--phase')+1] for c in self.calls(root)
+                                  if '--phase' in c], ['inspect', 'apply', 'verify'])
+                # Real Compose resolves the corrected snapshot without access
+                # to a daemon or the deleted directory.
+                if shutil.which('docker'):
+                    resolved = subprocess.run(['docker', 'compose', '--profile', 'install', '--profile', 'daily',
+                        '-f', str(root / 'build-config.json'), 'config', '--format', 'json'],
+                        cwd=root, capture_output=True, text=True)
+                    self.assertEqual(resolved.returncode, 0, resolved.stderr)
+                    self.assertEqual(Path(json.loads(resolved.stdout)['services']['mta']['build']['context']), root)
 
     def test_inspection_stages_image_without_backup_stop_or_apply_and_resumes(self):
         for shell in ('powershell.exe', 'pwsh'):

@@ -74,6 +74,8 @@ Choose one target. Build the updated source:
 .\vf.ps1 upgrade -Build
 ```
 
+`-Build` uses the current installation folder and its repository-owned MTA Dockerfile. A saved deployment configuration may still name an older source folder; that historical build context is replaced for this build, without changing the running services or their data paths.
+
 Or use the supplied MTA image, already loaded or pulled locally:
 
 ```powershell
@@ -105,6 +107,8 @@ See the [root runbook](../RUNBOOK.md), [daily-run guide](CSV_DAILY_RUN.md) and [
 ## If an upgrade stops
 
 Preserve its journal, logs and backup. Diagnose the reported failure, then use `upgrade -Resume` for the same target. The command reconciles actual database migration state before continuing; a failed startup does not authorize repeating accepted days. If maintenance has begun, a failure leaves MTA stopped and daily commands remain blocked until the upgrade is resolved. Do not delete the journal, reinstall or initialize to bypass it.
+
+For a build failure during `ADMISSION` with `maintenance`, `apply_started` and `applied` all false, no database application or maintenance has started. After correcting the diagnosed build issue or updating the launcher, use `upgrade -Resume`; it rebuilds if no target image was accepted and retains the same operation and previous-image identity. Do not create a replacement folder solely to satisfy an obsolete build path.
 
 Rollback is a diagnosed recovery decision, not an automatic command action. Before new business work, restoring the previous image/configuration is valid only when that image supports the installed schema and persisted formats. A physical backup requires a coordinated offline restore of the dedicated PostgreSQL cluster together with its captured MTA work files and configuration, retained read-only input/access files and existing external secrets; this preserves physical database identities. It is not a per-database logical restore or an automatic rollback. After new work has been accepted, never blindly restore an older backup and discard it.
 
