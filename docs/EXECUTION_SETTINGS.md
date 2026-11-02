@@ -119,3 +119,6 @@ object-identity caches.
 
 Part 2 must qualify missing behavioral scenarios individually before unlocking
 their selectors. Part 1 does not certify previously untested alternate paths.
+
+See [Part 1 qualification](EXECUTION_SETTINGS_QUALIFICATION.md) for the completed
+upgrade, preservation, recovery and settings-cost checks and their limits.

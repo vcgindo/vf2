@@ -1,5 +1,10 @@
 # Routine MTA upgrade qualification
 
+The later [central settings qualification](../docs/EXECUTION_SETTINGS_QUALIFICATION.md)
+adds the populated forward-schema upgrade, automatic exact-value adoption and
+own-successor checks for Part 1. The measurements below describe the earlier
+routine-upgrade qualification and retain that scope.
+
 The repository-owned upgrade command has passed the checks below in isolated Docker/PostgreSQL installations. A compatible patch authenticates its image while retaining the original installation certificate, accepted data and producer identities. It adds no database permission for each source commit. Real forward MTA migrations remain privileged maintenance.
 
 | Check | Completed proof |

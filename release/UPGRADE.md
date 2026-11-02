@@ -2,6 +2,13 @@
 
 Use [vf.ps1](../vf.ps1) for a compatible MTA patch on an already initialized, populated installation. Windows PowerShell 5.1 and PowerShell 7 are supported. Docker Desktop and the existing Compose project must be available, with MTA and the unchanged frontend/auth/MTO services running. Finish any active daily, calculation or action work first.
 
+This release adds the versioned [execution settings catalogue](../docs/EXECUTION_SETTINGS.md).
+The normal upgrade applies its forward migrations and adopts the installation's
+actual values without replacing sample/customer settings or changing accepted
+days. It requires no separate settings import or reinitialization. After a
+successful upgrade, `./vf.ps1 settings` shows the effective values and any future
+scheduled revision.
+
 **Qualification status:** populated upgrade, own next-day execution, scoped continuation, fresh installation and failure/recovery checks have passed in isolated real Docker/PostgreSQL installations. See [qualification and limits](UPGRADE_QUALIFICATION.md).
 
 ## Prepare the update
@@ -56,7 +63,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Configuring origin failed' }
 Skip that block if `origin` is already configured; do not replace an existing remote blindly. Fetch the approved release branch or tag. The branch below contains the routine-upgrade implementation; use the release owner's approved reference for future updates.
 
 ```powershell
-$ReleaseRef = 'codex/production-upgrade-simplification'
+$ReleaseRef = 'codex/execution-settings-centralization'
 git fetch --no-tags origin $ReleaseRef
 if ($LASTEXITCODE -ne 0) { throw 'Fetching the approved release failed' }
 

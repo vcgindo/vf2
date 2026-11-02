@@ -59,5 +59,14 @@ class ParameterMatchingTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'occurrence sequence'):
             project_state(state,cells)
 
+    def test_incomplete_unreleased_prototype_snapshot_is_refused_never_backfilled(self):
+        state={'dbm':{'DBMSettingsTbl':[{'Parameter':'NormZeroOneRuleActive','Value':'1'}]}}
+        old_cells=extract(state)
+        state['dbm']['DBMSettingsTbl'].append({'Parameter':'normzerooneruleactive ','Value':'1'})
+        before=deepcopy(state)
+        with self.assertRaisesRegex(ValueError,'occurrence sequence'):
+            project_state(state,old_cells)
+        self.assertEqual(state,before)
+
 
 if __name__=='__main__':unittest.main()
