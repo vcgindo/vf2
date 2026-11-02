@@ -57,7 +57,7 @@ class NativePhaseIdentityTests(unittest.TestCase):
         self.denied = PublicationUnavailable
         self.enterContext(override_settings(VF_MTA_NATIVE_PUBLICATION=True, VF_MTA_DAILY_PUBLICATION=True))
         self.run = NS(pk=uuid.uuid4(), kind='DAILY_CHAIN', evidence_mode='production', status='RUNNING',
-            input_payload={}, predecessor_id=None, business_date=date(2037, 4, 10))
+            input_payload={}, production_manifest={}, predecessor_id=None, business_date=date(2037, 4, 10))
         self.profile = {'declared': 'native-contract-unit'}
         self.owner = NS(pk=uuid.uuid4(), source=NS(digest='source'), input_sha256='input', input_digest='content',
             configuration_digest=digest(self.profile), opening_date=date(2037, 4, 9))

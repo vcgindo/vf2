@@ -116,10 +116,18 @@ def native_identity(view):
         content_digest=owner.input_digest, configuration_digest=owner.configuration_digest)
     referenced = profile_reference(run, owner)
     inputs = read_input(run, components=('initialization_binding', 'lineage') if referenced else
-        ('initialization_binding', 'lineage', 'profile'))
-    if (inputs.get('initialization_binding') != binding or not referenced and digest(inputs.get('profile')) != owner.configuration_digest
-            or view.bpr.reports.generation.configuration_digest != owner.configuration_digest):
+        ('initialization_binding', 'lineage', 'profile','execution_settings'))
+    from mta.runtime.capture_preparation import effective_configuration
+    body=run.production_manifest.get('ingestion_preparation')
+    configuration=effective_configuration(body) if body else owner.configuration_digest
+    if (inputs.get('initialization_binding') != binding
+            or view.bpr.reports.generation.configuration_digest != configuration):
         raise PublicationUnavailable('phase_native_initialization_changed')
+    if not referenced:
+        from mta.runtime.execution_settings import require_snapshot
+        try:require_snapshot(owner,inputs.get('profile'),inputs.get('execution_settings'),run.business_date)
+        except ValueError as error:
+            raise PublicationUnavailable('phase_native_initialization_changed') from error
     if run.predecessor_id:
         parent = run.predecessor
         previous = read_input(parent, components=('initialization_binding',))

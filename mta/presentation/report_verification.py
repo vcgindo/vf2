@@ -228,7 +228,7 @@ def profile_reference(run, owner):
         return False
     reference = manifest.get('owner_references', {}).get('input/profile')
     if reference is None:
-        return False
+        return _settings_profile_reference(run,physical,owner)
     expected = dict(kind='INITIALIZATION', path='input/profile', owner_id=str(owner.pk),
                     manifest_digest=owner.input_manifest_digest, content_digest=owner.input_digest)
     if (digest(manifest) != physical.input_manifest_digest
@@ -244,6 +244,52 @@ def profile_reference(run, owner):
         input_v3._initialization_component_is_physical(owner.input_payload, 'input/profile'))
     if not physical_profile:
         raise ValueError('Native profile must reference a physical one-hop opening')
+    return True
+
+
+def _settings_profile_reference(run,physical,owner):
+    """A protected capture binds scalar projection plus direct opening roots.
+
+    The writer validated the complete effective profile before sealing. Report
+    reads check that immutable custody without hydrating 97k master rows merely
+    to recover one scalar. Full offline audits still hash the actual profile.
+    """
+    from mta.runtime import input_v3
+    from mta.runtime.input_reader import read_execution_input
+    from mta.runtime.capture_preparation import CONTRACT
+    from mta.runtime.execution_settings import require_reference
+    body=physical.production_manifest.get('ingestion_preparation',{})
+    ref=body.get('execution_settings')
+    if ref is None:
+        return False
+    manifest=physical.input_payload
+    frozen=read_execution_input(physical,components=('execution_settings',))
+    if (body.get('contract')!=CONTRACT or body.get('initialization_id')!=str(owner.pk)
+            or body.get('configuration_digest')!=owner.configuration_digest
+            or body.get('run_id')!=str(physical.pk)
+            or body.get('receipt_digest')!=digest({k:v for k,v in body.items() if k!='receipt_digest'})
+            or frozen.get('execution_settings')!=ref
+            or digest(manifest)!=physical.input_manifest_digest
+            or manifest.get('content_digest')!=physical.input_digest
+            or digest(owner.input_payload)!=owner.input_manifest_digest
+            or owner.input_payload.get('content_digest')!=owner.input_digest):
+        raise ValueError('Native captured settings profile binding differs')
+    require_reference(owner,ref,physical.business_date)
+    from mta.runtime.input_storage import SCHEMA as V2
+    for path in input_v3.PROFILE_POPULATION_PATHS:
+        try:
+            input_v3._node_at(owner.input_payload,path)
+        except ValueError:
+            continue
+        expected=dict(kind='INITIALIZATION',path=path,owner_id=str(owner.pk),
+            manifest_digest=owner.input_manifest_digest,content_digest=owner.input_digest)
+        physical_population=(input_v3._physical(input_v3._node_at(owner.input_payload,path))
+            if owner.input_payload.get('schema')==V2 else
+            input_v3._initialization_component_is_physical(owner.input_payload,path))
+        if (manifest.get('owner_references',{}).get(path)!=expected
+                or input_v3._node_at(manifest,path)!={'owner_reference':path}
+                or not physical_population):
+            raise ValueError('Native settings profile population custody differs')
     return True
 
 

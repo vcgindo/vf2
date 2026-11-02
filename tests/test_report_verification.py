@@ -27,7 +27,7 @@ class ProfileReferenceTests(TestCase):
         manifest = dict(schema=V3, content_digest='b'*64,
             owner_references={'input/profile': reference},
             tree={'object': [['profile', {'owner_reference': 'input/profile'}]]})
-        run = NS(input_payload=manifest, input_digest='b'*64,
+        run = NS(input_payload=manifest, input_digest='b'*64, production_manifest={},
                  input_manifest_digest=digest(manifest))
         return run, owner, reference
 
@@ -101,7 +101,8 @@ class VerificationBoundaryTests(TestCase):
     def test_complete_operational_audit_does_not_require_derived_readiness(self):
         profile = {'native': 'configured'}
         source = NS()
-        run = NS(production_manifest={'version': 3})
+        from datetime import date
+        run = NS(production_manifest={'version': 3},business_date=date(2037,4,10))
         receipt = NS(images={'sources/production/BOR_OrderAllocationHistory': {'table': 'bpr_history/BOR_OrderAllocationHistory'},
                              'sources/ordinary': {'table': 'ordinary'}},
                      images_digest='source-images', recipe_digest='source-recipe')

@@ -52,11 +52,15 @@ def identity(run, *, verify_rows=False):
         configuration_digest=owner.configuration_digest)
     from mta.presentation.report_verification import profile_reference
     referenced = profile_reference(run, owner)
-    components = ('initialization_binding', 'lineage') if referenced else ('initialization_binding', 'profile', 'lineage')
+    components = ('initialization_binding', 'lineage') if referenced else ('initialization_binding', 'profile', 'lineage','execution_settings')
     inputs = read_input(run, components=components)
-    if (inputs.get('initialization_binding') != binding or not referenced
-            and digest(inputs.get('profile')) != owner.configuration_digest):
+    if inputs.get('initialization_binding') != binding:
         raise PublicationUnavailable('native_initialization_binding_changed')
+    if not referenced:
+        from mta.runtime.execution_settings import require_snapshot
+        try:require_snapshot(owner,inputs.get('profile'),inputs.get('execution_settings'),run.business_date)
+        except ValueError as error:
+            raise PublicationUnavailable('native_initialization_binding_changed') from error
     lineage = inputs.get('lineage', {})
     if run.predecessor_id:
         parent = run.predecessor

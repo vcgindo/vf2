@@ -111,11 +111,21 @@ def require_snapshot(owner, profile, ref, business_date):
         if digest(profile) != owner.configuration_digest:
             raise ValueError('Historical initialization configuration differs')
         return
-    from mta.runtime.execution_setting_models import ExecutionSettingsVersion
-    version = ExecutionSettingsVersion.objects.get(pk=ref.get('id'), initialization=owner, status='COMMITTED')
-    if (reference(version) != ref or digest(profile) != version.profile_digest
-            or (version.effective_date and version.effective_date > date.fromisoformat(str(business_date)))):
+    require_reference(owner,ref,business_date)
+    if digest(profile)!=ref['profile_digest']:
         raise ValueError('Frozen execution settings ownership/date/profile differs')
+
+
+def require_reference(owner,ref,business_date):
+    """Read an immutable historical header, never current settings values."""
+    from mta.runtime.execution_setting_models import ExecutionSettingsVersion
+    if not isinstance(ref,dict):
+        raise ValueError('Frozen execution settings reference required')
+    version=ExecutionSettingsVersion.objects.get(pk=ref.get('id'),initialization=owner,status='COMMITTED')
+    if (reference(version)!=ref or (version.effective_date and
+            version.effective_date>date.fromisoformat(str(business_date)))):
+        raise ValueError('Frozen execution settings ownership/date/profile differs')
+    return ref['profile_digest']
 
 
 def compatible_profiles(owner, previous, current, ref, business_date):
