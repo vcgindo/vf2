@@ -11,11 +11,20 @@ from mta.application.stage_observation import stage
 CONTRACT='vectorflow-native-capture-cut-v1'
 
 
-def seed(state, *, reused):
-    return dict(contract=CONTRACT, initialization_id=state.initialization_id,
+def seed(state, *, reused, execution_settings=None):
+    value=dict(contract=CONTRACT, initialization_id=state.initialization_id,
         source_digest=state.source_digest, certification_digest=state.certification_digest,
         base_revision_id=state.master_revision_id, configuration_digest=state.configuration_digest,
         qualified_master_reuse=bool(reused))
+    if execution_settings is not None:
+        value['execution_settings']=execution_settings
+    return value
+
+
+def effective_configuration(body):
+    """Original installation seal and admitted execution profile are distinct."""
+    ref=body.get('execution_settings')
+    return ref['profile_digest'] if ref is not None else body['configuration_digest']
 
 
 @stage('capture_receipt_seal')
@@ -23,9 +32,16 @@ def seal(run,*,consumer_snapshot=None):
     body=run.production_manifest.get('ingestion_preparation')
     if body is None:
         return
+    if body.get('execution_settings') is not None:
+        from mta.runtime.input_reader import read_input
+        frozen=read_input(run,components=('execution_settings','initialization_binding'))
+        if (frozen.get('execution_settings')!=body['execution_settings']
+                or frozen['initialization_binding']['id']!=body['initialization_id']
+                or frozen['initialization_binding']['configuration_digest']!=body['configuration_digest']):
+            raise ValueError('Settings capture and original installation bindings differ')
     if run.production_manifest.get('native_report_disposition') is None:
         from mta.runtime.occurrence_text_policy import admit, KEY
-        body[KEY] = admit(run, body['configuration_digest'])
+        body[KEY] = admit(run, effective_configuration(body))
         run.production_manifest[KEY] = body[KEY]
     cut=epochs(body['initialization_id'],lock=True)
     if consumer_snapshot is not None:
@@ -68,7 +84,7 @@ def publication_metadata(run, capture, producer, *, _scoped_placement=False,
     if base.run_id is None and (state.master_epoch,state.configuration_epoch)==(base.master_epoch,base.configuration_epoch):
         IngestionRevisionState.objects.filter(pk=state.pk).update(master_epoch=F('master_epoch')+1)
         state.refresh_from_db()
-    if not isinstance(producer,dict) or producer.get('configuration_digest')!=capture['configuration_digest']:
+    if not isinstance(producer,dict) or producer.get('configuration_digest')!=effective_configuration(capture):
         raise ValueError('Native prepared producer result differs')
     if _scoped_placement:
         from mta.runtime.placement_master_publication import publication_master as placement_master

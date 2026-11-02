@@ -47,8 +47,15 @@ BATCH_PATHS = {
     'input/day/transporter_input/rows': 'Transporters.csv',
     'input/day/requirement_stock': 'AdditionalDataStockForReqCalc.csv',
 }
+PROFILE_POPULATION_PATHS = tuple('input/profile/'+name for name in (
+    'calculation/skus','calculation/locations','calculation/stock_openings',
+    'calculation/policies','calculation/replenishment_exclusions',
+    'calculation/logistics/items','calculation/logistics/vehicles','calculation/logistics/location_vehicles',
+    'daily/distributor_codes','daily/vendor_codes','daily/vector_dms_codes',
+    'daily/module_sources/distributor_norms','daily/module_sources/vendor_master'))
 OWNER_PATHS = {
     'input/profile': 'INITIALIZATION', 'input/opening': 'INITIALIZATION',
+    **{path:'INITIALIZATION' for path in PROFILE_POPULATION_PATHS},
     **{f'input/mdm_input/rows/{family}/{part}': 'RUN'
        for family in ('sku', 'location', 'skuloc')
        for part in ('attributes', 'descriptions')},

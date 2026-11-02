@@ -43,10 +43,12 @@ def _owner(run,capture):
 
 def _producer(capture,producer,prefix):
     from mta.application.persistent_master import CONTRACT
+    from mta.runtime.capture_preparation import effective_configuration
+    configuration=effective_configuration(capture)
     # This scoped entry runs prepare_day without prepared_master. Reuse and
     # changed-master producers need their own qualified implementation first.
     expected=dict(contract=CONTRACT,qualified=True,reused=False,
-        configuration_digest=capture['configuration_digest'],
+        configuration_digest=configuration,
         full_master_producer_calls=1,changed_work=None)
     if (producer!=expected or type(producer.get('full_master_producer_calls')) is not int
             or producer.get('reused') is not False or producer.get('qualified') is not True
@@ -54,7 +56,7 @@ def _producer(capture,producer,prefix):
         raise ValueError('Placement master producer differs from its scoped contract')
     for phase in prefix:
         manifest=phase.snapshot.manifest;metadata=manifest['metadata']
-        if (manifest['references']['profile']!=capture['configuration_digest']
+        if (manifest['references']['profile']!=configuration
                 or metadata.get('master_reused') is not False
                 or metadata.get('master_work') is not None
                 or metadata.get('master_outcome')!='APPLIED'):

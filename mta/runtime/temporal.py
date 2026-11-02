@@ -288,6 +288,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
         prepared_root = None
         master_reuse = None
         master_change = None
+        settings_master_basis = None
         if native:
             from mta.mdm.initialization_contract import sha
             sha(daily_input_sha256, 'native daily input')
@@ -552,20 +553,26 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                         raise ValueError('Active finalization requires active NMS intake')
                     if native and prepared_state is not None and parent is not None and origin_capture is None:
                         from mta.application.persistent_master import select
+                        from mta.runtime.execution_settings import master_basis
+                        settings_master_basis=master_basis(initialized,parent,parent_profile,profile,
+                            execution_settings,prepared_state.master_revision_id,today)
                         master_reuse=select(prior,profile,raw['day'],capture_snapshot,
-                            parent.production_manifest.get('master_preparation'),prepared_state.revisions.as_tuple())
+                            parent.production_manifest.get('master_preparation'),prepared_state.revisions.as_tuple(),
+                            settings_basis=settings_master_basis)
                     if master_reuse is None:
                         base_master=nms_master_raw(prior)
                     else:
                         from mta.application.persistent_master import NmsMasterRows
                         reference=dict(contract='native-nms-master-compatibility-v1',run_id=str(parent.pk),
                             output_digest=parent.output_digest,initialization_id=str(initialized.pk),
-                            source_digest=initialized.source.digest,master_revision_id=prepared_state.master_revision_id)
+                            source_digest=initialized.source.digest,master_revision_id=(settings_master_basis.revision_id
+                                if settings_master_basis is not None else prepared_state.master_revision_id))
                         base_master=NmsMasterRows(prior['consumer_context']['NMSAllItems'],reference=reference,plan=master_reuse.plan)
                 if (native and prepared_state is not None and parent is not None
                         and origin_capture is None and master_reuse is None):
                     from mta.application.persistent_master import changed
-                    master_change=changed(parent,profile,capture_snapshot,prepared_state.master_revision_id)
+                    master_change=changed(parent,profile,capture_snapshot,prepared_state.master_revision_id,
+                        settings_basis=settings_master_basis)
                 if origin_capture is None:
                     capture_snapshot=compose_pair_exclusions(capture_snapshot,base_master)
                 # Native SetRunDate precedes NMSImportData. Preserve the sealed
@@ -661,7 +668,8 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                         kind=KIND,business_date=today,predecessor=parent)
             if prepared_state is not None:
                 from mta.runtime.capture_preparation import seed
-                fields['production_manifest']={'ingestion_preparation':seed(prepared_state,reused=master_reuse is not None)}
+                fields['production_manifest']={'ingestion_preparation':seed(prepared_state,reused=master_reuse is not None,
+                    execution_settings=execution_settings)}
             if disposition_binding is not None:
                 fields['production_manifest'] = {'native_report_disposition': disposition_binding}
             if parent is None:

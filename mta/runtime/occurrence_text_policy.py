@@ -14,7 +14,8 @@ def context(run):
         raise ValueError('Captured occurrence availability admission missing')
     if captured and captured.get(KEY) != value:
         raise ValueError('Captured occurrence availability receipt differs')
-    verify_owner(value, run, captured.get('configuration_digest',value['owner']['configuration_digest']))
+    from mta.runtime.capture_preparation import effective_configuration
+    verify_owner(value, run, effective_configuration(captured) if captured else value['owner']['configuration_digest'])
     return {KEY: value}
 
 

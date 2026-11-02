@@ -6,6 +6,7 @@ profile projection, not a generic dictionary of loosely typed parameter names.
 """
 from datetime import date
 from uuid import uuid4
+from dataclasses import dataclass
 from django.db import connection, transaction
 from mta.serialization import digest
 from mta.runtime.execution_setting_values import SettingCell, rows_digest
@@ -13,6 +14,42 @@ from mta.runtime.execution_setting_values import SettingCell, rows_digest
 CONTRACT = 'vectorflow-execution-settings-v1'
 PARTITION_CONTRACT = 'vectorflow-settings-master-partitions-v1'
 CELL_FIELDS = ('path', 'module', 'parameter', 'ordinal', 'value_kind', 'value_text', 'value_state')
+
+
+@dataclass(frozen=True)
+class MasterSettingsBasis:
+    previous_profile_digest: str
+    cut: tuple
+    revision_id: str
+
+
+def master_basis(owner, parent, parent_profile, current_profile, ref, revision_id, business_date):
+    """A DBM-only control edit does not invalidate unchanged accepted masters.
+
+    This returns the actual old producer/cut, rather than rewriting its
+    metadata to claim the new settings. All normal input/queue tests still run.
+    """
+    if ref is None:
+        return None
+    from mta.runtime.ingestion_models import MasterInputRevision
+    previous=parent.production_manifest.get('master_preparation',{})
+    if previous.get('configuration_digest')!=digest(parent_profile):
+        return None
+    cut=previous.get('master_cut')
+    if not isinstance(cut,list) or len(cut)!=2:
+        return None
+    current=MasterInputRevision.objects.get(pk=revision_id,initialization=owner,status='ACCEPTED')
+    if current.partitions.get('contract')!=PARTITION_CONTRACT:
+        return None
+    prior=MasterInputRevision.objects.filter(initialization=owner,status='ACCEPTED',
+        master_epoch=cut[0],configuration_epoch=cut[1]).first()
+    if prior is None or current.master_epoch!=prior.master_epoch:
+        return None
+    old_base=prior.partitions.get('base') if prior.partitions.get('contract')==PARTITION_CONTRACT else prior.partitions
+    if current.partitions['base']!=old_base:
+        return None
+    compatible_profiles(owner,parent_profile,current_profile,ref,business_date)
+    return MasterSettingsBasis(digest(parent_profile),tuple(cut),str(prior.pk))
 
 
 def reference(version):
@@ -105,13 +142,16 @@ def daily_frame(owner, frame, business_date, retry_capture_id=None):
 
 
 def _stable(owner, effective_date):
-    from mta.runtime.daily_feed_models import DailyFeedAttempt
+    from mta.runtime.daily_feed import unresolved_attempts
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
-    feeds = DailyFeedAttempt.objects.filter(initialization=owner)
-    if feeds.exclude(status='PUBLISHED').exists():
+    from release.upgrade_database import require_finished_work
+    with connection.cursor() as cursor:
+        require_finished_work(cursor,owner)
+    if unresolved_attempts(owner).exists():
         raise ValueError('Finish or diagnose the retained daily operation before editing settings')
     captures = MdmDailyInputCapture.objects.filter(source=owner.source)
-    if captures.filter(run__status__in=('RUNNING', 'FAILED')).exists():
+    native_only=captures.filter(run__csv_attempt__isnull=True,run__status__in=('RUNNING','FAILED'))
+    if native_only.exclude(retries__status='CONSUMED',retries__run__status='SUCCEEDED').exists():
         raise ValueError('Frozen/scoped/failed work retains its original settings')
     last = captures.order_by('-run__business_date').values_list('run__business_date', flat=True).first()
     if effective_date is not None and last is not None and effective_date <= last:
@@ -136,6 +176,12 @@ def _publish_revision(owner, parent, version):
     from mta.runtime.ingestion_models import IngestionRevisionState, MasterInputRevision
     from mta.runtime.ingestion_admission import receipt
     state=IngestionRevisionState.objects.select_for_update().get(initialization=owner)
+    # Exactly the header INSERT, one bounded values INSERT and header commit
+    # UPDATE fired existing configuration watches. Other work cannot be
+    # laundered into a current revision by this metadata-only publication.
+    if (state.master_epoch!=parent.master_epoch
+            or state.configuration_epoch!=parent.configuration_epoch+3):
+        raise ValueError('Settings commit changed a different master/configuration basis')
     base=parent.partitions
     base_master_epoch=parent.master_epoch
     base_configuration_epoch=parent.configuration_epoch
@@ -219,3 +265,20 @@ def validate_partition(value, initialization_id):
         sha(value['base']['opening_master_root'])
         return None
     return master_revisions.validate(value['base'],initialization_id)
+
+
+def validate_revision(revision, initialization_id):
+    """A wrapper owns only its three settings writes over an accepted parent."""
+    from mta.runtime.ingestion_models import MasterInputRevision
+    from mta.runtime.ingestion_admission import receipt, REVISION_FIELDS
+    parent=MasterInputRevision.objects.values(*REVISION_FIELDS,'receipt_digest').get(
+        pk=revision['parent_id'],initialization_id=initialization_id,status='ACCEPTED')
+    if (parent['receipt_digest']!=receipt({key:parent[key] for key in REVISION_FIELDS})
+            or revision['master_epoch']!=parent['master_epoch']
+            or revision['configuration_epoch']!=parent['configuration_epoch']+3):
+        raise ValueError('Settings revision does not own its exact configuration cut')
+    prior=parent['partitions']
+    expected_base=prior['base'] if prior.get('contract')==PARTITION_CONTRACT else prior
+    if revision['partitions']['base']!=expected_base:
+        raise ValueError('Settings revision replaced its accepted master partition')
+    validate_partition(revision['partitions'],initialization_id)

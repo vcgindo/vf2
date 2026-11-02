@@ -69,12 +69,15 @@ def _validate_phase(value,initialization_id):
         raise ValueError('Prepared master partition contract differs')
     phase=_accepted(value['phase_id'],value['phase_digest'])
     owner=ProductionInitialization.objects.select_related('source').get(pk=initialization_id)
+    from mta.runtime.capture_preparation import effective_configuration
+    capture=phase.run.production_manifest.get('ingestion_preparation')
+    configuration=effective_configuration(capture) if capture else owner.configuration_digest
     if (phase.phase not in ('PRE_BPR','BPR','DBM') or phase.source_id!=owner.source_id
             or str(phase.run_id)!=value['run_id'] or value['source_digest']!=owner.source.digest
             or value['input_manifest_digest']!=phase.run.input_manifest_digest
             or value['snapshot_digest']!=phase.snapshot.state_digest
             or value['revision_cut']!=phase.metadata.get('revision_after')
-            or phase.snapshot.manifest['references']['profile']!=owner.configuration_digest
+            or phase.snapshot.manifest['references']['profile']!=configuration
             or value['roots']!=_phase_roots(phase)):
         raise ValueError('Prepared master accepted owner differs')
     return phase.run

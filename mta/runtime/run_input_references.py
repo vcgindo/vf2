@@ -14,6 +14,13 @@ def owners(initialized, raw, base_revision_id, *, unchanged, parent=None):
     for path in ('input/profile','input/opening'):
         if path=='input/profile' and raw.get('execution_settings') is not None:
             if raw['execution_settings']['profile_digest']!=initialized.configuration_digest:
+                from mta.runtime.input_v3 import PROFILE_POPULATION_PATHS, _at
+                for population in PROFILE_POPULATION_PATHS:
+                    try:
+                        _at(raw,population)
+                    except ValueError:
+                        continue  # An optional inactive source stays absent.
+                    result[population]=reference(initialized,'INITIALIZATION',population)
                 continue  # The effective profile is sealed once by this run.
         if path=='input/opening' and raw['opening'] is None:
             continue

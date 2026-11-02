@@ -66,7 +66,8 @@ class FrozenCsvRetryTests(unittest.TestCase):
                 ('mta.runtime.daily_preparation.prepare',b'raw'),
                 ('mta.runtime.production_daily.inspect_execution',({},owner,parent,frame)),
                 ('mta.runtime.production_preflight.require',None),
-                ('mta.runtime.production_daily.decode',{'consumer_opening':None}),
+                ('mta.runtime.production_daily.decode',{'consumer_opening':None,'day':day}),
+                ('mta.runtime.execution_settings.daily_frame',frame),
                 ('mta.mdm.production_families.require_initialization',None),
                 ('mta.runtime.production_daily._daily_initialization',frame),
                 ('mta.runtime.production_daily.working_day',day),
@@ -90,6 +91,7 @@ class FrozenCsvRetryTests(unittest.TestCase):
             mdm_input_capture=Obj(source=owner.source))
         base=Obj(run_id=parent.pk,master_epoch=1,configuration_epoch=2)
         with patch.object(capture_preparation,'epochs',side_effect=lambda *a,**k:list(cut)), \
+                patch('mta.runtime.occurrence_text_policy.admit',return_value={'owner':'separately-tested-policy'}), \
                 patch('mta.runtime.ingestion_models.InitializationCertification.objects.get',
                     return_value=Obj(initialization_id=owner.pk,receipt_digest=ready.certification_digest)), \
                 patch('mta.runtime.ingestion_models.MasterInputRevision.objects.get',return_value=base), \

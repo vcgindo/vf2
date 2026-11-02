@@ -289,7 +289,7 @@ class ProductionPreflightTests(unittest.TestCase):
         repeated=SimpleNamespace(origin_id='capture',run=SimpleNamespace(evidence_mode='production',status='SUCCEEDED',production_manifest={'lineage':[{}]}))
         problems=[]
         with TemporaryDirectory() as root,patch('mta.runtime.mdm_daily_models.MdmDailyInputCapture.objects') as captures, \
-            patch('mta.runtime.services.read_outputs',return_value={}) as read, \
+            patch('mta.runtime.accepted_state_read.read_accepted_daily',return_value={}) as read, \
             patch('mta.application.complete_daily_batch_files.write_run_pick_files') as write:
             captures.select_related.return_value.filter.return_value.first.return_value=repeated
             inspect_retry(raw,sha,owner,frame,None,None,frozen,'new',root,lambda *args:problems.append(args))
@@ -318,10 +318,12 @@ class ProductionPreflightTests(unittest.TestCase):
             patch('mta.runtime.models.ProductionInitialization.objects') as owners, \
             patch('mta.runtime.models.CalculationRun.objects.get',return_value=parent), \
             patch('mta.runtime.production_daily._inspection_frame',return_value=frame), \
+            patch('mta.runtime.execution_settings.daily_frame',return_value=frame), \
+            patch('mta.runtime.opening_scope.current_certified_opening',return_value=None), \
             patch('mta.mdm.production_families.require_initialization'), \
             patch('mta.mdm.production_families.require_binding',side_effect=ValueError('seal drift')), \
-            patch('mta.runtime.input_reader.read_input',side_effect=inputs), \
-            patch('mta.runtime.services.read_outputs',return_value={'ClosingState':[{}]}), \
+            patch('mta.runtime.input_reader.read_execution_input',side_effect=inputs), \
+            patch('mta.runtime.accepted_state_read.read_accepted_daily',return_value={'ClosingState':[{}]}), \
             patch('mta.application.daily_finalization.verify_successor'), \
             patch('mta.runtime.production_daily.inspect_completed_request',return_value=False), \
             patch('mta.mdm.integration_source.verify_predecessor',side_effect=ValueError('owner drift')), \
@@ -350,9 +352,9 @@ class ProductionPreflightTests(unittest.TestCase):
             _,_,expected,binding=inspection_request(raw,sha,owner,frame,None,None,root)
             args=(raw,sha,owner,frame,None,None,'completed',root)
             with patch('mta.runtime.mdm_daily_models.MdmDailyInputCapture.objects') as captures, \
-                    patch('mta.runtime.input_reader.read_input',return_value={
+                    patch('mta.runtime.input_reader.read_execution_input',return_value={
                         'initialization_binding':binding,'daily_input_sha256':sha}) as inputs, \
-                    patch('mta.runtime.services.read_outputs',return_value={}) as outputs, \
+                    patch('mta.runtime.accepted_state_read.read_accepted_daily',return_value={}) as outputs, \
                     patch('mta.application.complete_daily_batch_files.write_run_pick_files') as files:
                 query=captures.select_related.return_value.filter
                 query.side_effect=lambda **kw:SimpleNamespace(first=lambda: repeated if

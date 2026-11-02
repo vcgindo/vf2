@@ -386,6 +386,9 @@ def _admit(cursor, initialization_id, release, *, pending=False):
     else:
         from mta.runtime.master_revisions import validate
         validate(revision['partitions'],initialization_id)
+        from mta.runtime.execution_settings import PARTITION_CONTRACT, validate_revision
+        if revision['partitions'].get('contract')==PARTITION_CONTRACT:
+            validate_revision(revision,initialization_id)
         from mta.runtime.master_revisions import PHASE_CONTRACT
         if (revision['partitions'].get('contract')==PHASE_CONTRACT
                 and revision['partitions']['revision_cut'][:2]!=[revision['master_epoch'],revision['configuration_epoch']]):

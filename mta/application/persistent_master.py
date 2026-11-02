@@ -71,8 +71,8 @@ class MasterReuse:
         return reused(self.prior,self.plan)
 
 
-def select(prior, profile, day, snapshot, previous, cut):
-    if not eligible(profile,day,snapshot,previous,cut):
+def select(prior, profile, day, snapshot, previous, cut, *, settings_basis=None):
+    if not eligible(profile,day,snapshot,previous,cut,settings_basis=settings_basis):
         return None
     # Qualification excludes the operational Norm. A later NULL must still go
     # through the canonical producer, which owns its original rejection.
@@ -82,11 +82,19 @@ def select(prior, profile, day, snapshot, previous, cut):
     return MasterReuse(prior,snapshot,day['business_date'])
 
 
-def eligible(profile, day, snapshot, previous, cut):
+def eligible(profile, day, snapshot, previous, cut, *, settings_basis=None):
+    profile_digest=digest(profile)
+    expected_cut=list(cut[:2])
+    if settings_basis is not None:
+        from mta.runtime.execution_settings import MasterSettingsBasis
+        if type(settings_basis) is not MasterSettingsBasis:
+            raise ValueError('Master settings basis requires its admitted owner')
+        profile_digest=settings_basis.previous_profile_digest
+        expected_cut=list(settings_basis.cut)
     if (not isinstance(previous,dict) or previous.get('contract') != CONTRACT
             or previous.get('qualified') is not True
-            or previous.get('configuration_digest') != digest(profile)
-            or previous.get('master_cut') != list(cut[:2])
+            or previous.get('configuration_digest') != profile_digest
+            or previous.get('master_cut') != expected_cut
             or profile['import_non_nms'] or day['raw_non_nms'] or day['raw_no_norm']
             or snapshot.get('nms_active') is not True):
         return False
@@ -147,9 +155,16 @@ class MasterChange:
         return outcome['result']
 
 
-def changed(prior_run,profile,snapshot,base_revision_id):
+def changed(prior_run,profile,snapshot,base_revision_id,*,settings_basis=None):
     previous=prior_run.production_manifest.get('master_preparation',{})
-    if (previous.get('qualified') is not True or previous.get('configuration_digest')!=digest(profile)
+    configuration=digest(profile)
+    if settings_basis is not None:
+        from mta.runtime.execution_settings import MasterSettingsBasis
+        if type(settings_basis) is not MasterSettingsBasis:
+            raise ValueError('Master settings basis requires its admitted owner')
+        configuration=settings_basis.previous_profile_digest
+        base_revision_id=settings_basis.revision_id
+    if (previous.get('qualified') is not True or previous.get('configuration_digest')!=configuration
             or snapshot.get('nms_active') is not True):
         return None
     from mta.runtime.ingestion_models import MasterInputRevision
