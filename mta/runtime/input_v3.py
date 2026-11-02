@@ -678,7 +678,11 @@ def _derived_master_metadata(owner, reference, owner_identity, resolver):
         revision = MasterInputRevision.objects.filter(pk=reference['master_revision_id'],
             initialization_id=reference['initialization_id'], status='ACCEPTED').values_list(
                 'master_epoch', 'configuration_epoch').first()
-        if revision is None or list(revision) != parent_master['master_cut']:
+        matches=revision is not None and list(revision)==parent_master['master_cut']
+        if not matches and revision is not None:
+            from mta.runtime.execution_settings import master_revision_matches
+            matches=master_revision_matches(reference['master_revision_id'],reference['initialization_id'],parent_master['master_cut'])
+        if not matches:
             raise ValueError('Typed input derived master revision is unaccepted')
     from mta.runtime.receipt_integrity import verify_root
     verify_root(parent)

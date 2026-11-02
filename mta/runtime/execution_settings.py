@@ -292,3 +292,22 @@ def validate_revision(revision, initialization_id):
     if revision['partitions']['base']!=expected_base:
         raise ValueError('Settings revision replaced its accepted master partition')
     validate_partition(revision['partitions'],initialization_id)
+
+
+def master_revision_matches(revision_id,initialization_id,producer_cut):
+    """Keep a current settings cut bound to the unchanged actual master roots."""
+    from mta.runtime.ingestion_models import MasterInputRevision
+    from mta.runtime.ingestion_admission import REVISION_FIELDS,receipt
+    current=MasterInputRevision.objects.values(*REVISION_FIELDS,'receipt_digest').get(
+        pk=revision_id,initialization_id=initialization_id,status='ACCEPTED')
+    if current['partitions'].get('contract')!=PARTITION_CONTRACT:
+        return False
+    validate_revision(current,initialization_id)
+    prior=MasterInputRevision.objects.values(*REVISION_FIELDS,'receipt_digest').filter(
+        initialization_id=initialization_id,status='ACCEPTED',master_epoch=producer_cut[0],
+        configuration_epoch=producer_cut[1]).first()
+    if (prior is None or current['master_epoch']!=prior['master_epoch']
+            or prior['receipt_digest']!=receipt({key:prior[key] for key in REVISION_FIELDS})):
+        return False
+    base=prior['partitions']['base'] if prior['partitions'].get('contract')==PARTITION_CONTRACT else prior['partitions']
+    return current['partitions']['base']==base

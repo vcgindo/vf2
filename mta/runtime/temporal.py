@@ -565,8 +565,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                         from mta.application.persistent_master import NmsMasterRows
                         reference=dict(contract='native-nms-master-compatibility-v1',run_id=str(parent.pk),
                             output_digest=parent.output_digest,initialization_id=str(initialized.pk),
-                            source_digest=initialized.source.digest,master_revision_id=(settings_master_basis.revision_id
-                                if settings_master_basis is not None else prepared_state.master_revision_id))
+                            source_digest=initialized.source.digest,master_revision_id=prepared_state.master_revision_id)
                         base_master=NmsMasterRows(prior['consumer_context']['NMSAllItems'],reference=reference,plan=master_reuse.plan)
                 if (native and prepared_state is not None and parent is not None
                         and origin_capture is None and master_reuse is None):
