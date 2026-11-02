@@ -537,6 +537,7 @@ def _prepare_execution(raw, expected_sha256, *, initialization_id, source_digest
         prepared_arguments = None
         prepared_attempt = None
         prepared_admission = None
+        inspected_frame = inspected_owner = None
         if scope_request is not None and (feed_attempt is not None or getattr(raw,'admission',None) is not None):
             raise ValueError('UptoBPR currently requires the supplied native JSON command')
         if getattr(raw, 'admission', None) is not None:
@@ -557,8 +558,13 @@ def _prepare_execution(raw, expected_sha256, *, initialization_id, source_digest
                 execution_revision=execution_revision,retry_capture_id=retry_capture_id,report_disposition=report_disposition,
                 scope_request=scope_request,report_registration_request=report_registration_request)
             require(report,'day')
+            inspected_frame, inspected_owner = frame, owner
         value = decode(raw, expected_sha256)
         owner = ProductionInitialization.objects.select_related('source').get(pk=uuid.UUID(str(initialization_id)))
+        if inspected_owner is not None:
+            from mta.runtime.opening_scope import sealed_identity
+            if sealed_identity(inspected_owner) != sealed_identity(owner):
+                raise ValueError('Native initialization changed after inspection')
         handle = (certified_handle(owner, prepared_attempt, prepared_admission)
                   if prepared_attempt is not None else None)
         if handle is None:
@@ -575,8 +581,14 @@ def _prepare_execution(raw, expected_sha256, *, initialization_id, source_digest
         elif predecessor_output_digest is not None or value['consumer_opening'] is None:
             raise ValueError('Initial native day requires explicit consumer opening and no predecessor digest')
         frame = _daily_initialization(owner, parent, retry_capture_id, handle)
-        from mta.runtime.execution_settings import daily_frame
-        frame = daily_frame(owner,frame,value['day']['business_date'],retry_capture_id)
+        if inspected_frame is not None:
+            # Local result from this execution's own inspection, never a
+            # supplied preview or a cache of live settings across operations.
+            frame = {**frame, **{key:inspected_frame.get(key) for key in
+                ('profile','execution_settings','settings_cells')}}
+        else:
+            from mta.runtime.execution_settings import daily_frame
+            frame = daily_frame(owner,frame,value['day']['business_date'],retry_capture_id)
         day = working_day(raw, frame['profile'])
         if day['raw_non_nms'] and not frame['profile']['import_non_nms']:
             raise ValueError('Non-NMS feed requires its initialized active configuration')
@@ -598,7 +610,7 @@ def _prepare_execution(raw, expected_sha256, *, initialization_id, source_digest
         consumer_opening=value['consumer_opening'], report_disposition=report_disposition,
         feed_attempt=feed_attempt, prepared_arguments=prepared_arguments, prepared_state=prepared_state,
         scope_request=scope_request,report_registration_request=report_registration_request,
-        execution_settings=frame.get('execution_settings'))
+        execution_settings=frame.get('execution_settings'),settings_cells=frame.get('settings_cells'))
 
 
 class _NativeCaptureInputs:
@@ -612,7 +624,7 @@ class _NativeCaptureInputs:
     FIELDS = ('day', 'profile', 'predecessor', 'opening', 'mdm_source', 'mdm_retry',
         'pick_output_root', 'production_initialization', 'daily_input_sha256',
         'consumer_opening', 'report_disposition', 'feed_attempt', 'prepared_arguments',
-        'prepared_state', 'scope_request', 'report_registration_request', 'execution_settings')
+        'prepared_state', 'scope_request', 'report_registration_request', 'execution_settings', 'settings_cells')
 
     def __init__(self, arguments):
         self._arguments = arguments

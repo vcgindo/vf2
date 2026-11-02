@@ -107,6 +107,14 @@ def frozen_prior(run,raw):
         if (raw['lineage'].get('output_digest')!=parent.output_digest
                 or raw['lineage'].get('commands')!=commands):
             raise ValueError('Scoped native predecessor action revision differs')
+    if raw.get('execution_settings') is not None:
+        from mta.runtime.initialization_models import ProductionInitialization
+        from mta.runtime.execution_settings import require_snapshot, frozen_cells
+        from mta.runtime.execution_setting_projection import project_state
+        owner=ProductionInitialization.objects.get(pk=raw['initialization_binding']['id'])
+        ref=raw['execution_settings']
+        require_snapshot(owner,raw['profile'],ref,run.business_date)
+        prior=project_state(prior,frozen_cells(owner,ref,run.business_date))
     # This is the existing frozen overlay, never a live queue/source read.
     from mta.runtime.captured_recovery import _restore_working
     _restore_working(raw['mdm_input'],prior,raw['day'],parent)
@@ -124,7 +132,7 @@ def _finish_accepted_day(attempt_id,worker_token,*,compatibility_digest,master_s
         _attempt,run=require_claim(attempt_id,worker_token,compatibility_digest=compatibility_digest)
         prefix,_capture=accepted_prefix(run)
         dbm=prefix[-1]
-    raw=read_input(run,components=('opening','day','profile','lineage','initialization_binding','mdm_input','scope_request'))
+    raw=read_input(run,components=('opening','day','profile','lineage','initialization_binding','mdm_input','scope_request','execution_settings'))
     profile=raw['profile']
     if type(profile.get('daily_publication')) is not bool:
         raise ValueError('Scoped final publication mode must be captured explicitly')

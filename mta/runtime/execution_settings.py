@@ -114,12 +114,19 @@ def master_basis(owner, parent, parent_profile, current_profile, ref, revision_i
         return None
     from mta.runtime.ingestion_models import MasterInputRevision
     previous=parent.production_manifest.get('master_preparation',{})
-    if previous.get('configuration_digest')!=digest(parent_profile):
-        return None
     cut=previous.get('master_cut')
     if not isinstance(cut,list) or len(cut)!=2:
         return None
     current=MasterInputRevision.objects.get(pk=revision_id,initialization=owner,status='ACCEPTED')
+    if (previous.get('configuration_digest') == ref['profile_digest']
+            and cut == [current.master_epoch, current.configuration_epoch]):
+        # The normal master-reuse owner already handles an identical current
+        # profile/cut. No settings-transition basis (or extra N-row audit) is
+        # needed merely because central settings have been adopted.
+        return None
+    previous_digest=digest(parent_profile)
+    if previous.get('configuration_digest')!=previous_digest:
+        return None
     if current.partitions.get('contract')!=PARTITION_CONTRACT:
         return None
     prior=MasterInputRevision.objects.filter(initialization=owner,status='ACCEPTED',
@@ -130,7 +137,7 @@ def master_basis(owner, parent, parent_profile, current_profile, ref, revision_i
     if current.partitions['base']!=old_base:
         return None
     compatible_profiles(owner,parent_profile,current_profile,ref,business_date)
-    return MasterSettingsBasis(digest(parent_profile),tuple(cut),str(prior.pk))
+    return MasterSettingsBasis(previous_digest,tuple(cut),str(prior.pk))
 
 
 def reference(version):
@@ -157,7 +164,7 @@ def verify(version, original):
     return profile
 
 
-def resolve(owner, original, business_date):
+def resolve(owner, original, business_date, *, with_cells=False):
     """One SELECT chooses the complete immutable version and ordered cells."""
     from mta.runtime.execution_setting_catalogue import project
     # Two small normalized tables; a statement snapshot cannot expose half an edit.
@@ -172,7 +179,7 @@ def resolve(owner, original, business_date):
             'ORDER BY R.position', [owner.pk, business_date])
         rows = cursor.fetchall()
     if not rows:
-        return original, None  # Historical, pre-adoption installation only.
+        return (original, None, ()) if with_cells else (original, None)
     header = rows[0][:5]
     cells = tuple(SettingCell(*row[5:]) for row in rows if row[5] is not None)
     if not cells or rows_digest(cells) != header[3]:
@@ -185,17 +192,64 @@ def resolve(owner, original, business_date):
     ref = dict(contract=CONTRACT, id=str(header[0]), initialization_id=str(owner.pk),
         revision=header[1], effective_date=header[2].isoformat() if header[2] else None,
         values_digest=header[3], profile_digest=header[4])
-    return profile, ref
+    return (profile, ref, cells) if with_cells else (profile, ref)
+
+
+def resolve_header(owner, business_date):
+    """Locked new-capture recheck; immutable values need not be loaded again."""
+    from django.db.models import Q
+    from mta.runtime.execution_setting_models import ExecutionSettingsVersion
+    version = ExecutionSettingsVersion.objects.filter(initialization=owner, status='COMMITTED').filter(
+        Q(effective_date__isnull=True) | Q(effective_date__lte=business_date)).order_by('-revision').first()
+    return reference(version) if version is not None else None
+
+
+def frozen_cells(owner, ref, business_date):
+    """Read one recorded immutable version, never choose current settings."""
+    if ref is None:
+        return ()
+    from mta.runtime.execution_setting_models import ExecutionSettingsVersion
+    version = ExecutionSettingsVersion.objects.get(pk=ref.get('id'), initialization=owner, status='COMMITTED')
+    if reference(version) != ref or version.effective_date and version.effective_date > date.fromisoformat(str(business_date)):
+        raise ValueError('Frozen settings owner/version/date differs')
+    cells = _rows(version)
+    if rows_digest(cells) != ref['values_digest']:
+        raise ValueError('Frozen settings values differ')
+    split_cells(cells)
+    return cells
+
+
+def require_cells(owner,ref,business_date,cells):
+    """Bind ordinary handoff data to its already authenticated immutable set."""
+    if cells is None:
+        return frozen_cells(owner,ref,business_date)
+    cells=tuple(cells)
+    if any(type(cell) is not SettingCell for cell in cells):
+        raise ValueError('Frozen settings require exact typed cells')
+    if ref is None:
+        if cells:
+            raise ValueError('Settings cells have no owned version')
+    elif rows_digest(cells)!=ref['values_digest']:
+        raise ValueError('Frozen settings cell set differs')
+    split_cells(cells)
+    return cells
 
 
 def require_snapshot(owner, profile, ref, business_date):
     """Authenticate a frozen version; never select current management values."""
+    actual=digest(profile)
+    _check_snapshot_digest(owner,actual,ref,business_date)
+    return actual
+
+
+def _check_snapshot_digest(owner,actual,ref,business_date):
+    """Compare a just-computed local digest; no caller validation flag/cache."""
     if ref is None:
-        if digest(profile) != owner.configuration_digest:
+        if actual != owner.configuration_digest:
             raise ValueError('Historical initialization configuration differs')
         return
     require_reference(owner,ref,business_date)
-    if digest(profile)!=ref['profile_digest']:
+    if actual!=ref['profile_digest']:
         raise ValueError('Frozen execution settings ownership/date/profile differs')
 
 
@@ -213,11 +267,16 @@ def require_reference(owner,ref,business_date):
 
 def compatible_profiles(owner, previous, current, ref, business_date):
     """Allow only an authenticated catalogue projection; no root rebinding."""
+    actual=require_snapshot(owner, current, ref, business_date)
+    _compare_projection(previous,current,actual)
+
+
+def _compare_projection(previous,current,actual):
+    """Pure comparison after its caller's current-profile ownership check."""
     from mta.runtime.execution_setting_catalogue import extract, project
-    require_snapshot(owner, current, ref, business_date)
     # Projecting previous from current, and conversely, checks every nonmanaged
     # field without copying any master/history population.
-    if digest(project(previous, extract(current))) != digest(current):
+    if digest(project(previous, extract(current))) != actual:
         raise ValueError('Execution settings transition changes nonmanaged configuration')
 
 
@@ -229,9 +288,10 @@ def daily_frame(owner, frame, business_date, retry_capture_id=None):
         raw=read_execution_input(frozen,components=('profile','execution_settings'))
         profile,ref=raw['profile'],raw.get('execution_settings')
         require_snapshot(owner,profile,ref,business_date)
+        cells=frozen_cells(owner,ref,business_date)
     else:
-        profile,ref=resolve(owner,frame['profile'],business_date)
-    return {**frame,'profile':profile,'execution_settings':ref}
+        profile,ref,cells=resolve(owner,frame['profile'],business_date,with_cells=True)
+    return {**frame,'profile':profile,'execution_settings':ref,'settings_cells':cells}
 
 
 def _stable(owner, effective_date):

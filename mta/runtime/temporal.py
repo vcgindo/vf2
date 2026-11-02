@@ -43,10 +43,14 @@ def prepare_native_opening(owner, frame, profile, opening, predecessor, *, execu
     still perform its live source/admission checks inside the transaction.
     """
     identity = (sealed_identity(owner), owner.source.digest)
-    if storage(frame['profile']) != profile:
-        from mta.runtime.execution_settings import require_snapshot, compatible_profiles
+    if execution_settings is not None:
+        # The committed same-initialization version seals the permitted finite
+        # projection. Check the actual mutable graph exhaustively once here;
+        # comparing/normalizing the original whole graph again adds no proof.
+        from mta.runtime.execution_settings import require_snapshot
         require_snapshot(owner,profile,execution_settings,business_date)
-        compatible_profiles(owner,frame['profile'],profile,execution_settings,business_date)
+    elif storage(frame['profile']) != profile:
+        raise ValueError('Native profile differs from its typed initialization')
     if predecessor is not None:
         return identity, None
     with stage('opening_normalization'):
@@ -211,7 +215,8 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 shipment_sha256=None, production_initialization=None, daily_input_sha256=None,
                 consumer_opening=None, report_disposition=None, feed_attempt=None,
                 prepared_arguments=None, prepared_state=None, _captured_retry=None,
-                scope_request=None, report_registration_request=None, execution_settings=None, _native_preparation=None):
+                scope_request=None, report_registration_request=None, execution_settings=None,
+                settings_cells=None, _native_preparation=None):
     if _native_preparation is not None:
         from mta.runtime.production_daily import _NativeCaptureInputs
         if (type(_native_preparation) is not _NativeCaptureInputs
@@ -220,12 +225,12 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                     finalization_config, shipment_sha256, production_initialization,
                     daily_input_sha256, consumer_opening, report_disposition, feed_attempt,
                     prepared_arguments, prepared_state, _captured_retry, scope_request,
-                    report_registration_request, execution_settings))):
+                    report_registration_request, execution_settings, settings_cells))):
             raise ValueError('Native capture input handoff cannot replace supplied arguments')
         (day, profile, predecessor, opening, mdm_source, mdm_retry, pick_output_root,
             production_initialization, daily_input_sha256, consumer_opening,
             report_disposition, feed_attempt, prepared_arguments, prepared_state,
-            scope_request, report_registration_request, execution_settings) = _native_preparation.take(execution_revision)
+            scope_request, report_registration_request, execution_settings, settings_cells) = _native_preparation.take(execution_revision)
         _native_preparation = None
     if _captured_retry is not None:
         # The finite-reference kind uses this same production owner. Its
@@ -235,7 +240,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 feed_attempt,prepared_arguments,prepared_state,production_initialization,
                 report_exceptions,pick_output_root,pick_config_sha256,finalization_config,
                 shipment_sha256,daily_input_sha256,consumer_opening,report_disposition,scope_request,
-                report_registration_request,execution_settings)):
+                report_registration_request,execution_settings,settings_cells)):
             raise ValueError('Captured continuation cannot replace its frozen native arguments')
         from mta.runtime.captured_recovery import resume
         return resume(execution_revision=execution_revision, **_captured_retry)
@@ -263,7 +268,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
         finalization = configuration(profile)
         finalization_binding = None
         native = production_initialization is not None
-        if execution_settings is not None and not native:
+        if (execution_settings is not None or settings_cells is not None) and not native:
             raise ValueError('Execution settings require their owned production initialization')
         if report_registration_request is not None:
             from mta.runtime.runtime_report_registered_request import validate_request as validate_registered
@@ -376,13 +381,12 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 initialization_binding = dict(id=str(initialized.pk), source_digest=initialized.source.digest,
                     input_sha256=initialized.input_sha256, content_digest=initialized.input_digest,
                     configuration_digest=initialized.configuration_digest)
-                from mta.runtime.execution_settings import require_snapshot, resolve
-                require_snapshot(initialized,profile,execution_settings,today)
+                from mta.runtime.execution_settings import require_snapshot, resolve_header
+                profile_digest=require_snapshot(initialized,profile,execution_settings,today)
                 if mdm_retry is None:
                     # Same source lock as settings apply. Never capture an older
                     # preview after a concurrent complete settings commit.
-                    original=frame_for_daily(initialized,predecessor)['profile']
-                    _,locked_settings=resolve(initialized,original,today)
+                    locked_settings=resolve_header(initialized,today)
                     if locked_settings!=execution_settings:
                         raise ValueError('Execution settings changed before locked admission; retry inspection')
                 if report_registration_request is not None:
@@ -416,11 +420,14 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 if (configuration(parent_profile) is not None or finalization is not None):
                     if configuration(parent_profile) != finalization:
                         raise ValueError('Generic finalization predecessor configuration differs')
-                    if digest(parent_profile) != digest(profile):
+                    if digest(parent_profile) != (profile_digest if native else digest(profile)):
                         if not native:
                             raise ValueError('Generic finalization requires its own unchanged configuration')
-                        from mta.runtime.execution_settings import compatible_profiles
-                        compatible_profiles(initialized,parent_profile,profile,execution_settings,today)
+                        from mta.runtime.execution_settings import _compare_projection
+                        # require_snapshot just checked this exact current
+                        # mutable graph in this locked capture. The later alias
+                        # seal still rechecks its actual bytes before storage.
+                        _compare_projection(parent_profile,profile,profile_digest)
                     parent_capture = getattr(parent, 'mdm_input_capture', None)
                     selected_source_id = mdm_source.pk if mdm_source is not None else None
                     if mdm_retry is not None:
@@ -466,6 +473,10 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                     if parent_binding != initialization_binding:
                         raise ValueError('Native predecessor belongs to another initialization')
                 lineage['initialization_id'] = str(initialized.pk)
+                from mta.runtime.execution_settings import require_cells
+                from mta.runtime.execution_setting_projection import project_state
+                settings_cells=require_cells(initialized,execution_settings,today,settings_cells)
+                prior=project_state(prior,settings_cells)
             publication_opening = ({'supplier': deepcopy(prior['supplier'])}
                 if publication_enabled else None)
             raw=request_input(day=day,profile=profile,initial=initial,lineage=lineage,

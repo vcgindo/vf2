@@ -349,6 +349,9 @@ def resume(*, origin_run_id, execution_revision, expected, archive_path, second_
         from datetime import timedelta
         if old.business_date != date.fromisoformat(opening_date)+timedelta(days=1):
             raise ValueError('Frozen native day is not its own immediate successor')
+        from mta.runtime.execution_settings import frozen_cells
+        from mta.runtime.execution_setting_projection import project_state
+        prior=project_state(prior,frozen_cells(owner,raw.get('execution_settings'),old.business_date))
         opening_settings=deepcopy(prior['importer_settings'])
         _restore_working(snapshot,prior,raw['day'],parent)
         with source_lock(owner.source_id), transaction.atomic():

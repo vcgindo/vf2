@@ -20,7 +20,7 @@ def restore(run,receipt):
     from mta.runtime import phase_state
     if receipt.run_id!=run.pk or not receipt.state_sealed or receipt.phase not in ('BPR','DBM'):
         raise ValueError('Scoped action requires its accepted BPR/DBM base')
-    raw=read_input(run,components=('opening','day','profile','lineage','initialization_binding','mdm_input'))
+    raw=read_input(run,components=('opening','day','profile','lineage','initialization_binding','mdm_input','execution_settings'))
     return phase_state.read(receipt.snapshot,prior=frozen_prior(run,raw),
         day=raw['day'],profile=raw['profile'],
         master_snapshot=raw['mdm_input'] if raw.get('initialization_binding') is not None else None)

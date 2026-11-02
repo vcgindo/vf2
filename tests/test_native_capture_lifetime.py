@@ -117,7 +117,7 @@ class NativeCaptureLifetimeTests(unittest.TestCase):
     def test_full_calculation_consumers_use_prior_and_explicit_publication_opening(self):
         from mta.runtime.runtime_report_request import SCHEMA
         for registered in (False, True):
-            run = Obj(pk=uuid.uuid4(), input_digest='d'*64)
+            run = Obj(pk=uuid.uuid4(), input_digest='d'*64, production_manifest={})
             prior = {'rows': [{'value': None}, {'value': None}]}
             day = {'business_date': '2037-04-10'}
             profile = {'delivery': {'site_code': 'SUPPLIED'}}

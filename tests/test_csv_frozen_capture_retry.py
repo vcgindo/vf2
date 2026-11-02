@@ -45,7 +45,9 @@ class FrozenCsvRetryTests(unittest.TestCase):
             allocated_orders(**dict(args,daily_consumption=iter(args['daily_consumption'])))
 
     def test_ordinary_retry_retains_capture_and_uses_fresh_certified_commit_metadata(self):
-        owner=Obj(pk=uuid.uuid4(),source=Obj(digest='a'*64),configuration_digest='b'*64)
+        owner=Obj(pk=uuid.uuid4(),source=Obj(digest='a'*64),source_id=7,configuration_digest='b'*64,
+            input_digest='d'*64,input_manifest_digest='e'*64,receipt_digest='f'*64,
+            recipe_sha256='1'*64,implementation_digest='2'*64,input_sha256='3'*64)
         parent=Obj(pk=uuid.uuid4(),output_digest='c'*64)
         frame=dict(profile={'import_non_nms':False},opening={})
         day=dict(business_date='2037-04-10',raw_non_nms=[])

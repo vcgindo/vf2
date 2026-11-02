@@ -228,8 +228,8 @@ def certified_profile(initialization, handle):
     """Read only immutable configuration for a certified successor."""
     _certified_metadata(initialization, handle)
     from mta.runtime.accepted_input_read import read_accepted_input
-    return read_accepted_input(initialization, components=('profile',),
-                               materialized_roots=('input/profile',))['profile']
+    return immutable(initialization, 'certified-profile', lambda: read_accepted_input(
+        initialization, components=('profile',), materialized_roots=('input/profile',))['profile'])
 
 
 def require_certified_binding(source, initialization, handle):

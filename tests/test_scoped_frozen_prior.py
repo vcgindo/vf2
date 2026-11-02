@@ -1,9 +1,15 @@
 """Native scope restoration keeps the parent's exact action/input boundary."""
 from copy import deepcopy
 from datetime import date
+import os
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE','vectorflow.settings')
+os.environ.setdefault('VF_SECRET_KEY','scoped-frozen-prior-unit-only')
+import django
+django.setup()
 
 
 class FrozenPriorTests(unittest.TestCase):
@@ -21,12 +27,11 @@ class FrozenPriorTests(unittest.TestCase):
         return frozen_prior(self.run,self.raw)
 
     def test_native_successor_uses_verified_parent_then_exact_frozen_overlay(self):
-        from mta.runtime.services import read_outputs
         def commands(parent,state,*,through_date):
             self.assertIs(parent,self.parent)
             self.assertEqual(through_date,self.run.business_date)
             return state,[]
-        with patch('mta.runtime.services.read_outputs',return_value={'ClosingState':[self.state]}) as read, \
+        with patch('mta.runtime.accepted_state_read.read_accepted_daily',return_value={'ClosingState':[self.state]}) as read, \
                 patch('mta.runtime.temporal.command_states',side_effect=commands), \
                 patch('mta.mdm.integration_source.replace_working_inputs') as overlay:
             result=self.restore()
@@ -42,7 +47,7 @@ class FrozenPriorTests(unittest.TestCase):
         for field,value in (('output_digest','foreign'),('commands',[{'id':'new'}])):
             with self.subTest(field=field):
                 self.setUp();self.raw['lineage'][field]=value
-                with patch('mta.runtime.services.read_outputs',return_value={'ClosingState':[self.state]}), \
+                with patch('mta.runtime.accepted_state_read.read_accepted_daily',return_value={'ClosingState':[self.state]}), \
                         patch('mta.runtime.temporal.command_states',return_value=(deepcopy(self.state),[])), \
                         patch('mta.mdm.integration_source.replace_working_inputs') as overlay:
                     with self.assertRaisesRegex(ValueError,'action revision differs'):
@@ -76,3 +81,18 @@ class FrozenPriorTests(unittest.TestCase):
         self.assertEqual(result,self.state)
         result['orders']['duplicates'].append(2)
         self.assertEqual(self.raw['opening']['state'],self.state)
+
+    def test_native_settings_are_read_from_frozen_version_before_overlay(self):
+        from mta.runtime.execution_setting_owners import extract
+        self.run.predecessor=None
+        self.raw.update(opening={'state':deepcopy(self.state)},profile={},execution_settings={'id':'frozen'})
+        cells=extract(self.state)
+        with patch('mta.runtime.initialization_models.ProductionInitialization.objects.get',return_value='owner'), \
+             patch('mta.runtime.execution_settings.require_snapshot') as snapshot, \
+             patch('mta.runtime.execution_settings.frozen_cells',return_value=cells) as frozen, \
+             patch('mta.runtime.execution_settings.resolve',side_effect=AssertionError('No current selection')), \
+             patch('mta.mdm.integration_source.replace_working_inputs'):
+            result=self.restore()
+        snapshot.assert_called_once_with('owner',{},self.raw['execution_settings'],self.run.business_date)
+        frozen.assert_called_once_with('owner',self.raw['execution_settings'],self.run.business_date)
+        self.assertEqual(result['orders'],self.state['orders'])

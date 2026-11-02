@@ -215,7 +215,7 @@ def _produce(attempt,value):
         _publish_reports(attempt,receipt,value)
         return receipt
     if phase not in ('START','PRE_BPR'):raise ValueError('UptoBPR cannot advance a later phase')
-    raw=read_input(run,components=('opening','day','profile','lineage','initialization_binding','mdm_input'))
+    raw=read_input(run,components=('opening','day','profile','lineage','initialization_binding','mdm_input','execution_settings'))
     prior=frozen_prior(run,raw)
     opening={'supplier':prior['supplier']}
     for name in ('shipment_input','transporter_input','production_report_policy',
