@@ -54,6 +54,14 @@ def snapshot(owner):
         ('fresh_control.ingestion_release_authority','initialization_id=%s',[init]),
     ]
     with connection.cursor() as cursor:
+        # Absent before the settings feature, then ordinary immutable metadata
+        # on subsequent upgrades. Never rewrite its earlier version rows.
+        for table in ('mta.fresh_mta_executionsettingsversion', 'mta.fresh_mta_executionsetting'):
+            cursor.execute('SELECT to_regclass(%s)', [table])
+            if cursor.fetchone()[0] is not None:
+                where = 'initialization_id=%s' if table.endswith('version') else (
+                    'version_id IN (SELECT id FROM mta.fresh_mta_executionsettingsversion WHERE initialization_id=%s)')
+                tables.append((table, where, [init]))
         return {table:[row[0] for row in _rows(cursor,table,where,args)] for table,where,args in tables}
 
 
@@ -287,7 +295,9 @@ def run(phase, initialization, previous, receipt):
             executor=MigrationExecutor(connection)
             if not before_path.exists() or not selection_path.exists():
                 raise ValueError('Original upgrade preservation snapshot is missing')
-            before=json.loads(before_path.read_bytes());preserved(before,snapshot(owner))
+            before=json.loads(before_path.read_bytes())
+            from mta.runtime.execution_settings import preserved_adoption
+            settings_adoption=preserved_adoption(owner,before,snapshot(owner))
             current_selected=selected(owner)
             if current_selected != json.loads(selection_path.read_bytes()):
                 raise ValueError('Selected publication changed during upgrade')
@@ -300,6 +310,7 @@ def run(phase, initialization, previous, receipt):
             else:
                 _admit(cursor,owner.pk,target,pending=True)
         value=dict(status='UPGRADE_DATABASE_APPLY_REQUIRED' if pending else 'UPGRADE_DATABASE_VERIFIED',initialization_id=str(owner.pk),
+            settings_adoption=settings_adoption,
             target_release=target,selected=current_selected,preserved_metadata_digest=digest(before),
             code_release_authority_appends=0)
     else:

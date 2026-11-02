@@ -14,6 +14,87 @@ from mta.runtime.execution_setting_values import SettingCell, rows_digest
 CONTRACT = 'vectorflow-execution-settings-v1'
 PARTITION_CONTRACT = 'vectorflow-settings-master-partitions-v1'
 CELL_FIELDS = ('path', 'module', 'parameter', 'ordinal', 'value_kind', 'value_text', 'value_state')
+# Existing configuration watches fire once for each SQL statement: header
+# INSERT, the single bounded values INSERT, then header COMMITTED UPDATE.
+# _publish_revision fails atomically if a backend ever splits that insertion.
+SETTINGS_WATCH_STATEMENTS = 3
+
+
+def split_cells(cells):
+    from mta.runtime.execution_setting_owners import OWNER_PREFIX, validate
+    profile, owners = [], []
+    for cell in cells:
+        (owners if cell.path.startswith(OWNER_PREFIX + '/') else profile).append(cell)
+    return tuple(profile), validate(owners)
+
+
+def preserved_adoption(owner, before, after):
+    """Allow only exact current-value bootstrap during a normal upgrade.
+
+    All original immutable rows remain exact. The sole allowed mutable change
+    is the already guarded three-statement settings configuration increment,
+    plus its one accepted master-cut wrapper. No receipt supplied by an
+    operator grants permission to ignore other differences.
+    """
+    from release.upgrade_database import preserved
+    try:
+        preserved(before, after)
+        return None
+    except ValueError:
+        from mta.runtime.execution_setting_models import ExecutionSettingsVersion
+        from mta.runtime.execution_setting_catalogue import extract
+        from mta.runtime.execution_setting_owners import extract as extract_owners
+        from mta.runtime.execution_settings_sources import current_state
+        from release.execution_settings_command import original_profile
+        masters = 'mta.fresh_mta_masterinputrevision'
+        states = 'mta.fresh_mta_ingestionrevisionstate'
+        headers = 'mta.fresh_mta_executionsettingsversion'
+        values = 'mta.fresh_mta_executionsetting'
+        if before.get(headers) or before.get(values):
+            raise ValueError('Upgrade cannot rewrite preexisting settings history')
+        old_ids = {row['id'] for row in before.get(masters, [])}
+        added = [row for row in after.get(masters, []) if row['id'] not in old_ids]
+        if len(added) != 1 or len(before.get(states, [])) != 1 or len(after.get(states, [])) != 1:
+            raise ValueError('Upgrade changed metadata beyond exact settings adoption')
+        new = added[0]
+        old_state, new_state = before[states][0], after[states][0]
+        heads = [row for row in before.get(masters, []) if row['status'] == 'ACCEPTED'
+                 and row['master_epoch'] == old_state['master_epoch']
+                 and row['configuration_epoch'] == old_state['configuration_epoch']]
+        if (len(heads) != 1 or new['status'] != 'ACCEPTED'
+                or str(new['initialization_id']) != str(owner.pk)
+                or new['parent_id'] != heads[0]['id'] or new['run_id'] != heads[0]['run_id']
+                or new['master_epoch'] != new_state['master_epoch']
+                or new['configuration_epoch'] != new_state['configuration_epoch']):
+            raise ValueError('Settings adoption wrapper does not own the exact accepted current cut')
+        if new['partitions'].get('contract') != PARTITION_CONTRACT:
+            raise ValueError('Upgrade added an unrelated master revision')
+        version = ExecutionSettingsVersion.objects.get(pk=new['partitions']['settings']['id'],
+            initialization=owner, status='COMMITTED', revision=1, parent__isnull=True, effective_date__isnull=True)
+        original = original_profile(owner)
+        if (version.profile_digest != owner.configuration_digest
+                or _rows(version) != extract(original) + extract_owners(current_state(owner))):
+            raise ValueError('Upgrade settings adoption changed current values')
+        verify(version, original)
+        from mta.runtime.ingestion_admission import receipt, REVISION_FIELDS
+        if new['receipt_digest'] != receipt({key:new[key] for key in REVISION_FIELDS}):
+            raise ValueError('Settings adoption wrapper receipt differs')
+        validate_revision(new, owner.pk)
+        if (len(after.get(headers, [])) != 1 or str(after[headers][0]['id']) != str(version.pk)
+                or len(after.get(values, [])) != len(_rows(version))
+                or any(str(row['version_id']) != str(version.pk) for row in after[values])):
+            raise ValueError('Settings adoption created a different header/value population')
+        adjusted = dict(after)
+        adjusted[masters] = [row for row in after[masters] if row['id'] in old_ids]
+        state = dict(after[states][0])
+        state['configuration_epoch'] -= SETTINGS_WATCH_STATEMENTS
+        adjusted[states] = [state]
+        # A schema-only installation can already have these empty tables. Only
+        # the exact authenticated first header/value set above is additive.
+        adjusted[headers] = []
+        adjusted[values] = []
+        preserved(before, adjusted)
+        return reference(version)
 
 
 @dataclass(frozen=True)
@@ -69,7 +150,8 @@ def verify(version, original):
     cells = _rows(version)
     if rows_digest(cells) != version.values_digest:
         raise ValueError('Execution settings row digest differs')
-    profile = project(original, cells)
+    profile_cells, _ = split_cells(cells)
+    profile = project(original, profile_cells)
     if digest(profile) != version.profile_digest:
         raise ValueError('Execution settings projection differs')
     return profile
@@ -95,7 +177,8 @@ def resolve(owner, original, business_date):
     cells = tuple(SettingCell(*row[5:]) for row in rows if row[5] is not None)
     if not cells or rows_digest(cells) != header[3]:
         raise ValueError('Execution settings atomic row set differs')
-    profile = project(original, cells)
+    profile_cells, _ = split_cells(cells)
+    profile = project(original, profile_cells)
     # The immutable header was sealed by the management transaction. The
     # finite projector checks all editable cells against the trusted original;
     # do not rehash excluded master/history populations to obtain a scalar.
@@ -190,7 +273,7 @@ def _publish_revision(owner, parent, version):
     # UPDATE fired existing configuration watches. Other work cannot be
     # laundered into a current revision by this metadata-only publication.
     if (state.master_epoch!=parent.master_epoch
-            or state.configuration_epoch!=parent.configuration_epoch+3):
+            or state.configuration_epoch!=parent.configuration_epoch+SETTINGS_WATCH_STATEMENTS):
         raise ValueError('Settings commit changed a different master/configuration basis')
     base=parent.partitions
     base_master_epoch=parent.master_epoch
@@ -230,14 +313,21 @@ def commit(owner, original, *, cells=None, base_revision=None, effective_date=No
         # second certified installation in a shared database.
         if InitializationCertification.objects.filter(status='CERTIFIED').exclude(initialization=owner).exists():
             raise ValueError('Settings management requires its exclusive certified installation database')
+        # A captured/unfinished operation can legitimately have no accepted
+        # current master cut yet. Explain that state before asking admission
+        # to validate a stable cut; both checks retain the same source lock.
+        _stable(owner,effective_date)
         admitted=_admit(cursor,owner.pk,require_current())
         parent=ExecutionSettingsVersion.objects.select_for_update().filter(initialization=owner,
             status='COMMITTED').order_by('-revision').first()
-        _stable(owner,effective_date)
         if parent is None:
             if cells is not None or base_revision is not None or effective_date is not None:
                 raise ValueError('Adopt current values before applying a settings edit')
-            cells=extract(original); profile=project(original,cells)
+            from mta.runtime.execution_setting_owners import extract as extract_owners
+            from mta.runtime.execution_settings_sources import current_state
+            profile_cells=extract(original)
+            cells=profile_cells+extract_owners(current_state(owner))
+            profile=project(original,profile_cells)
         else:
             if cells is None:
                 verify(parent,original)
@@ -246,7 +336,11 @@ def commit(owner, original, *, cells=None, base_revision=None, effective_date=No
                 raise ValueError('Stale settings export; export the current revision again')
             if effective_date is None or (parent.effective_date and effective_date<=parent.effective_date):
                 raise ValueError('Settings changes require a strictly increasing explicit effective date')
-            profile=project(original,cells)
+            profile_cells, owner_cells = split_cells(cells)
+            _, prior_owners = split_cells(_rows(parent))
+            if owner_cells != prior_owners:
+                raise ValueError('Outside-owner settings activation remains locked')
+            profile=project(original,profile_cells)
             if rows_digest(cells)==parent.values_digest:
                 return parent
         revision=MasterInputRevision.objects.get(pk=admitted.master_revision_id)
@@ -285,7 +379,7 @@ def validate_revision(revision, initialization_id):
         pk=revision['parent_id'],initialization_id=initialization_id,status='ACCEPTED')
     if (parent['receipt_digest']!=receipt({key:parent[key] for key in REVISION_FIELDS})
             or revision['master_epoch']!=parent['master_epoch']
-            or revision['configuration_epoch']!=parent['configuration_epoch']+3):
+            or revision['configuration_epoch']!=parent['configuration_epoch']+SETTINGS_WATCH_STATEMENTS):
         raise ValueError('Settings revision does not own its exact configuration cut')
     prior=parent['partitions']
     expected_base=prior['base'] if prior.get('contract')==PARTITION_CONTRACT else prior

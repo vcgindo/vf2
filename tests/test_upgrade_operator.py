@@ -54,6 +54,9 @@ class DockerStub {
   } else if (args.Contains("--network")) {
    if (args.Contains(oldImage)) Console.WriteLine(json.Serialize(new {schema="vectorflow-native-release-source-v1",source_commit=new string('c',40),manifest_sha256=new string('e',64),source_files_digest=new string('f',64),migrations_digest=new string('1',64),implementation_sha256=new string('2',64)}));
    else Console.WriteLine("{\"schema\":\"vectorflow-native-release-source-v1\",\"source_commit\":\""+new string('d',40)+"\",\"files\":{}}");
+  } else if (args.Contains("release.execution_settings_command")) {
+   if (args.Last() != "adopt") return 1;
+   Console.WriteLine("{\"status\":\"ADOPTED\",\"settings\":{\"revision\":1}}");
   } else if (args.Contains("release.upgrade_database")) {
    string phase = args[Array.IndexOf(args,"--phase")+1];
    string mount = args.First(a=>a.EndsWith(":/upgrade"));
@@ -283,7 +286,7 @@ class DockerStub {
                 calls = self.calls(root)[before:]
                 self.assertFalse(any('apply' in c for c in calls))
                 self.assertFalse(any(c[0] == 'cp' or any('pg_basebackup ' in a for a in c) for c in calls))
-                self.assertEqual([c[c.index('--phase')+1] for c in calls if '--phase' in c], ['verify'])
+                self.assertEqual([c[c.index('--phase')+1] for c in calls if '--phase' in c], ['verify','verify'])
                 self.assertEqual(self.journal(root)['status'], 'COMPLETE')
 
     def test_resume_rejects_changed_backup_and_different_target(self):

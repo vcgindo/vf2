@@ -5,7 +5,7 @@ DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend pre
 #>
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory,Position=0)][ValidateSet('csv-sample','csv-init','csv-day','csv-scope','upgrade')][string]$Operation,
+    [Parameter(Mandatory,Position=0)][ValidateSet('csv-sample','csv-init','csv-day','csv-scope','upgrade','settings')][string]$Operation,
     [Parameter(Position=1)][string]$BusinessDate,
     [ValidateSet('Full','UptoBPR','PostBPR','UptoDBM','PostDBM')][string]$Scope,
     [switch]$InspectOnly,
@@ -13,13 +13,26 @@ param(
     [switch]$Reconcile,
     [switch]$Build,
     [string]$Image,
-    [string]$BackupDirectory
+    [string]$BackupDirectory,
+    [string]$Export,
+    [string]$Apply,
+    [string]$EffectiveDate,
+    [string]$Reason,
+    [string]$OnDate
 )
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
 . "$PSScriptRoot/release/powershell_compat.ps1"
 Push-Location $PSScriptRoot
 try {
+    if ($Operation -eq 'settings') {
+        if ($BusinessDate -or $Scope -or $InspectOnly -or $Resume -or $Reconcile -or $Build -or $Image -or $BackupDirectory) {
+            throw 'settings takes optional -OnDate, -Export file or -Apply file -EffectiveDate YYYY-MM-DD -Reason text'
+        }
+        & "$PSScriptRoot/release/run_settings.ps1" -Export $Export -Apply $Apply -EffectiveDate $EffectiveDate -Reason $Reason -OnDate $OnDate
+        return
+    }
+    if ($Export -or $Apply -or $EffectiveDate -or $Reason -or $OnDate) { throw 'Settings options belong to settings' }
     if ($Operation -eq 'upgrade') {
         if ($BusinessDate -or $Scope -or $Reconcile) { throw 'upgrade takes -Build or -Image, optional -InspectOnly, -Resume and -BackupDirectory' }
         & "$PSScriptRoot/release/run_upgrade.ps1" -Build:$Build -Image $Image -InspectOnly:$InspectOnly -Resume:$Resume -BackupDirectory $BackupDirectory

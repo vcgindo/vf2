@@ -218,6 +218,12 @@ def run(directory, manifest_sha256, configuration, recipe, receipt_path, *, resu
             if not InitializationCertification.objects.filter(initialization=owner).exists():
                 finish_existing(owner)
         cert_id=activate(owner)
+        # Repository-owned current-value adoption; no operator hash/UUID wiring
+        # or reinitialization. A failed response resumes this idempotent owner.
+        with installer_login():
+            from release.execution_settings_command import adopt
+            from mta.runtime.execution_settings import reference
+            receipt['execution_settings'] = reference(adopt(owner))
         receipt['families']=dict(status='MDM_FAMILIES_READY',opening_id=str(owner.pk),
             source_digest=owner.source.digest,input_sha256=owner.input_sha256,certification_id=cert_id,accepted_day=False)
         receipt['phase']='CONFIGURATION'

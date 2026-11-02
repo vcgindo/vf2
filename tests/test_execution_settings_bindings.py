@@ -1,11 +1,12 @@
 """Focused owner-binding proofs; no database connection or native acceptance."""
 from collections.abc import Sequence
+from contextlib import nullcontext
 from copy import deepcopy
 from datetime import date
 import os
 from types import SimpleNamespace
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 os.environ.setdefault('VF_SECRET_KEY', 'execution-settings-bindings-unit-only')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'vectorflow.settings')
@@ -17,6 +18,25 @@ from mta.runtime import capture_preparation, execution_settings, run_input_refer
 from mta.runtime.input_v3 import PROFILE_POPULATION_PATHS
 from mta.serialization import digest
 from tests import test_accepted_reference_write as accepted_harness
+
+
+class ManagementAdmissionTests(unittest.TestCase):
+    def test_unfinished_operation_is_explained_before_current_cut_admission(self):
+        original = {'delivery': {'batch': {'AutoDBMActive': 0}}}
+        owner = SimpleNamespace(pk='owner', source_id=1,
+                                configuration_digest=digest(original))
+        certifications = Mock()
+        certifications.filter.return_value.exclude.return_value.exists.return_value = False
+        with patch('mta.runtime.production_scope.authorize'), \
+             patch('mta.mdm.supplier_revisions.source_lock', return_value=nullcontext()), \
+             patch.object(execution_settings.transaction, 'atomic', return_value=nullcontext()), \
+             patch.object(execution_settings.connection, 'cursor', return_value=nullcontext(Mock())), \
+             patch('mta.runtime.ingestion_models.InitializationCertification.objects', certifications), \
+             patch.object(execution_settings, '_stable', side_effect=ValueError('Finish the unfinished operation')), \
+             patch('mta.runtime.ingestion_admission._admit') as admit:
+            with self.assertRaisesRegex(ValueError, 'unfinished operation'):
+                execution_settings.commit(owner, original, actor='operator', reason='Future control edit')
+        admit.assert_not_called()
 
 
 class UnreadablePopulation(Sequence):

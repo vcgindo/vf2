@@ -341,8 +341,15 @@ try {
         $journal.apply_started=$true; $journal.phase='APPLYING'; SaveJournal
         $database = DatabasePhase 'apply'
         $journal.applied=$true; $journal.phase='DATABASE_APPLIED'; SaveJournal
+    }
+    if (-not $journal['settings_adopted']) {
+        $journal.phase='SETTINGS_ADOPTION'; SaveJournal
+        $settingsAdoption = ComposeCall -Arguments @('run','--rm','--no-deps','-T','mta-install',
+            '-m','release.execution_settings_command','adopt') -Json
+        if ($settingsAdoption.status -ne 'ADOPTED') { throw 'Exact current settings adoption did not complete' }
+        $journal['settings_adopted']=$true; $journal['settings']=$settingsAdoption.settings; SaveJournal
         $database = DatabasePhase 'verify'
-        if ($database.status -ne 'UPGRADE_DATABASE_VERIFIED') { throw 'Applied upgrade did not verify; preserve maintenance and use explicit -Resume after diagnosis' }
+        if ($database.status -ne 'UPGRADE_DATABASE_VERIFIED') { throw 'Settings adoption did not preserve the accepted installation' }
     }
     # One fixed image override; preserve the original private Compose file list.
     $deployment = Join-Path $stateRoot 'compose.deployment.json'

@@ -140,6 +140,34 @@ def describe(profile):
     return tuple(result)
 
 
+def describe_cells(cells):
+    """Describe authenticated version cells without reading large profiles."""
+    from mta.runtime.execution_setting_owners import DESCRIPTORS, EFFECTS, OWNER_PREFIX, validate
+    cells = tuple(cells)
+    validate(cell for cell in cells if cell.path.startswith(OWNER_PREFIX + '/'))
+    result = []
+    for cell in cells:
+        if cell.path.startswith(OWNER_PREFIX + '/'):
+            owner = next(item for item in DESCRIPTORS
+                         if cell.path.startswith(OWNER_PREFIX + '/' + '/'.join(item.source) + '/'))
+            result.append(dict(path=cell.path, module=cell.module, parameter=cell.parameter,
+                ordinal=cell.ordinal, mutable=False, activation='OWNER_TRANSITION_LOCKED',
+                description=EFFECTS[cell.parameter], source_owner=owner.table + ' / ' + '/'.join(owner.source)))
+            continue
+        root = next((item for item in ROOTS if cell.path == _pointer(item.path)
+                     or cell.path.startswith(_pointer(item.path) + '/')), None)
+        if root is None:
+            raise ValueError('Unknown settings description path')
+        mutable = cell.path == AUTO_DBM_CELL_PATH
+        result.append(dict(path=cell.path, module=cell.module, parameter=cell.parameter,
+            ordinal=cell.ordinal, mutable=mutable,
+            activation='FUTURE_RUN' if mutable else root.activation,
+            description=('Automatic acceptance of eligible DBM recommendations; integer 0/1.'
+                         if mutable else 'Exact supported owner value; changing it remains locked.'),
+            source_owner=_pointer(root.path)))
+    return tuple(result)
+
+
 def _identity(cell):
     return cell.path, cell.module, cell.parameter, cell.ordinal
 
