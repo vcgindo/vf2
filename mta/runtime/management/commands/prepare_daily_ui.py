@@ -28,4 +28,6 @@ class Command(BaseCommand):
             raise CommandError('Daily calculation remains unselected: required report layers are incomplete')
         if native_publication.enabled():
             from django.core.management import call_command
+            from mta.runtime.guided_statistics import refresh_pending
+            refresh_pending(run)
             call_command('prepare_guided_aggregates', run_id=options['run_id'], output_digest=options['output_digest'])
