@@ -142,7 +142,7 @@ def describe(profile):
 
 def describe_cells(cells):
     """Describe authenticated version cells without reading large profiles."""
-    from mta.runtime.execution_setting_owners import DESCRIPTORS, EFFECTS, OWNER_PREFIX, validate
+    from mta.runtime.execution_setting_owners import DESCRIPTORS, EFFECTS, OWNER_PREFIX, parameter_name, validate
     cells = tuple(cells)
     validate(cell for cell in cells if cell.path.startswith(OWNER_PREFIX + '/'))
     result = []
@@ -152,7 +152,7 @@ def describe_cells(cells):
                          if cell.path.startswith(OWNER_PREFIX + '/' + '/'.join(item.source) + '/'))
             result.append(dict(path=cell.path, module=cell.module, parameter=cell.parameter,
                 ordinal=cell.ordinal, mutable=False, activation='OWNER_TRANSITION_LOCKED',
-                description=EFFECTS[cell.parameter], source_owner=owner.table + ' / ' + '/'.join(owner.source)))
+                description=EFFECTS[parameter_name(owner,cell.parameter)], source_owner=owner.table + ' / ' + '/'.join(owner.source)))
             continue
         root = next((item for item in ROOTS if cell.path == _pointer(item.path)
                      or cell.path.startswith(_pointer(item.path) + '/')), None)

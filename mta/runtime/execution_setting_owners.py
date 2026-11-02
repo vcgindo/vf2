@@ -24,6 +24,7 @@ class OwnerDescriptor:
     fields: tuple
     parameters: tuple
     singleton: bool = False
+    ci_parameters: tuple = ()
 
 
 IMPORTER_PARAMETERS = ('NMSActive', 'DBMActive', 'TaskStatusLogHorizon')
@@ -44,13 +45,17 @@ EFFECTS = {
 }
 DESCRIPTORS = (
     OwnerDescriptor(('importer_settings',), 'Importer/ImporterSettingsTbl',
-                    'Importer/ImporterSettingsTbl', ('Parameter', 'Value'), IMPORTER_PARAMETERS),
+                    'Importer/ImporterSettingsTbl', ('Parameter', 'Value'), IMPORTER_PARAMETERS,
+                    ci_parameters=('NMSActive',)),
     OwnerDescriptor(('controls', 'importer_settings'), 'Importer/ImporterSettingsTbl',
-                    'Importer/ImporterSettingsTbl', ('Parameter', 'Value'), IMPORTER_PARAMETERS),
+                    'Importer/ImporterSettingsTbl', ('Parameter', 'Value'), IMPORTER_PARAMETERS,
+                    ci_parameters=('NMSActive',)),
     OwnerDescriptor(('controls', 'dbm_settings'), 'DBM/DBMSettingsTbl',
-                    'DBM/DBMSettingsTbl', ('Parameter', 'Value'), DBM_PARAMETERS),
+                    'DBM/DBMSettingsTbl', ('Parameter', 'Value'), DBM_PARAMETERS,
+                    ci_parameters=('NormZeroOneRuleActive',)),
     OwnerDescriptor(('dbm', 'DBMSettingsTbl'), 'DBM/DBMSettingsTbl',
-                    'DBM/DBMSettingsTbl', ('Parameter', 'Value'), DBM_PARAMETERS),
+                    'DBM/DBMSettingsTbl', ('Parameter', 'Value'), DBM_PARAMETERS,
+                    ci_parameters=('NormZeroOneRuleActive',)),
     # The logical DBM carry has Importer/VFSettings physical storage. This is
     # deliberately distinct from the profile's captured Importer projection.
     OwnerDescriptor(('dbm', 'VFSettings'), 'DBM/VFSettings', 'Importer/VFSettings',
@@ -60,6 +65,21 @@ DESCRIPTORS = (
                     'DBM/FirstReplenishmentPercentageTbl', ('ReplenishmentPercentage',),
                     ('ReplenishmentPercentage',), True),
 )
+
+
+def parameter_name(descriptor, value):
+    """Classify existing CI contributions without changing their raw spelling.
+
+    NMS has both CI and strict consumers. Keeping the actual Parameter field
+    preserves their different selected populations. Other strict parameters
+    must not gain aliases through the central catalogue.
+    """
+    if value in descriptor.parameters:
+        return value
+    if type(value) is str and value.isascii():
+        key=value.rstrip(' ').upper()
+        return next((name for name in descriptor.ci_parameters if key==name.upper()),None)
+    return None
 
 
 def _root(descriptor):
@@ -100,7 +120,7 @@ def extract(state):
             parameter = descriptor.parameters[0] if descriptor.singleton else row['Parameter']
             if parameter is not None and type(parameter) is not str:
                 raise ValueError('Outside settings parameter must be text or NULL')
-            if parameter not in descriptor.parameters:
+            if parameter_name(descriptor,parameter) is None:
                 continue
             for field, value in row.items():
                 cells.append(SettingCell.from_value(
@@ -134,7 +154,7 @@ def validate(cells):
         if selected is None:
             raise ValueError('Unknown outside settings owner/path/field/ordinal')
         descriptor, field = selected
-        if (cell.module != descriptor.module or cell.parameter not in descriptor.parameters
+        if (cell.module != descriptor.module or parameter_name(descriptor,cell.parameter) is None
                 or cell.value_state == 'ABSENT' or descriptor.singleton and cell.ordinal != 0):
             raise ValueError('Outside settings identity/state differs')
         if cell.path in seen:
@@ -163,5 +183,5 @@ def describe(state):
         result.append(dict(path=cell.path, module=cell.module, parameter=cell.parameter,
             ordinal=cell.ordinal, source='/'.join(descriptor.source), table=descriptor.table,
             field=cell.path.rsplit('/', 1)[-1], activation='OWNER_TRANSITION_LOCKED',
-            mutable=False, effect=EFFECTS[cell.parameter]))
+            mutable=False, effect=EFFECTS[parameter_name(descriptor,cell.parameter)]))
     return tuple(result)

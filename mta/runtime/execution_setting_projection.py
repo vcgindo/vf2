@@ -6,7 +6,7 @@ changes a consumer's count/conversion rules. Only small declared setting bags
 are visited; unrelated masters/history remain shared.
 """
 from mta.row_sequences import RecordRows, is_record_rows
-from mta.runtime.execution_setting_owners import DESCRIPTORS, OWNER_PREFIX, validate
+from mta.runtime.execution_setting_owners import DESCRIPTORS, OWNER_PREFIX, parameter_name, validate
 from mta.runtime.execution_setting_values import SettingCell, encode_scalar, set_path
 
 
@@ -84,7 +84,7 @@ def project_state(state, cells):
             parameter = descriptor.parameters[0] if descriptor.singleton else row['Parameter']
             if parameter is not None and type(parameter) is not str:
                 raise ValueError('Settings projection source parameter must be text or NULL')
-            if parameter in descriptor.parameters:
+            if parameter_name(descriptor,parameter) is not None:
                 selected.append((len(rows), parameter, row))
             rows.append(row)
         parameters = [parameter for _, parameter, _ in selected]
