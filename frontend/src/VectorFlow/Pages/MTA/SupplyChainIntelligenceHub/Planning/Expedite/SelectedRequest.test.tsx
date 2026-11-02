@@ -7,6 +7,7 @@ import ChildAvailability from './Child/Grid/CreateAvailabilityAtParent';
 import {notifySuccess, notifyError} from '../../../../../../helpers/notify';
 
 const mockSubmit=jest.fn();
+const mockRefresh=jest.fn();
 jest.mock('../../../../../../VectorFlow/Services/MTA/SupplyChainIntelligenceHub/Planning',()=>({
   useSubmitOpenExpediteRequest:()=>({mutateAsync:mockSubmit}),
 }));
@@ -16,7 +17,7 @@ jest.mock('../../../../../../helpers/utils',()=>({
   createIconColumn:()=>({}),MainMenuItemsCustomization:()=>[],
 }));
 jest.mock('../../../../../../context/GridStateContext',()=>({
-  GridStateContext:require('react').createContext({gridColDefs:null,setGlobalColDef:()=>{}}),
+  GridStateContext:require('react').createContext({gridColDefs:null,setGlobalColDef:()=>{},refreshAfterRequest:()=>mockRefresh()}),
 }));
 jest.mock('../../BPR/BPRCellRenderers',()=>({BPRTagsCellRenderer:()=>null}));
 jest.mock('../../BPR/BPRGraphCellRenderer',()=>()=>null);
@@ -47,6 +48,7 @@ test.each(variants)('%s submits the selected main row, not the first detail row'
   await waitFor(()=>expect(mockSubmit).toHaveBeenCalledWith({skuCode:'338',whCode:'DP010290',parentWhCode:'Parent-2',
     request:'Please expedite',eta:'2026/10/21'}));
   await waitFor(()=>expect(notifySuccess).toHaveBeenCalled());
+  expect(mockRefresh).toHaveBeenCalledTimes(1);
 });
 
 test('a rejected write produces an error and no success notification',async()=>{
@@ -59,4 +61,5 @@ test('a rejected write produces an error and no success notification',async()=>{
   fireEvent.click(screen.getByText('Submit request'));
   await waitFor(()=>expect(notifyError).toHaveBeenCalled());
   expect(notifySuccess).not.toHaveBeenCalled();
+  expect(mockRefresh).not.toHaveBeenCalled();
 });

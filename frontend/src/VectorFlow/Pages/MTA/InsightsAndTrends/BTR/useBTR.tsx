@@ -1,4 +1,5 @@
 import { loadDailyData } from '../../../../../components/VectorFLOW/commons/DailyDataGraphModal/loadDailyData';
+import { refreshMtaReportBinding } from '../../../../../config/mta-publication-binding';
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { type DailyDataGraph } from "../../../../types/MTA";
 
@@ -183,10 +184,12 @@ const useBTR = () => {
     const [ecoMasterUIConfig, setEcoMasterUIConfig] = useState<any>([]);
     const [isDisabled, setIsDisabled]= useState<boolean>(true)
 
-    const actorPublication = `${user.user.id}:${user.user.email}:${lastRunDate || ''}`;
+    const publishedDate = lastRunDate && !['Loading', 'Date Unavailable'].includes(lastRunDate) ? lastRunDate : '';
+    const actorPublication = `${user.user.id}:${user.user.email}:${publishedDate}`;
     const previousActorPublication = useRef(actorPublication);
     const hasAppliedFilter = useRef(false);
     useEffect(() => {
+        if (!publishedDate) return;
         if (previousActorPublication.current === actorPublication) return;
         previousActorPublication.current = actorPublication;
         countRequest.current?.abort();
@@ -200,7 +203,7 @@ const useBTR = () => {
         setEcoRowData([]);
         setCountData(undefined);
         setPending({ tech: false, eco: false, count: false });
-        if (hasAppliedFilter.current) onApplyFilter(currFilter, true);
+        if (hasAppliedFilter.current) onApplyFilter(currFilter, true, true);
     }, [actorPublication]);
 
     const RowsPerPageCurrTab = currentTab?.value === "on-hand"?userPageSizeTech:currentTab?.value === "pipeline"?userPageSizeEco:rowsPerPage 
@@ -456,7 +459,11 @@ const useBTR = () => {
         return tempFilter
     }
 
-    const onApplyFilter = async (filter: BPRFilterState, refreshConfig = false) => {
+    const onApplyFilter = async (filter: BPRFilterState, refreshConfig = false, reuseBinding = false) => {
+        if (!reuseBinding) refreshMtaReportBinding();
+        setCountData(undefined);
+        setTechRowData([]);
+        setEcoRowData([]);
         hasAppliedFilter.current = true;
         cancelRows();
         requestVersion.current.tech++;

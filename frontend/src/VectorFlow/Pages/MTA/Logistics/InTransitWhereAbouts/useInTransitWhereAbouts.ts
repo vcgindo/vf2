@@ -1,3 +1,5 @@
+import { refreshMtaReportBinding, isMtaReportCurrent } from "../../../../../config/mta-publication-binding"
+import { settleRequestPair } from "../../requestPair"
 import useLiveGrid, { isLiveGrid } from '../../../../../hooks/useLiveGrid';
 
 import { CSSProperties, useMemo, useState,useEffect ,useRef} from "react";
@@ -31,6 +33,8 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../../../redux/store/store";
 
 const useInTransitWhereAbouts = ()=>{
+    const reportRequest = useRef(0);
+    const detailRequest = useRef(0);
     const ref = useRef<GridRef>()
     const tempRef = useRef()
 
@@ -123,9 +127,7 @@ const useInTransitWhereAbouts = ()=>{
 
     useEffect(()=>{
       const getInitialData =async()=>{
-        await getRecordCount(currentFilter)
-        if (!mounted.current) return;
-        await getRowData(currentFilter, 1)
+        await refreshReport(currentFilter,1)
         if (!mounted.current) return;
         await getInTransitUiConfig();
       }
@@ -287,64 +289,45 @@ const useInTransitWhereAbouts = ()=>{
           return updatedRows;
         });
       };
-    const getRecordCount = async(filter:any)=>{
-      try{
-        const payload = {
-          "id": 0,
-          "name": "",
-          "fields": [],
-          "paginationParameter": {
-            "pageNumber": 0,
-            "recordsPerPage": 0
-          },
-          filters:filter
-        }
-        const countData = await getDataCount(payload)
-        if (!mounted.current) return;
-        const count= JSON.parse(countData.data.recordCount)
-        setRecordCount(count)
-      }catch(err:any){
-        notifyError(err)
+    const reportParameters = useRef<any>();
+    reportParameters.current = {filter:currentFilter,page:currentPage,size:userPageSize};
+    const refreshReport = async(filter:any,pageNo:number,pageSize?:number,newBinding=false) => {
+      const version = ++reportRequest.current;
+      if (newBinding) refreshMtaReportBinding();
+      const payload = {id:0,name:"",fields:[],filters:filter,
+        paginationParameter:{pageNumber:pageNo,recordsPerPage:pageSize || userPageSize || 100}};
+      try {
+        const {count,grid} = await settleRequestPair(
+          () => getDataCount({...payload,paginationParameter:{pageNumber:0,recordsPerPage:0}}),
+          () => getData(payload));
+        if (!mounted.current || version !== reportRequest.current || !isMtaReportCurrent(count) || !isMtaReportCurrent(grid)) return;
+        if (count?.status >= 400 || grid?.status >= 400) throw new Error("Unable to load report data");
+        setRecordCount(JSON.parse(count.data.recordCount));
+        setRowData(mapInTransitWhereAboutsRowData(grid.data.data));
+      } catch (error) {
+        if (!mounted.current || version !== reportRequest.current) return;
+        setRecordCount(0);
+        setRowData([]);
+        throw error;
       }
-    }
+    };
 
-    const getRowData = async(filter:any,pageNo:number  , pageSize?:number)=>{
-      const payload = {
-        "id": 0,
-        "name": "",
-        "fields": [],
-        "paginationParameter": {
-          pageNumber:pageNo,
-          recordsPerPage:pageSize || userPageSize || 100
-        },
-        filters:filter
-      }
-      const data = await getData(payload)
-      if (mounted.current) setRowData(mapInTransitWhereAboutsRowData(data.data.data))
-      // setRowData(mapInTransitWhereAboutsRowData(GetInTransitWhereAboutsMockResponse.data))
-    }
+    const getRowData = async(filter:any,pageNo:number,pageSize?:number) => refreshReport(filter,pageNo,pageSize);
+    const refreshAfterMutation = async () => {
+      const latest = reportParameters.current;
+      await refreshReport(latest.filter,latest.page,latest.size,true);
+    };
 
     const savePageSize = async( pageSize:number)=>{
         setUserPageSize(pageSize)
         await getRowData(currentFilter , currentPage,pageSize)
     }
 
-    const handlePageChange = async(pageNo:number)=>{
-      setEditedRows([])
-      const payload = {
-        "id": 0,
-        "name": "",
-        "fields": [],
-        "paginationParameter": {
-          pageNumber:pageNo,
-          recordsPerPage:userPageSize || 100
-        },
-        filters:currentFilter
-      }
-      const data = await getData(payload)
-      setCurrentPage(pageNo)
-      if (mounted.current) setRowData(mapInTransitWhereAboutsRowData(data.data.data))
-    }
+    const handlePageChange = async(pageNo:number) => {
+      setEditedRows([]);
+      setCurrentPage(pageNo);
+      await refreshReport(currentFilter,pageNo);
+    };
 
     const onOpenSubmitRemark = (e: React.MouseEvent<HTMLElement>,data:any) => {
       setIsSubmitETAToolTipOpen(false)
@@ -392,9 +375,12 @@ const useInTransitWhereAbouts = ()=>{
         try {
             setIsRemarkHistoryToolTipOpen(false)
             const toastId = notifyLoader("Getting remark history")
+            const detailVersion = ++detailRequest.current;
+            const reportVersion = reportRequest.current;
             const remarkData = await getRemarkDetails({
               orderNo:data.OrderNo
             })
+            if (reportVersion !== reportRequest.current || detailVersion !== detailRequest.current || !isMtaReportCurrent(remarkData)) return;
             toast.dismiss(toastId)
           setRemarkHistory(remarkData.data.data)
             setIsRemarkHistoryToolTipOpen(true)
@@ -408,7 +394,7 @@ const useInTransitWhereAbouts = ()=>{
             if(remark.length===0) throw new Error("Remark Cannot Be Empty")
             const toastId = notifyLoader("Submitting Remark")
             await submitRemark(mapTransitRemarkBatch([{...activeRow,remark:remark}]))
-            await getRowData(currentFilter,currentPage)
+            await refreshAfterMutation()
             toast.dismiss(toastId)
             
             notifySuccess('Remark Has Been Submitted')
@@ -426,7 +412,7 @@ const useInTransitWhereAbouts = ()=>{
             if(currentLocationValue.length===0) throw new Error("Location Cannot Be Empty")
             const toastId = notifyLoader("Submitting Data")
             await submitRemark(mapTransitRemarkBatch([{...activeRow,CurrentLoc:currentLocationValue}]))
-            await getRowData(currentFilter,currentPage)
+            await refreshAfterMutation()
             toast.dismiss(toastId)
             
             notifySuccess('Data Has Been Submitted')
@@ -444,7 +430,7 @@ const useInTransitWhereAbouts = ()=>{
           if(etaValue.length===0) throw new Error("ETA Cannot Be Empty")
           const toastId = notifyLoader("Submitting Data")
           await submitRemark(mapTransitRemarkBatch([{...activeRow,ETA:etaValue}]))
-          await getRowData(currentFilter,currentPage)
+          await refreshAfterMutation()
           toast.dismiss(toastId)
           
           notifySuccess('Data Has Been Submitted')
@@ -473,7 +459,10 @@ const useInTransitWhereAbouts = ()=>{
 
      try{
       notifyLoader("Loading Details")
-      const contactData = await getTransporterDetails({orderNo:params["OrderNo"]})
+      const detailVersion = ++detailRequest.current;
+            const reportVersion = reportRequest.current;
+            const contactData = await getTransporterDetails({orderNo:params["OrderNo"]})
+            if (reportVersion !== reportRequest.current || detailVersion !== detailRequest.current || !isMtaReportCurrent(contactData)) return;
       if(contactData.data.data[0]){
         setCurrentUserDetails(contactData.data.data[0])
         toggleContactModal(true)
@@ -502,8 +491,7 @@ const useInTransitWhereAbouts = ()=>{
       setEditedRows([])
       setCurrFilter(filter)
       setCurrentPage(1)
-      await(getRecordCount(filter))
-      await getRowData(filter,1)
+      await refreshReport(filter,1,undefined,true)
       
 
     }
@@ -525,6 +513,7 @@ const useInTransitWhereAbouts = ()=>{
         filters:currentFilter
       }
       const data = await getData(payload)
+      if (!isMtaReportCurrent(data)) throw new Error("Report refresh was superseded.");
       return data.data.data
     }
       
@@ -533,7 +522,7 @@ const useInTransitWhereAbouts = ()=>{
       console.log(editedRows)
      try{
       await submitRemark(mapTransitRemarkBatch(editedRows))
-      await getRowData(currentFilter,currentPage)
+      await refreshAfterMutation()
       toast.dismiss()
       notifySuccess('Data Has Been Submitted')
       setEditedRows([])

@@ -1,3 +1,4 @@
+import { refreshMtaReportBinding, isMtaReportCurrent } from "../../../../../config/mta-publication-binding"
 import { useCallback } from 'react';
 import { loadDailyData } from '../../../../../components/VectorFLOW/commons/DailyDataGraphModal/loadDailyData';
 import { useState,useMemo,useEffect,useRef } from "react"
@@ -28,6 +29,8 @@ import { settleRequestPair } from "../../requestPair"
 
 const useDBM =()=>{
     //const [DBMApplySelectedNormData,setDBMApplySelectedNormData] = useState<any[]>([])
+    const reportRequest = useRef(0);
+    useEffect(() => () => { reportRequest.current++; }, []);
     const gridRef = useRef<GridRef>();
     const tempRef:any = useRef()
     const [DBMRowData,setDBMRowData] = useState<any[]>([])
@@ -149,12 +152,21 @@ const useDBM =()=>{
         }
     }, [internalRef, gridState]);
 
-    const onOpenDailyDataGraph = useCallback((params:any) => loadDailyData(dispatch, getDailyData, params.data, 'LocCode'), [dispatch, getDailyData]);
+    const onOpenDailyDataGraph = useCallback((params:any) => {
+        const version = reportRequest.current;
+        return loadDailyData(dispatch, async(payload:any) => {
+            const response = await getDailyData(payload);
+            if (version !== reportRequest.current || !isMtaReportCurrent(response)) throw new Error('Report refresh was superseded.');
+            return response;
+        }, params.data, 'LocCode');
+    }, [dispatch, getDailyData]);
 
-    const refetchAfter = ()=>{
-        getDataCount(currentFilter);
-        getDBMRowData(currentFilter,currentPage);
-    }
+    const reportParameters = useRef<any>();
+    reportParameters.current = {filter:currentFilter,page:currentPage};
+    const refetchAfter = async () => {
+        const latest = reportParameters.current;
+        await refreshReport(latest.filter,latest.page,undefined,true);
+    };
 
     const showAllCheckbox = () => {
         const rows:any[] = []
@@ -276,7 +288,7 @@ const useDBM =()=>{
                 })
             if (response?.status >= 400) throw new Error("Unable to submit norms");
             notifySuccess("Submitted Successfully")
-            refetchAfter()
+            await refetchAfter()
         } catch (error: any) {
             notifyError(error);
         } finally {
@@ -303,7 +315,7 @@ const useDBM =()=>{
                 });
             if (response?.status >= 400) throw new Error("Unable to submit norms");
             notifySuccess("Submitted Successfully");
-            refetchAfter();
+            await refetchAfter();
         } catch (error: any) {
             notifyError(error);
         } finally {
@@ -313,8 +325,7 @@ const useDBM =()=>{
    }
 
     useEffect(()=>{       
-        getDataCount(currentFilter);
-        getDBMRowData(currentFilter,currentPage);
+        void refreshReport(currentFilter,currentPage);
         getDBMUiConfig();
 
     },[])
@@ -347,67 +358,39 @@ const useDBM =()=>{
     };
   }, [tempDownloadData, gridRef]);
 
-    const getDataCount=async (filter:any) => {
-        const rowDataCount =await getDBMDataCount({
-            filters:filter,
-            paginationParameter:{
-                pageNumber:1,
-                recordsPerPage:recordsPerPage
-            }
-        })
-        setDBMDataCount(rowDataCount?.data?.recordCount)
-    }
-
-    const getDBMRowData= async(filter:any,pageNo:any, pageSize?:number)=>{
+    const refreshReport = async(filter:any, pageNo:any, pageSize?:number, newBinding=false) => {
+        const version = ++reportRequest.current;
+        dispatch(TOGGLE_GRAPH_MODAL(false));
+        if (newBinding) refreshMtaReportBinding();
         const toastId = notifyLoader("Loading Grid Data");
         try {
-            const rowData =await getDBMData({
-                filters:filter,
-                paginationParameter:{
-                    pageNumber:pageNo,
-                    recordsPerPage:pageSize || userPageSize || recordsPerPage
-                }
-            })
-            if (rowData?.status >= 400) throw new Error("Unable to load report data");
-            notifySuccess("Data Loaded Successfully")
-            // console.log(rowData.data.data)
-            setDBMRowData(rowData?.data?.data || [])
-        } catch (error: any) {
+            const paginationParameter = {pageNumber:pageNo, recordsPerPage:pageSize || userPageSize || recordsPerPage};
+            const {count, grid} = await settleRequestPair(
+                () => getDBMDataCount({filters:filter, paginationParameter}),
+                () => getDBMData({filters:filter, paginationParameter})
+            );
+            if (version !== reportRequest.current || !isMtaReportCurrent(count) || !isMtaReportCurrent(grid)) return;
+            if (count?.status >= 400 || grid?.status >= 400) throw new Error("Unable to load report data");
+            setDBMDataCount(count?.data?.recordCount);
+            setDBMRowData(grid?.data?.data || []);
+            notifySuccess("Data Loaded Successfully");
+        } catch (error) {
+            if (version !== reportRequest.current) return;
+            setDBMDataCount(undefined);
+            setDBMRowData([]);
             notifyError(error);
         } finally {
             toast.dismiss(toastId);
         }
+    };
 
-    }
-
-    const handleApplyFilter = async(filter:any)=>{
-        setCurrentPage(1)
-        setCurrentFilter(filter)
-        const loaderId = notifyLoader("Loading Grid Data")
-        try {
-            const { count, grid } = await settleRequestPair(
-                () => getDBMDataCount({
-                    filters: filter,
-                    paginationParameter: { pageNumber: 1, recordsPerPage: recordsPerPage }
-                }),
-                () => getDBMData({
-                    filters: filter,
-                    paginationParameter: {
-                        pageNumber: 1,
-                        recordsPerPage: userPageSize || recordsPerPage
-                    }
-                })
-            )
-            setDBMDataCount(count?.data?.recordCount)
-            toast.dismiss()
-            notifySuccess("Data Loaded Successfully")
-            setDBMRowData(grid?.data?.data || [])
-            getDBMUiConfig()
-        } catch (error) {
-            toast.dismiss(loaderId)
-            throw error
-        }
-    }
+    const getDBMRowData = async(filter:any,pageNo:any,pageSize?:number) => refreshReport(filter,pageNo,pageSize);
+    const handleApplyFilter = async(filter:any) => {
+        setCurrentPage(1);
+        setCurrentFilter(filter);
+        await refreshReport(filter, 1, undefined, true);
+        getDBMUiConfig();
+    };
 
     const onDeleteFilter = async(parentId:any, filterId:any, value:any)=>{
         const updatedFilter = onDelete(parentId,filterId,value)
@@ -415,6 +398,7 @@ const useDBM =()=>{
     }
 
     const onExportToExcelCallBack= async(pageNo:any)=>{
+        const version = reportRequest.current;
         const rowData =await getDBMData({
             filters:currentFilter,
             paginationParameter:{
@@ -423,6 +407,7 @@ const useDBM =()=>{
             }
         })
 
+        if (version !== reportRequest.current || !isMtaReportCurrent(rowData)) throw new Error('Report refresh was superseded.');
         getDBMUiConfig()
         // console.log(rowData.data.data)
         return rowData.data.data

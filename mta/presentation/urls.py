@@ -6,8 +6,10 @@ from mta.presentation import runtime_placement_downloads
 from mta.presentation import order_report_views
 from mta.presentation import native_diagnostic_downloads
 from mta.presentation import planning_git_views
+from mta.presentation.publication_binding import bootstrap_view
 
 urlpatterns = [
+    path('PublicationBinding', bootstrap_view),
     path('SubmitOpenExpediteRequest', partial(logistics_views.command, operation='submit')),
     path('AddRemarkForExpedite', partial(logistics_views.command, operation='action')),
     path('SubmitRemarksForInTransit', partial(logistics_views.command, operation='transit')),

@@ -1,3 +1,5 @@
+import { refreshMtaReportBinding, isMtaReportCurrent } from "../../../../../config/mta-publication-binding"
+import { settleRequestPair } from "../../requestPair"
 import useLiveGrid, { isLiveGrid } from '../../../../../hooks/useLiveGrid';
 import { beginScreen, screenRendered, useScreenProbe } from '../../../../../performance/screenProbe';
 import { useState,useMemo, useEffect, CSSProperties,useRef } from "react"
@@ -30,6 +32,9 @@ import _ from "lodash"
 const useBPR =()=>{
     useScreenProbe('BPR');
 
+    const reportRequest = useRef(0);
+    const detailRequest = useRef(0);
+    useEffect(() => () => { reportRequest.current++; }, []);
     const ref = useRef<GridRef>()
     const tempRef = useRef<GridRef>()
 
@@ -52,7 +57,7 @@ const useBPR =()=>{
 
     const [isSubGridOpen,toggleSubGrid] = useState<boolean>(true)
     const [currGridPage,setCurrGridPage] = useState<number>(1)
-    const [recordCount,setRecordCount] = useState<number>(0)
+    const [recordCount,setRecordCount] = useState<number | undefined>(0)
     const [activeRow,setActiveRow] = useState<any>()
     const [BPRRowData,setBPRRowData] = useState<any[]>([])
     const [BPRColumns,setBPRColumns] = useState<any[]>([])
@@ -310,27 +315,12 @@ const useBPR =()=>{
 
       const getInitialBPRRowData=async()=>{
           try {    
-            await getBPRRecordCount(currFilter)
-            await getBPRRowData(currFilter,1)
+            await refreshReport(currFilter,1)
         }catch(err:any){
             notifyError(err)
         }
     }
 
-    const getBPRRecordCount = async(filter:any)=>{
-        const countData = await getBPRDataCount({
-            id: 1,
-            name: "",
-            fields: [],
-            filters:filter,
-            paginationParameter:{
-                pageNumber:currGridPage,
-                recordsPerPage:parseInt(BPR_ROWS_PER_PAGE || '50') 
-            }
-        })
-
-        setRecordCount(countData.data.recordCount)
-    }
 
     const onCellValueChanged = (newRow: any, primaryKey1: string,primaryKey2:string) => {
         setEditedRows((prev) => {
@@ -353,33 +343,33 @@ const useBPR =()=>{
         });
       };
 
-    const getBPRRowData = async(filter:any,pageNo:number , pageSize?:number)=>{
+    const reportParameters = useRef<any>();
+    reportParameters.current = {filter:currFilter,page:currGridPage,size:userPageSize};
+    const refreshReport = async(filter:any,pageNo:number,pageSize?:number,newBinding=false) => {
+        const version = ++reportRequest.current;
+        dispatch(TOGGLE_GRAPH_MODAL(false));
+        setIsRemarkHistoryToolTipOpen(false);
+        if (newBinding) refreshMtaReportBinding();
         const toastId = notifyLoader("Loading Grid Data");
         try {
-            const rowData =await  getBPRData({
-                id: 1,
-                name: "",
-                fields: [],
-                filters:filter,
-                paginationParameter:{
-                    pageNumber:pageNo,
-                    recordsPerPage:pageSize || userPageSize || parseInt(BPR_ROWS_PER_PAGE || '50')
-                }
-            })
-            if (rowData?.status >= 400) throw new Error("Unable to load report data");
-            notifySuccess("Data Loaded Successfully")
-            if(rowData.data.data && Array.isArray(rowData.data.data))setBPRRowData(mapBPRRowData(rowData.data.data))
-            else setBPRRowData([])
-        
-        } catch (error: any) {
+            const payload = {id:1,name:"",fields:[],filters:filter,
+                paginationParameter:{pageNumber:pageNo,recordsPerPage:pageSize || userPageSize || parseInt(BPR_ROWS_PER_PAGE || '50')}};
+            const {count,grid} = await settleRequestPair(() => getBPRDataCount(payload), () => getBPRData(payload));
+            if (version !== reportRequest.current || !isMtaReportCurrent(count) || !isMtaReportCurrent(grid)) return;
+            if (count?.status >= 400 || grid?.status >= 400) throw new Error("Unable to load report data");
+            setRecordCount(count.data.recordCount);
+            setBPRRowData(Array.isArray(grid.data.data) ? mapBPRRowData(grid.data.data) : []);
+            notifySuccess("Data Loaded Successfully");
+        } catch (error) {
+            if (version !== reportRequest.current) return;
+            setRecordCount(undefined);
+            setBPRRowData([]);
             notifyError(error);
         } finally {
             toast.dismiss(toastId);
         }
-
-    }
-
-
+    };
+    const getBPRRowData = async(filter:any,pageNo:number,pageSize?:number) => refreshReport(filter,pageNo,pageSize);
 
     const updateRemark = (e:any)=>setRemark(e.currentTarget.value)
     
@@ -439,6 +429,8 @@ const useBPR =()=>{
          toast.dismiss(toastId)
          notifySuccess(data.msg)
          setEditedRows([])
+         const latest = reportParameters.current;
+         await refreshReport(latest.filter,latest.page,latest.size,true);
         }catch(err:any){
          notifyError(err.message)
         }
@@ -473,7 +465,10 @@ const useBPR =()=>{
                 height:360,
                 width:350
             })
-            const {data} = await getRemarkHistory(row)
+            const detailVersion = ++detailRequest.current;
+        const reportVersion = reportRequest.current;
+        const {data} = await getRemarkHistory(row)
+        if (reportVersion !== reportRequest.current || detailVersion !== detailRequest.current) return;
             toast.dismiss(toastId)
             setRemarkHistory(data.data)
             setIsRemarkHistoryToolTipOpen(true)
@@ -487,7 +482,10 @@ const useBPR =()=>{
             SKUCode:params.data['SKUCode'],
             WHCode:params.data['WHCode']
         }
+        const detailVersion = ++detailRequest.current;
+        const reportVersion = reportRequest.current;
         const result = await getDailyData(payload)
+        if (reportVersion !== reportRequest.current || detailVersion !== detailRequest.current) return;
         const data = result.data.data[0];
         const dailyData:DailyDataGraph = {
             rowData:_.cloneDeep(params.data) || [],
@@ -625,9 +623,8 @@ const useBPR =()=>{
         beginScreen('BPR', 'filter');
         void ensureBPRLayout();
         setCurrFilter(filter)
-        getBPRRecordCount(filter)
         setCurrGridPage(1)
-        getBPRRowData(filter,1 ,userPageSize)
+        void refreshReport(filter,1,userPageSize,true)
     }
 
     const onDeleteFilter = async(parentId:any, filterId:any, value:any)=>{

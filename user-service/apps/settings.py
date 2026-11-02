@@ -275,13 +275,15 @@ CORS_ALLOW_HEADERS = [
     "user-agent",
     "x-csrftoken",
     "x-requested-with",
+    "x-vectorflow-publication",
     'User-ID',
     'User-Name',
     'withCredentials'
 ]
 
 CORS_EXPOSE_HEADERS=[
-    'content-disposition'
+    'content-disposition',
+    'x-vectorflow-publication',
 ]
 
 CSRF_TRUSTED_ORIGINS = [ALLOWED_ORIGIN] if ALLOWED_ORIGIN else []

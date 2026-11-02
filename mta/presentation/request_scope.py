@@ -188,8 +188,8 @@ def _read_route(path):
 
 
 @contextmanager
-def read_request(path):
-    if not _read_route(path) or _current.get() is not None:
+def read_request(path, *, fresh=False):
+    if not _read_route(path) or (_current.get() is not None and not fresh):
         yield
         return
     token = _current.set({})

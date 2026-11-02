@@ -1,6 +1,7 @@
 import { LOCAL_STORAGE_KEY } from "./constants";
 import { createRequestDeadline, DOWNLOAD_TIMEOUT_MS } from './requestDeadline';
 import axios from "axios";
+import { isMtaReportCurrent } from '../config/mta-publication-binding';
 import { notifyError } from "./notify";
 import { decryptStorageData } from "../VectorFlow/Pages/MTO/Common/encryption";
 
@@ -89,6 +90,7 @@ const useDownloadHandler = () => {
           headers,
           responseType: 'blob',
         })
+        if (!isMtaReportCurrent(response)) throw new Error('Report refresh was superseded.');
         if (response.status < 200 || response.status >= 300) {
           if (response.status == 404) {
             notifyError("File not found");

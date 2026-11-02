@@ -2,6 +2,7 @@ import axios from 'axios';
 import { setupAxios } from './axios-config';
 import { MainService } from '../module-main/services/api';
 import { REQUEST_TIMEOUT_MS, DOWNLOAD_TIMEOUT_MS } from '../helpers/requestDeadline';
+import { PUBLICATION_HEADER, refreshMtaReportBinding } from './mta-publication-binding';
 
 jest.mock('axios', () => {
   const actual = jest.requireActual('axios');
@@ -110,4 +111,30 @@ test('missing refresh cookie rejects immediately even while another refresh is p
   expect(MainService.refreshToken).toHaveBeenCalledTimes(1);
   finish(undefined);
   await leader;
+});
+
+test('401 refresh replays a real bound MTA request with its original publication', async () => {
+  const token = 'a'.repeat(64);
+  (axios as unknown as jest.Mock).mockResolvedValueOnce({ data: { mode: 'native', binding: token } });
+  (MainService.refreshToken as jest.Mock).mockResolvedValue({ access: 'renewed-access' });
+  const { request, reject } = handlers();
+  const original = await request({ url: '/api/mta/RRRData', headers: {} });
+  expect(original.headers[PUBLICATION_HEADER]).toBe(token);
+  await reject({ ...denied(original.url), config: original });
+  const replay = (axios as unknown as jest.Mock).mock.calls[1][0];
+  expect(replay.headers[PUBLICATION_HEADER]).toBe(token);
+  expect(replay.headers.Authorization).toBe('Bearer renewed-access');
+  expect((axios as unknown as jest.Mock).mock.calls).toHaveLength(2);
+});
+
+test.each([401, 403, 400])('superseded report %s is rejected before refresh, redirect or resolved validation handling', async status => {
+  refreshMtaReportBinding();
+  (axios as unknown as jest.Mock).mockResolvedValueOnce({ data: { mode: 'native', binding: 'a'.repeat(64) } });
+  const { request, reject } = handlers();
+  const original = await request({ url: '/api/mta/RRRData', headers: {} });
+  refreshMtaReportBinding();
+  await expect(reject({ ...denied(original.url), config: original,
+    response: { status, data: { detail: 'obsolete response' } } })).rejects.toThrow('superseded');
+  expect(MainService.refreshToken).not.toHaveBeenCalled();
+  expect(axios).toHaveBeenCalledTimes(1);
 });

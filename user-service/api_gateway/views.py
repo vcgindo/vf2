@@ -13,10 +13,26 @@ logger = logging.getLogger(__name__)
 class API_GATEWAY_VIEW(APIView):
     permission_classes = [IsAuthenticated]
 
+    def finalize_response(self, request, response, *args, **kwargs):
+        response = super().finalize_response(request, response, *args, **kwargs)
+        # Non-stream adapters reconstruct the response. Forward the MTA owner's
+        # assertion, never echo a browser claim as if the owner validated it.
+        publication = getattr(request, '_mta_response_publication', None)
+        if request.path.startswith('/api/mta/') and response.status_code == 200 and publication:
+            response['X-VectorFLOW-Publication'] = publication
+        if request.path == '/api/mta/PublicationBinding':
+            # This response is reconstructed here; retain the owner's no-cache
+            # contract so an explicit refresh acquires the current revision.
+            response['Cache-Control'] = 'no-store'
+        return response
+
     @staticmethod
     def _forward(request, application_name):
         try:
-            return service_map[application_name]['interceptor']().forward(request, service_map)
+            response = service_map[application_name]['interceptor']().forward(request, service_map)
+            if application_name == 'mta':
+                request._mta_response_publication = response.headers.get('X-VectorFLOW-Publication')
+            return response
         except CatalogueUnavailable:
             return JsonResponse({'error': 'application_scope_catalogue_unavailable'}, status=503)
         except requests.RequestException as error:

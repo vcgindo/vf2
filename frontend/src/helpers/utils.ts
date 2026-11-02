@@ -4943,6 +4943,8 @@ export const CsvExportMTA = async ( payload: any, filename = "ReportFile") => {
     );
  
     const blob = await response.data;
+    const { isMtaReportCurrent } = await import('../config/mta-publication-binding');
+    if (!isMtaReportCurrent(response)) throw new Error('Report refresh was superseded.');
     const contentType = response.headers['content-type']; 
     const fileExtension = getFileExtensionFromContentType(contentType);
     const downloadFileName = `${filename}__${format(Date.now(), "dd-MM-yyyy")}.${fileExtension}`;

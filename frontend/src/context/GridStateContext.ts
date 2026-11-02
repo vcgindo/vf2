@@ -11,6 +11,7 @@ interface GridStateContextProps{
     onResetCallback?:any,
     gridColDefs?:any,
     globalColDef?:any,
+    refreshAfterRequest?: () => Promise<void>,
     setGlobalColDef?: any
 }
 

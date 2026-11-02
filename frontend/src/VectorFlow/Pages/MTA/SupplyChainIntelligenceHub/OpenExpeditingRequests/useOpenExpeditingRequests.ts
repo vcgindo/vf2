@@ -1,3 +1,4 @@
+import { refreshMtaReportBinding, isMtaReportCurrent } from "../../../../../config/mta-publication-binding"
 import { CSSProperties, useMemo, useState,useEffect ,useRef} from "react";
 
 import {toast} from 'react-toastify'
@@ -29,6 +30,11 @@ import { mapExpediteActionBatch } from "../../../../../helpers/logisticsRequests
 
 const useOpenExpeditingRequests = () => {
 
+    const reportRequest = useRef(0);
+    const detailRequest = useRef(0);
+    const reportFilter = useRef<any>();
+    const mounted = useRef(true);
+    useEffect(() => { mounted.current = true; return () => { mounted.current = false; reportRequest.current++; }; }, []);
     const ref = useRef<GridRef>()
     const tempRef = useRef<GridRef>()
 
@@ -45,6 +51,7 @@ const useOpenExpeditingRequests = () => {
     const [remarkHistoryToolipPosition,setRemarkHistoryToolipPosition] = useState<CSSProperties>({})
     const {state:currentFilter,setState:setCurrentFilter,onDelete} = useBPRFilter()
 
+    reportFilter.current = currentFilter;
     const [editedRows,setEditedRows] = useState<Array<any>>([])
     const [remark,setRemark] = useState<string>('')
     const [rowData,setRowData] = useState<Array<any>>([])
@@ -157,33 +164,7 @@ const useOpenExpeditingRequests = () => {
   }
 
   useEffect(() => {
-    const getRowData = async () => {
-      try {
-        notifyLoader("Loading Grid Data")
-        const data = await getData(currentFilter)
-
-        //// idar_issue_hai_
-        //// need_a_new_api_route_to_get_OER_Configurations
-        //// currently_not_avaiable
-        // const ColumnDefinitions = mapFieldsToColDefs(data.data.data.config)
-        // setColDefs(ColumnDefinitions)
-        // setOERColumns(ColumnDefinitions);
-        const tempRowData = data?.data?.data?.data || [];
-        toast.dismiss()
-        notifySuccess("Data Loaded Successfully")
-        if (!tempRowData.length) {
-          setRowData([])
-        } else {
-          setRowData(tempRowData.map((r: any, index: number) => ({ ...r, id: index, action: '' })))
-          notifySuccess("Data Loaded Successfully")
-        }
-        // notifySuccess("Data Loaded Successfully")
-      } catch (err: any) {
-        console.error(err)
-        notifyError(err)
-      }
-    }
-    getRowData();
+    void refreshReport(currentFilter,false);
     getOERUiConfig();
   }, []);
 
@@ -341,7 +322,10 @@ const useOpenExpeditingRequests = () => {
             setIsRemarkHistoryToolTipOpen(false)
             const toastId = notifyLoader("Getting remark history")
             const { top, left } = e.currentTarget.getBoundingClientRect()
+            const detailVersion = ++detailRequest.current;
+            const reportVersion = reportRequest.current;
             const remarkData = await getRemark({ whcode: data.wc, skucode: data.sc})
+            if (reportVersion !== reportRequest.current || detailVersion !== detailRequest.current || !isMtaReportCurrent(remarkData)) return;
            
             setRemarkHistoryToolipPosition({
                 top: top * gridZoom * screenZoom,
@@ -362,7 +346,7 @@ const useOpenExpeditingRequests = () => {
             if(remark.length===0) throw new Error("Remark cannot be empty")
             const toastId = notifyLoader("Submitting Remark")
             await addRemark(mapExpediteActionBatch([{...activeRow,action:remark}]))
-            await onApplyFilter(currentFilter)
+            await refreshReport(reportFilter.current,true)
             toast.dismiss(toastId)
             
             notifySuccess('Remark Has Been submitted')
@@ -385,33 +369,30 @@ const useOpenExpeditingRequests = () => {
 
     const onCloseRemarkHistory = ()=>setIsRemarkHistoryToolTipOpen(false)
 
-    const onApplyFilter = async (filter: any) => {
-      setCurrentFilter(filter);
-      setEditedRows([]);
-      notifyLoader("Loading Grid Data");
+    const refreshReport = async(filter:any,newBinding=true) => {
+      const version = ++reportRequest.current;
+      if (newBinding) refreshMtaReportBinding();
+      setIsRemarkHistoryToolTipOpen(false);
+      const toastId = notifyLoader("Loading Grid Data");
       try {
         const data = await getData(filter);
-        if (
-          data?.data?.data?.data &&
-          Array.isArray(data.data.data.data) &&
-          data.data.data.data.length > 0
-        ) {
-          setRowData(
-            data.data.data.data.map((r: any, index: number) => ({
-              ...r,
-              id: index,
-              action: "",
-            }))
-          );
-        } else {
-          setRowData([]);
-        }
-        toast.dismiss();
+        if (!mounted.current || version !== reportRequest.current || !isMtaReportCurrent(data)) return;
+        if (data?.status >= 400) throw new Error("Unable to load report data");
+        const rows = data?.data?.data?.data || [];
+        setRowData(Array.isArray(rows) ? rows.map((r:any,index:number) => ({...r,id:index,action:""})) : []);
         notifySuccess("Data Loaded Successfully");
-      } catch (err: any) {
-        notifyError(err);
+      } catch (error) {
+        if (!mounted.current || version !== reportRequest.current) return;
         setRowData([]);
+        notifyError(error);
+      } finally {
+        toast.dismiss(toastId);
       }
+    };
+    const onApplyFilter = async(filter:any) => {
+      setCurrentFilter(filter);
+      setEditedRows([]);
+      await refreshReport(filter);
     };
 
     const onDeleteFilter = async(parentId:any, filterId:any, value:any)=>{
@@ -446,6 +427,7 @@ const useOpenExpeditingRequests = () => {
       ));
 
       setEditedRows([]);
+      await refreshReport(reportFilter.current,true);
 
     } catch (err: any) {
       console.error(err);

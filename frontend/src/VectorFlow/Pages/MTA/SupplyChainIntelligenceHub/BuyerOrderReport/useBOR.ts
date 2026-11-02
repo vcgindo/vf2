@@ -1,3 +1,5 @@
+import { refreshMtaReportBinding, isMtaReportCurrent } from "../../../../../config/mta-publication-binding"
+import { settleRequestPair } from "../../requestPair"
 import { useBORData, useBORDataCount,useSubmitBORRemark,useGetBORRemarkHistory } from "../../../../Services/MTA/SupplyChainIntelligenceHub/BuyerOrderReport"
 import {useGetDailyData} from '../../../../Services/MTA/SupplyChainIntelligenceHub/BPR'
 import { convertUiConfigToOptions, MainMenuItemsCustomization, getColumnDefinationsMTA , CsvExportMTA } from "../../../../../helpers/utils"
@@ -28,6 +30,9 @@ import { useGetState } from "../../../../Services/MTA/Common/UserUIConfig"
 
 
 export const useBOR =()=>{
+    const reportRequest = useRef(0);
+    const detailRequest = useRef(0);
+    useEffect(() => () => { reportRequest.current++; }, []);
     const ref=  useRef<GridRef>()
     const tempRef = useRef<GridRef>()
 
@@ -110,7 +115,10 @@ export const useBOR =()=>{
             SKUCode:params.data['SKUCode'],
             WHCode:params.data['WHCode']
         }
+        const detailVersion = ++detailRequest.current;
+        const reportVersion = reportRequest.current;
         const result = await getDailyData(payload)
+        if (reportVersion !== reportRequest.current || detailVersion !== detailRequest.current) return;
         const data = result.data.data[0];
         const dailyData:DailyDataGraph = {
             rowData:params.data,
@@ -146,7 +154,10 @@ export const useBOR =()=>{
             height:360,
             width:350
         })
+        const detailVersion = ++detailRequest.current;
+        const reportVersion = reportRequest.current;
         const {data} = await getBORRemarkHistory(row)
+        if (reportVersion !== reportRequest.current || detailVersion !== detailRequest.current) return;
         toast.dismiss(toastId)
         setRemarkHistory(data.data)
         setIsRemarkHistoryToolTipOpen(true)
@@ -233,6 +244,8 @@ export const useBOR =()=>{
        toast.dismiss(toastId)
        notifySuccess(data.msg)
        setEditedRows([])
+       const latest = reportParameters.current;
+       await refreshReport(latest.filter,latest.page,latest.size,true);
       }catch(err:any){
        notifyError(err.message)
       }
@@ -274,8 +287,7 @@ export const useBOR =()=>{
   // }, []);
 
   const fetchData = async () => {
-    await getRecordsCount();
-    await loadGridData(currentPage);
+    await refreshReport(currFilter,currentPage);
   };
       
   const getBORUiConfig = async () => {
@@ -407,47 +419,41 @@ export const useBOR =()=>{
     };
 
 
-      const getRecordsCount=async(filter?:any)=>{
-            const payload={
-            filters:filter || {},
-             paginationParameter: {
-        pageNumber: currentPage,
-        // recordPerPage:20
-    recordsPerPage: parseInt(BOR_ROWS_PER_PAGE || '100')
-    }
+    const reportParameters = useRef<any>();
+    reportParameters.current = {filter:currFilter,page:currentPage,size:userPageSize};
+    const refreshReport = async(filter:any,pageNo:number,pageSize?:number,newBinding=false) => {
+        const version = ++reportRequest.current;
+        dispatch(TOGGLE_GRAPH_MODAL(false));
+        setIsRemarkHistoryToolTipOpen(false);
+        if (newBinding) refreshMtaReportBinding();
+        const toastId = notifyLoader("Loading Grid Data");
+        try {
+            const payload = {filters:filter || {},paginationParameter:{pageNumber:pageNo,recordsPerPage:pageSize || userPageSize || rowsPerPage || 100}};
+            const {count,grid} = await settleRequestPair(() => getBorDataCount(payload), () => getBorData(payload));
+            if (version !== reportRequest.current || !isMtaReportCurrent(count) || !isMtaReportCurrent(grid)) return;
+            if (count?.status >= 400 || grid?.status >= 400) throw new Error("Unable to load report data");
+            setRecordCount(count.data.recordCount);
+            setRowData(Array.isArray(grid.data.data) ? grid.data.data : []);
+            notifySuccess("Data Loaded Successfully");
+        } catch (error) {
+            if (version !== reportRequest.current) return;
+            setRecordCount(0);
+            setRowData([]);
+            notifyError(error);
+        } finally {
+            toast.dismiss(toastId);
         }
-        const resultCount=await getBorDataCount(payload);
-        setRecordCount(resultCount?.data?.recordCount);
-      }
-    
-    const loadGridData = async (pageNo:any,filter?:any , pageSize?:any)=> {
+    };
 
-      try {
-        
-          notifyLoader("loading Grid Data")
-          const payload={
-            filters:filter || {},
-            paginationParameter:{pageNumber:pageNo,recordsPerPage:pageSize || userPageSize ||rowsPerPage || 100}
-        }
-        const result = await getBorData(payload);
-        setRowData(result.data.data || [])
-        toast.dismiss()
-        notifySuccess("Data Loaded Successfully")
-        }catch(err:any){
-          notifyError(err)
-          setRecordCount(0)
-          setRowData([])
-        }
+    const loadGridData = async(pageNo:number,filter?:any,pageSize?:number) => refreshReport(filter,pageNo,pageSize);
 
-    }
 
-    const onApplyFilter = async(filter:any)=>{
-      await getBORUiConfig();
-      await getRecordsCount(filter)
-      await loadGridData(1,filter)
-      setCurrFilter(filter)
-      setCurrentPage(1)
-    }
+    const onApplyFilter = async(filter:any) => {
+        setCurrFilter(filter);
+        setCurrentPage(1);
+        await refreshReport(filter,1,undefined,true);
+        await getBORUiConfig();
+    };
 
     const onDeleteFilter = async(parentId:any, filterId:any, value:any)=>{
       const updatedFilter = onDelete(parentId,filterId,value)
@@ -517,10 +523,6 @@ export const useBOR =()=>{
       const getBORRowData=async(filter:BPRFilterState)=>{
         if(filter)setCurrFilter(filter)
         try{
-            if(recordCount===0 || filter){
-                await getRecordsCount(filter)
-                setCurrGridPage(currGridPage)
-            }
 
             await loadGridData(currentPage,filter)
          }

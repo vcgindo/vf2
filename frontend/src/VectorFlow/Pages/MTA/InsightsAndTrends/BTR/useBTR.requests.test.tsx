@@ -2,6 +2,7 @@ import React from 'react';
 import { act, renderHook } from '@testing-library/react';
 import useBTR from './useBTR';
 import { notifyError } from '../../../../../helpers/notify';
+import { mtaPublicationBinding } from '../../../../../config/mta-publication-binding';
 
 const mockGrid = jest.fn();
 const mockCount = jest.fn();
@@ -181,4 +182,31 @@ test('Reset refreshes column definitions without reloading the saved layout', as
     await act(async () => { await result.current.onResetCallback(); });
     expect(mockConfig).toHaveBeenCalledTimes(2);
     expect(mockState).toHaveBeenCalledTimes(1);
+});
+
+test('explicit filter confirmation starts a new binding epoch for cutover retry', async () => {
+    const refresh = jest.spyOn(mtaPublicationBinding, 'refresh');
+    mockGrid.mockResolvedValue(response('current'));
+    const { result } = renderHook(useBTR);
+    const filter = { availabilityFilter: { filters: [] } } as any;
+    await act(async () => { await result.current.onApplyFilter(filter); });
+    await act(async () => { await result.current.onApplyFilter(filter); });
+    expect(refresh).toHaveBeenCalledTimes(2);
+    expect(mockGrid).toHaveBeenCalledTimes(2);
+    expect(mockCount).toHaveBeenCalledTimes(2);
+    refresh.mockRestore();
+});
+
+test('transient companion-date refresh does not loop publication refreshes', async () => {
+    const refresh=jest.spyOn(mtaPublicationBinding,'refresh');
+    mockGrid.mockResolvedValue(response('current'));
+    const {result,rerender}=renderHook(useBTR);
+    await act(async()=>{await result.current.onApplyFilter({availabilityFilter:{filters:[]}} as any);});
+    await act(async()=>{mockDate='Loading';rerender();});
+    await act(async()=>{mockDate='2026-04-08';rerender();});
+    await act(async()=>{mockDate='Loading';rerender();});
+    await act(async()=>{mockDate='2026-04-08';rerender();});
+    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(mockGrid).toHaveBeenCalledTimes(2);
+    refresh.mockRestore();
 });

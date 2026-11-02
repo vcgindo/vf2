@@ -5,6 +5,7 @@ import { type RegisterRequest, type LoginRequest } from '../types'
 import { LOCAL_STORAGE_KEY } from '../../helpers/constants'
 import { type QueryClient } from '@tanstack/react-query'
 import { isEmpty } from 'lodash'
+import { resetMtaReportBinding } from '../../config/mta-publication-binding'
 
 const API_USER = 'api/user'
 
@@ -85,6 +86,7 @@ export namespace MainService {
       // The refresh token is held in an HttpOnly cookie.
       response = await axios.post(getLogoutUrl(), {}, { _skipAuthRefresh: true } as any)
     } finally {
+      resetMtaReportBinding()
       queryClient?.clear()
       localStorage.removeItem(LOCAL_STORAGE_KEY.TOKEN_PAYLOAD)
       localStorage.removeItem(LOCAL_STORAGE_KEY.URL_PERMISSION)
@@ -109,6 +111,7 @@ export namespace MainService {
     return await axios
       .post(`/${API_USER}/login/`, payload)
       .then(async (resp) => {
+        if (resp?.status === 200) resetMtaReportBinding()
         const urlPermissions = expandBrowserRoutePermissions(
           resp?.data?.data?.url_permission
         )

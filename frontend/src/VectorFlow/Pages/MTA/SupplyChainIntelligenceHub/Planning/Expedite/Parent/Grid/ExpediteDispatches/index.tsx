@@ -25,13 +25,15 @@ const ExpediteParentExpediteDispatchesGrid = ({data,paginationProps,onOpenDailyD
     const [isSubGridOpen,toggleSubGrid] = useState<any>(true);
 
     const [colDefs, setColDefs] = useState<any>([]);
-    const {gridColDefs, setGlobalColDef} = useContext(GridStateContext);
+    const {gridColDefs, setGlobalColDef, refreshAfterRequest} = useContext(GridStateContext);
 
     const {mutateAsync:submitRemark} = useSubmitOpenExpediteRequest()
     const submitOpenExpediteRemark = async(remark:string)=>{
         notifyLoader('Submiting request')
         try{
-            await submitRemark(mapPlanningRequest(requestRow,remark));
+            const response = await submitRemark(mapPlanningRequest(requestRow,remark));
+            if (response?.status >= 400) throw new Error('Request was not submitted');
+            await refreshAfterRequest?.();
         toast.dismiss()
         notifySuccess('Request Submitted successfully')
         }catch(err:any){

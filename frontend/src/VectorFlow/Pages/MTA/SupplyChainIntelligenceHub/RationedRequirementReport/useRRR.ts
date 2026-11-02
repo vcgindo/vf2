@@ -19,10 +19,13 @@ import { useSelector } from "react-redux"
 import { RootState } from "../../../../../redux/store/store"
 import { rrrFailureMessage } from './rrrFailure';
 import { settleRequestPair } from "../../requestPair";
+import { refreshMtaReportBinding, isMtaReportCurrent } from '../../../../../config/mta-publication-binding';
 
  
   
 const useRRR =()=>{
+    const reportRequest = useRef(0);
+    useEffect(() => () => { reportRequest.current++; }, []);
 
     const [internalRef,setInternalRef] = useState<any>()
 
@@ -184,7 +187,7 @@ const useRRR =()=>{
         })
     }
 
-    const getDataCount=async (filter?:any) => {
+    const getDataCount=async (filter?:any, version=reportRequest.current) => {
         const rowDataCount =await getRRRDataCount({
             filters:filter || currFilter,
             paginationParameter:{
@@ -192,13 +195,15 @@ const useRRR =()=>{
                 recordsPerPage: rowsPerPage
             }
         })
-        setRRRDataCount(rowDataCount?.data?.recordCount)
+        if (version === reportRequest.current && isMtaReportCurrent(rowDataCount)) setRRRDataCount(rowDataCount?.data?.recordCount)
     }
 
     const getRRRRowData= async(pageNo:any , pageSize?:number)=>{
+        const version = ++reportRequest.current;
         try{
             if(RRRDataCount===0){
-                await getDataCount(currFilter);
+                await getDataCount(currFilter,version);
+                if (version !== reportRequest.current) return;
             }
             notifyLoader("Loading Grid Data")
             const rowData =await getRRRData({
@@ -209,6 +214,7 @@ const useRRR =()=>{
                 }
             }) 
         
+            if (version !== reportRequest.current || !isMtaReportCurrent(rowData)) return;
         // setRecordCount(rowData.data.recordCount)
             setCurrentPage(pageNo)
             setRRRRowData(rowData?.data?.data)
@@ -216,6 +222,7 @@ const useRRR =()=>{
             toast.dismiss()
             notifySuccess("Data Loaded Successfully")
         }catch(err:any){
+            if (version !== reportRequest.current) return;
             toast.dismiss()
             setReportError(rrrFailureMessage(err))
             setRRRRowData([])
@@ -224,6 +231,10 @@ const useRRR =()=>{
     }
 
     const onApplyFilter = async(filter:any)=>{
+        const version = ++reportRequest.current;
+        refreshMtaReportBinding();
+        setRRRDataCount(undefined);
+        setRRRRowData([]);
         setCurrFilter(filter);
         try {
           notifyLoader("Loading Grid Data");
@@ -243,6 +254,7 @@ const useRRR =()=>{
             })
           ), getRRRUiConfig()]);
 
+          if (version !== reportRequest.current || !isMtaReportCurrent(rowDataCount) || !isMtaReportCurrent(rowData)) return;
           // setRecordCount(rowData.data.recordCount)
           setRRRDataCount(rowDataCount?.data?.recordCount)
           setCurrFilter(filter);
@@ -253,6 +265,7 @@ const useRRR =()=>{
           toast.dismiss();
           notifySuccess("Data Loaded Successfully")
         } catch (err: any) {
+          if (version !== reportRequest.current) return;
           toast.dismiss();
           setReportError(rrrFailureMessage(err));
           setRRRRowData([])

@@ -9,7 +9,8 @@ if not SECRET_KEY:
 DEBUG = False
 ALLOWED_HOSTS = os.environ.get('VF_ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver').split(',')
 INSTALLED_APPS = ['django.contrib.contenttypes', 'mta.runtime']
-MIDDLEWARE = ['django.middleware.security.SecurityMiddleware']
+MIDDLEWARE = ['django.middleware.security.SecurityMiddleware',
+              'mta.presentation.publication_binding.PublicationBindingMiddleware']
 ROOT_URLCONF = 'vectorflow.urls'
 MTA_TRUSTED_GATEWAY_HEADER = os.environ.get('MTA_TRUSTED_GATEWAY_HEADER', 'X-VectorFLOW-Identity')
 VF_MDM_SOURCE_DIGEST = os.environ.get('VF_MDM_SOURCE_DIGEST', '')

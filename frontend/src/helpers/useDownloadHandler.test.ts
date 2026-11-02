@@ -5,6 +5,7 @@ import useDownloadHandler from './useDownloadHandler';
 import { setupAxios } from '../config/axios-config';
 import { MainService } from '../module-main/services/api';
 import { notifyError } from './notify';
+import { mtaPublicationBinding, PUBLICATION_BOOTSTRAP, PUBLICATION_HEADER } from '../config/mta-publication-binding';
 
 jest.mock('./notify', () => ({ notifyError: jest.fn() }));
 jest.mock('../VectorFlow/Pages/MTO/Common/encryption', () => ({ decryptStorageData: jest.fn(async () => null) }));
@@ -18,6 +19,7 @@ const originalAdapter = axios.defaults.adapter;
 let clicked: jest.SpyInstance;
 beforeEach(() => {
   jest.clearAllMocks();
+  mtaPublicationBinding.refresh();
   process.env.REACT_APP_API_HOST = '/';
   axios.interceptors.request.clear();
   axios.interceptors.response.clear();
@@ -38,14 +40,20 @@ afterEach(() => {
 const denied = (config: any, status: number) => new AxiosError('Denied', 'ERR_BAD_REQUEST', config, null, {
   status, statusText: 'Denied', headers: {}, config, data: { detail: 'Invalid token', code: 'token_not_valid' }
 });
+const publication = 'a'.repeat(64);
+const publicationHeaders = { [PUBLICATION_HEADER.toLowerCase()]: publication };
+const bootstrap = (config: any) => config.url.endsWith(PUBLICATION_BOOTSTRAP) ? {
+  config, status: 200, statusText: 'OK', headers: {}, data: { mode: 'native', binding: publication },
+} : undefined;
 
 test('MTA download carries the real existing Axios authorization and keeps bytes/name', async () => {
   const bytes = new Blob(['a,b\n1,2\n'], { type: 'text/csv' });
   axios.defaults.adapter = async config => {
+    const metadata = bootstrap(config); if (metadata) return metadata;
     expect(config.headers.Authorization).toBe('Bearer test-access');
     expect(config.responseType).toBe('blob');
     expect(config.url).toContain('/api/mta/DownloadReports/Input%20Data');
-    return { data: bytes, status: 200, statusText: 'OK', headers: {}, config };
+    return { data: bytes, status: 200, statusText: 'OK', headers: publicationHeaders, config };
   };
   expect(await useDownloadHandler().handleDownloadVF('Input Data', 'input.csv')).toBe(true);
   expect(URL.createObjectURL).toHaveBeenCalledWith(bytes);
@@ -58,9 +66,10 @@ test('MTA download carries the real existing Axios authorization and keeps bytes
 test('MTA download uses existing refresh once after an expired-token response', async () => {
   let calls = 0;
   axios.defaults.adapter = async config => {
+    const metadata = bootstrap(config); if (metadata) return metadata;
     if (++calls === 1) throw denied(config, 401);
     expect(config.headers.Authorization).toBe('Bearer test-refreshed');
-    return { data: new Blob(['ok']), status: 200, statusText: 'OK', headers: {}, config };
+    return { data: new Blob(['ok']), status: 200, statusText: 'OK', headers: publicationHeaders, config };
   };
   expect(await useDownloadHandler().handleDownloadVF('InputData', '')).toBe(true);
   expect(MainService.refreshToken).toHaveBeenCalledTimes(1);
@@ -68,7 +77,7 @@ test('MTA download uses existing refresh once after an expired-token response', 
 });
 
 test.each([403, 404])('MTA download fails closed for %s without a file', async status => {
-  axios.defaults.adapter = async config => { throw denied(config, status); };
+  axios.defaults.adapter = async config => { const metadata = bootstrap(config); if (metadata) return metadata; throw denied(config, status); };
   expect(await useDownloadHandler().handleDownloadVF('InputData', 'input.csv')).toBe(false);
   expect(clicked).not.toHaveBeenCalled();
   expect(URL.createObjectURL).not.toHaveBeenCalled();

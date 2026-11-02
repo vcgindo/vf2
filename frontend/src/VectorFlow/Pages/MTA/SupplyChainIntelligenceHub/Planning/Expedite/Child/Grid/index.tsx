@@ -1,3 +1,5 @@
+import { useContext } from "react";
+import { GridStateContext } from "../../../../../../../../context/GridStateContext";
 import { mapPlanningRequest } from '../../../../../../../../helpers/logisticsRequests';
 import {useState,useMemo}from 'react';
 import GridViewTable from "../../../GridView/GridViewTable";
@@ -20,6 +22,7 @@ const ExpediteChildGrid = ({data,paginationProps,onOpenDailyDataGraph,currentCat
     const [requestRow,setRequestRow] = useState<any>();
     const [activeRow,setActiveRow] = useState<any>();
     const [isSubGridOpen,toggleSubGrid] = useState<any>(true);
+    const {refreshAfterRequest} = useContext(GridStateContext);
     const {mutateAsync:submitRemark} = useSubmitOpenExpediteRequest()
     const submitOpenExpediteRemark = async(remark:string)=>{
         if(remark.length===0){
@@ -28,7 +31,9 @@ const ExpediteChildGrid = ({data,paginationProps,onOpenDailyDataGraph,currentCat
         }
         notifyLoader('Submiting request')
         try{
-            await submitRemark(mapPlanningRequest(requestRow,remark));
+            const response = await submitRemark(mapPlanningRequest(requestRow,remark));
+            if (response?.status >= 400) throw new Error('Request was not submitted');
+            await refreshAfterRequest?.();
         toast.dismiss()
         notifySuccess('Request Submitted sucessfully')
         }catch(err:any){

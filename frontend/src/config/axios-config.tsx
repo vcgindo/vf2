@@ -4,6 +4,7 @@ import { cleanObject, loginRedirect } from '../helpers/utils'
 import { MainService } from '../module-main/services/api'
 import { installScreenProbe } from '../performance/screenProbe'
 import { REQUEST_TIMEOUT_MS, DOWNLOAD_TIMEOUT_MS } from '../helpers/requestDeadline'
+import { mtaPublicationBinding as mtaPublication } from './mta-publication-binding'
 
 export const setupAxios = () => {
   installScreenProbe(axios)
@@ -45,11 +46,14 @@ export const setupAxios = () => {
         }
       }
     }
-    return config
+    return await mtaPublication.request(config)
   })
 
-  axios.interceptors.response.use(undefined, async function (error) {
+  axios.interceptors.response.use(mtaPublication.response, async function (error) {
     const originalRequest = error.config
+    if (!mtaPublication.isCurrent({ config: originalRequest })) {
+      return Promise.reject(new Error('Report refresh was superseded.'));
+    }
     let errorResp
 
     if (error.isAxiosError) {

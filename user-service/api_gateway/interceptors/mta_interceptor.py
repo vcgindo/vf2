@@ -1,5 +1,6 @@
 # DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
 import json
+import hashlib
 import os
 import requests
 from api.models import Permission, User_Application_Location_Permission
@@ -60,6 +61,11 @@ class MTA_INTERCEPTOR:
             'Content-Type': 'application/json',
             os.environ.get('MTA_TRUSTED_GATEWAY_HEADER', 'X-VectorFLOW-Identity'): json.dumps(identity),
         }
+        # A publication claim conveys no identity or permission. The MTA owner
+        # checks it after normal admission and against its own read snapshot.
+        publication = request.headers.get('X-VectorFLOW-Publication')
+        if publication is not None:
+            headers['X-VectorFLOW-Publication'] = publication
 
         # Migrated MTA requests have an exact schema. Identity is derived from
         # the authenticated gateway session, never from browser-supplied data.
@@ -73,6 +79,12 @@ class MTA_INTERCEPTOR:
             )
 
         context = authenticated_mta_context(request, application_id, services=service_map)
+        # Bind the exact effective scope already injected below, without moving
+        # large lists into headers or trusting browser identity/scope claims.
+        headers['X-VectorFLOW-Report-Scope'] = hashlib.sha256(json.dumps({
+            'product_permissions': context['product_permissions'],
+            'location_permissions': context['location_permissions'],
+        }, sort_keys=True, separators=(',', ':'), ensure_ascii=False).encode('utf-8')).hexdigest()
         # print("REQUEST DATA",request.data)
         data = request.data.copy() if hasattr(request.data, 'copy') else request.data
 

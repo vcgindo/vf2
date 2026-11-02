@@ -9,13 +9,14 @@ const mockConfig = jest.fn();
 const mockState = jest.fn();
 const mockCount = jest.fn();
 const mockRows = jest.fn();
+const mockSubmit = jest.fn();
 const mockDispatch = jest.fn();
 jest.mock('../../../../Services/MTA/Common/UIConfig', () => ({ useGetUIConfigData: () => ({ mutateAsync: mockConfig, isLoading: false }) }));
 jest.mock('../../../../Services/MTA/Common/UserUIConfig', () => ({ useGetState: () => ({ mutateAsync: mockState, isLoading: false }) }));
 jest.mock('../../../../Services/MTA/SupplyChainIntelligenceHub/BPR', () => ({
     useGetBPRData: () => ({ mutateAsync: mockRows, isLoading: false }),
     useGetBPRDataCount: () => ({ mutateAsync: mockCount, isLoading: false }),
-    useSubmitBPRRemark: () => ({ mutateAsync: jest.fn() }),
+    useSubmitBPRRemark: () => ({ mutateAsync: mockSubmit }),
     useGetBPRRemarkHistory: () => ({ mutateAsync: jest.fn() }),
     useGetDailyData: () => ({ mutateAsync: jest.fn() })
 }));
@@ -46,6 +47,7 @@ beforeEach(() => {
     mockState.mockResolvedValue({ data: { data: '' } });
     mockCount.mockResolvedValue({ data: { recordCount: 1 } });
     mockRows.mockResolvedValue({ data: { data: [{ SKUCode: '001', WHCode: 'DP01' }] } });
+    mockSubmit.mockResolvedValue({ status: 200, data: { msg: 'Saved' } });
 });
 
 test('opening BPR leaves the filter unblocked and makes no report/layout requests', () => {
@@ -115,4 +117,44 @@ test('leaving while columns load does not start a saved-layout request', async (
     unmount();
     await act(async () => { config.resolve({ data: { data: [] } }); });
     expect(mockState).not.toHaveBeenCalled();
+});
+
+test('a late old filter pair cannot overwrite a newer report pair', async () => {
+    const oldRows = deferred(), oldCount = deferred();
+    mockRows.mockReturnValueOnce(oldRows.promise).mockResolvedValue({ data: { data: [{ SKUCode: 'new' }] } });
+    mockCount.mockReturnValueOnce(oldCount.promise).mockResolvedValue({ data: { recordCount: 2 } });
+    const { result } = renderHook(useBPR);
+    await act(async () => { result.current.onApplyFilter({ selected: 'old' }); });
+    await act(async () => { result.current.onApplyFilter({ selected: 'new' }); });
+    expect(result.current.BPRRowData).toEqual([{ SKUCode: 'new' }]);
+    await act(async () => {
+        oldRows.resolve({ data: { data: [{ SKUCode: 'old' }] } });
+        oldCount.resolve({ data: { recordCount: 99 } });
+    });
+    expect(result.current.BPRRowData).toEqual([{ SKUCode: 'new' }]);
+    expect(result.current.recordCount).toBe(2);
+});
+
+test('successful remarks refetch the current count and rows once without replaying the write', async () => {
+    const { result } = renderHook(useBPR);
+    await act(async () => { result.current.onApplyFilter({}); });
+    act(() => { result.current.agGridProps.onCellValueChanged?.({ data: { SKUCode: '001', WHCode: 'DP01', remarks: 'Saved remark' } } as any); });
+    mockRows.mockResolvedValueOnce({ data: { data: [{ SKUCode: '001', Remark: 'Saved remark' }] } });
+    await act(async () => { await result.current.onSubmitRemarks(); });
+    expect(mockSubmit).toHaveBeenCalledTimes(1);
+    expect(mockRows).toHaveBeenCalledTimes(2);
+    expect(mockCount).toHaveBeenCalledTimes(2);
+    expect(mockRows.mock.calls[1][0]).toMatchObject({ filters: {}, paginationParameter: { pageNumber: 1 } });
+    expect(result.current.BPRRowData).toEqual([{ SKUCode: '001', Remark: 'Saved remark' }]);
+});
+
+test('failed refresh clears the related pair and existing filter confirmation retries reads only', async () => {
+    const { result } = renderHook(useBPR);
+    mockCount.mockRejectedValueOnce(new Error('publication changed'));
+    await act(async () => { result.current.onApplyFilter({}); });
+    expect(result.current.BPRRowData).toEqual([]);
+    expect(result.current.recordCount).toBeUndefined();
+    await act(async () => { result.current.onApplyFilter({}); });
+    expect(result.current.BPRRowData).toEqual([{ SKUCode: '001', WHCode: 'DP01' }]);
+    expect(mockSubmit).not.toHaveBeenCalled();
 });

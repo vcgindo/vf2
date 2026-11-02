@@ -1,3 +1,4 @@
+import { refreshMtaReportBinding, isMtaReportCurrent } from "../../../../../config/mta-publication-binding"
 import { beginScreen, screenRendered, useScreenProbe } from '../../../../../performance/screenProbe';
 import { loadDailyData } from '../../../../../components/VectorFLOW/commons/DailyDataGraphModal/loadDailyData';
 import { settleRequestPair } from "../../requestPair"
@@ -14,7 +15,7 @@ import { useGetPlanningDataCount,useGetPlanningDataGraph, useGetPlanningDataGrid
 import { PlanningCategory, PlanningCounts } from "../../../../types/MTA"
 import {useSelector,useDispatch} from 'react-redux';
 import { type RootState } from "../../../../../redux/store/store";
-import {UPDATE_PLANNING_DATA} from '../../../../../redux/actions/MTA';
+import {UPDATE_PLANNING_DATA, TOGGLE_GRAPH_MODAL} from '../../../../../redux/actions/MTA';
 import { AgGridReactProps } from 'ag-grid-react';
 import useBPRFilter from "../../../../../hooks/useBPRFilter";
 import { GridRef } from "../../../../../VectorFlow/types/MDM";
@@ -42,6 +43,12 @@ const usePlanning = ()=>{
 
     const dispatch = useDispatch(); 
 
+    const reportRequest = useRef(0);
+    const mounted = useRef(true);
+    useEffect(() => {
+        mounted.current = true;
+        return () => { mounted.current = false; reportRequest.current++; };
+    }, []);
     const ref = useRef<GridRef>()
     const tempRef:any = useRef<GridRef>()
 
@@ -495,7 +502,7 @@ const usePlanning = ()=>{
         setLastRunDate('');
         try {
             const result = await getPlanningDataCount({...filter});
-            if (request !== summaryRequest.current) return;
+            if (request !== summaryRequest.current || !isMtaReportCurrent(result)) return;
             const date = result.data.businessDate;
             if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
                 throw new Error('Planning summary date is unavailable');
@@ -542,6 +549,7 @@ const usePlanning = ()=>{
 
 
     const onExportToExcelCallBack = async(pageNumber:number)=>{
+        const version = reportRequest.current;
         const data =  await getPlanningDataGrid({
             category:currentPageData.category,
             type:currentPageData.type,
@@ -552,6 +560,7 @@ const usePlanning = ()=>{
             }
         })
 
+        if (version !== reportRequest.current || !isMtaReportCurrent(data)) throw new Error('Report refresh was superseded.');
         if(currentPageData.category==='git' && currentPageData.type==='child'){
             if(currentTab==='transporterWise'){
                 return data.data.data.transporterWise.data
@@ -575,6 +584,7 @@ const usePlanning = ()=>{
     }
 
     const handlePlanningQuadrantClick = async (category:string) => {
+        const reportVersion = ++reportRequest.current;
         setChartError(null);
         setFulfillmentError(null);
         try {
@@ -593,6 +603,7 @@ const usePlanning = ()=>{
                     const { count, grid: result } = await settleRequestPair(
                         () => getPlanningDataGridCount(body), () => getPlanningDataGrid(body)
                     )
+                    if (reportVersion !== reportRequest.current || !isMtaReportCurrent(result) || (count && !isMtaReportCurrent(count))) return;
                     setTotalRows(count.data.data[0].locationwise)
                     setPlanningCounts({...planningCounts,parentMonitorCount:count.data.data[0].locationwise})
 
@@ -616,6 +627,7 @@ const usePlanning = ()=>{
                         filters:[]
                     }
                     const result = await getPlanningDataGraph(body);
+                    if (reportVersion !== reportRequest.current || !isMtaReportCurrent(result)) return;
                     if(!result.data.data.data)throw new Error("Data Not Available") 
                     setIsSelectCategoryOpen(false);
                     setCurrentGraphData(result.data.data.data)
@@ -634,6 +646,7 @@ const usePlanning = ()=>{
                         filters:[]
                     }
                     const result = await getPlanningDataGraph(body);
+                    if (reportVersion !== reportRequest.current || !isMtaReportCurrent(result)) return;
                     setIsSelectCategoryOpen(false);
                     setCurrentGraphData(result.data.data.data);
                     toast.dismiss(toastId);
@@ -651,6 +664,7 @@ const usePlanning = ()=>{
                         filters:[]
                     }
                     const result = await getPlanningDataGraph(body);
+                    if (reportVersion !== reportRequest.current || !isMtaReportCurrent(result)) return;
                     setIsSelectCategoryOpen(false);
                     setCurrentGraphData(result.data.data.data);
                     toast.dismiss(toastId);
@@ -668,6 +682,7 @@ const usePlanning = ()=>{
                         filters:[]
                     }
                     const result = await getPlanningDataGraph(body);
+                    if (reportVersion !== reportRequest.current || !isMtaReportCurrent(result)) return;
                     setIsSelectCategoryOpen(false);
                     setCurrentGraphData(result.data.data.data)
                     toast.dismiss(toastId);
@@ -685,6 +700,7 @@ const usePlanning = ()=>{
                         filters:[]
                     }
                     const result = await getPlanningDataGraph(body);
+                    if (reportVersion !== reportRequest.current || !isMtaReportCurrent(result)) return;
                     setIsSelectCategoryOpen(false);
                     setCurrentGraphData(result.data.data.data);
                     toast.dismiss(toastId);
@@ -698,6 +714,7 @@ const usePlanning = ()=>{
             }
             
         } catch (error:any) {
+            if (reportVersion !== reportRequest.current) return;
             toast.dismiss();
             if (category === 'ExpediteToChild') {
                 const message = expediteChartFailureMessage(error);
@@ -726,9 +743,14 @@ const usePlanning = ()=>{
     // }
 
 
-    const fetchAndUpdateGridData = async (currentPage:number,fromPagination:boolean,filter?:any,tab?:string  , pageSize?:number) => {
-        try {            
+    const fetchAndUpdateGridData = async (currentPage:number,fromPagination:boolean,filter?:any,tab?:string,
+        pageSize?:number,refreshChart=false,preservePage=false) => {
+        const reportVersion = ++reportRequest.current;
+        try {
             setIsDataLoading(true);
+            const refreshedGraph = refreshChart && currentCategory !== 'GITFromParent'
+                ? await getPlanningDataGraph({...currentPageData, filters:filter || currentFilter}) : null;
+            if (reportVersion !== reportRequest.current || (refreshedGraph && !isMtaReportCurrent(refreshedGraph))) return;
             // await getAndApplyGridState()
             switch(currentCategory){
                 case 'GITFromParent':{
@@ -747,6 +769,7 @@ const usePlanning = ()=>{
                         () => fromPagination ? Promise.resolve(null) : getPlanningDataGridCount(body),
                         () => getPlanningDataGrid(body)
                     )
+                    if (reportVersion !== reportRequest.current || !isMtaReportCurrent(result) || (count && !isMtaReportCurrent(count))) return;
                     if(!fromPagination && count){
                         setTotalRows(count.data.data[0].locationwise)
                         totalTempCount = count.data.data[0].locationwise
@@ -777,6 +800,7 @@ const usePlanning = ()=>{
                         () => fromPagination ? Promise.resolve(null) : getPlanningDataGridCount(body),
                         () => getPlanningDataGrid(body)
                     )
+                    if (reportVersion !== reportRequest.current || !isMtaReportCurrent(result) || (count && !isMtaReportCurrent(count))) return;
                     if(!fromPagination && count){
                         const {locationwise,transporterwise} = count.data.data[0]
                         const tempTab =tab?tab:currentTab
@@ -816,6 +840,7 @@ const usePlanning = ()=>{
                         () => fromPagination ? Promise.resolve(null) : getPlanningDataGridCount(body),
                         () => getPlanningDataGrid(body)
                     )
+                    if (reportVersion !== reportRequest.current || !isMtaReportCurrent(result) || (count && !isMtaReportCurrent(count))) return;
                     if(!fromPagination && count){
                         const {createAvailabilityAtParent,expediteDispatches} = count.data.data
                         const tempTab =tab?tab:currentTab
@@ -862,11 +887,12 @@ const usePlanning = ()=>{
                             recordsPerPage:pageSize || currentUserPageSize || rowsPerPage
                         }
                     }
-                    if (!fromPagination) body.paginationParameter.pageNumber = 1
+                    if (!fromPagination && !preservePage) body.paginationParameter.pageNumber = 1
                     const { count, grid: result } = await settleRequestPair(
                         () => fromPagination ? Promise.resolve(null) : getPlanningDataGridCount(body),
                         () => getPlanningDataGrid(body)
                     )
+                    if (reportVersion !== reportRequest.current || !isMtaReportCurrent(result) || (count && !isMtaReportCurrent(count))) return;
                     if(!fromPagination && count){
                         const {createAvailabilityAtParent,expediteDispatches} = count.data.data
                         const tempTab =tab?tab:currentTab
@@ -880,7 +906,7 @@ const usePlanning = ()=>{
                             setTotalRows(expediteDispatches)
                             totalTempCount = expediteDispatches
                         }
-                        setCurrentPage(1)
+                        if (!preservePage) setCurrentPage(1)
                     }
                     const {createAvailabilityAtParent,expediteDispatches} = result.data.data.data;
                     const uiConfig = result.data.data.uiConfig;
@@ -906,14 +932,15 @@ const usePlanning = ()=>{
                             recordsPerPage:pageSize || currentUserPageSize || rowsPerPage
                         }
                     }
-                    if (!fromPagination) body.paginationParameter.pageNumber = 1
+                    if (!fromPagination && !preservePage) body.paginationParameter.pageNumber = 1
                     const { count, grid: result } = await settleRequestPair(
                         () => fromPagination ? Promise.resolve(null) : getPlanningDataGridCount(body),
                         () => getPlanningDataGrid(body)
                     )
+                    if (reportVersion !== reportRequest.current || !isMtaReportCurrent(result) || (count && !isMtaReportCurrent(count))) return;
                     if(!fromPagination && count){
                         setTotalRows(count.data.data)
-                        setCurrentPage(1)
+                        if (!preservePage) setCurrentPage(1)
                         setPlanningCounts({...planningCounts,reviewExcessInventoryCount:count.data.data})
                         totalTempCount = count.data.data
                         // setPlanningCounts({...planningCounts,parentMonitorCount:count.data.data})
@@ -939,15 +966,16 @@ const usePlanning = ()=>{
                             recordsPerPage:pageSize || currentUserPageSize || rowsPerPage
                         }
                     }
-                    if (!fromPagination) body.paginationParameter.pageNumber = 1
+                    if (!fromPagination && !preservePage) body.paginationParameter.pageNumber = 1
                     const { count, grid: result } = await settleRequestPair(
                         () => fromPagination ? Promise.resolve(null) : getPlanningDataGridCount(body),
                         () => getPlanningDataGrid(body)
                     )
+                    if (reportVersion !== reportRequest.current || !isMtaReportCurrent(result) || (count && !isMtaReportCurrent(count))) return;
                     if(!fromPagination && count){
                         setTotalRows(count.data.data)
                         totalTempCount = count.data.data
-                        setCurrentPage(1)
+                        if (!preservePage) setCurrentPage(1)
                         setPlanningCounts({...planningCounts,reviewOrderFulfillmentCount:count.data.data})
                         // setPlanningCounts({...planningCounts,parentMonitorCount:count.data.data})
                     }
@@ -961,10 +989,12 @@ const usePlanning = ()=>{
                     break;
                 }
             }
+            if (refreshedGraph) setCurrentGraphData(refreshedGraph.data.data.data);
             setFulfillmentError(null);
             setIsDataLoading(false);
             
         } catch (error) {
+            if (reportVersion !== reportRequest.current) return;
             toast.dismiss();
             console.error(error)
             if(currentCategory==='OrderFulfillment') {
@@ -985,8 +1015,29 @@ const usePlanning = ()=>{
         }
     }
 
+    const refreshAfterRequestRef = useRef<() => Promise<void>>();
+    refreshAfterRequestRef.current = async () => {
+        if (!mounted.current) return;
+        refreshMtaReportBinding();
+        dispatch(TOGGLE_GRAPH_MODAL(false));
+        setCurrentGraphData(undefined);
+        setCurrentGridData(undefined);
+        if (isSelectCategoryOpen || !currentCategory) {
+            reportRequest.current++;
+            setIsDataLoading(false);
+            await fetchPlanningDataCount(currentFilter);
+            return;
+        }
+        summaryRequest.current++;
+        await fetchAndUpdateGridData(currentPage,false,currentFilter,currentTab,currentUserPageSize,true,true);
+    };
+    const refreshAfterRequest = useCallback(async () => {
+        await refreshAfterRequestRef.current?.();
+    }, []);
+
     const onApplyFilter = async(filter:any)=>{
         beginScreen('Planning', 'filter');
+        if (isSelectCategoryOpen || currentCategory.startsWith('Expedite')) refreshMtaReportBinding();
         if(isSelectCategoryOpen){
             await fetchPlanningDataCount(filter)
             return 
@@ -994,7 +1045,7 @@ const usePlanning = ()=>{
         // await fetchPlanningDataCount(filter)
         setCurrentFilter(filter)
         setCurrentPage(1)
-        fetchAndUpdateGridData(1,false,filter)
+        await fetchAndUpdateGridData(1,false,filter,undefined,undefined,currentCategory.startsWith('Expedite'))
     }
 
     const onDeleteFilter = async(parentId:any, filterId:any, value:any)=>{
@@ -1034,6 +1085,7 @@ const usePlanning = ()=>{
 
 
     const onGoBack = () => {
+        reportRequest.current++;
         setChartError(null);
         setFulfillmentError(null);
         setCurrentFilter({
@@ -1235,6 +1287,7 @@ const usePlanning = ()=>{
         setCurrentFilter,
         onDelete,
         onApplyFilter,
+        refreshAfterRequest,
         onDeleteFilter,
         isDataLoading,
         gridColDefs,

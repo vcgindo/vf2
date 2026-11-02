@@ -236,6 +236,12 @@ class AdmittedApplication:
             connections.close_all()
 
     def __call__(self, environ, start_response):
+        from mta.presentation import publication_binding
+        path = environ.get('PATH_INFO', '')
+        if publication_binding.enabled() and (path == publication_binding.BOOTSTRAP
+                                               or publication_binding.report_path(path)):
+            # Django middleware owns this scope through lazy body consumption.
+            return self._dispatch(environ, start_response)
         from mta.presentation.request_scope import read_request
         with read_request(environ.get('PATH_INFO', '')):
             return self._dispatch(environ, start_response)
@@ -260,7 +266,8 @@ class AdmittedApplication:
                     # this metadata-only lifetime before constructing any part
                     # of the downstream response or entering a write handler.
                     with admission_preflight(enabled=scoped_dbm):
-                        require_admission()
+                        admitted = require_admission()
+                    environ['vectorflow.admitted_publication'] = admitted
             except Exception:
                 connections.close_all()
                 response = JsonResponse({'error': 'publication_not_admitted'}, status=503)
