@@ -14,6 +14,8 @@ from mta.presentation.context import PublicationUnavailable
 from mta.serialization import digest
 
 HEADER = 'X-VectorFLOW-Publication'
+DATE_HEADER = 'X-VectorFLOW-Publication-Date'
+ACQUIRE = 'acquire'
 SCOPE_HEADER = 'X-VectorFLOW-Report-Scope'
 ENVIRON_HEADER = 'HTTP_X_VECTORFLOW_PUBLICATION'
 BOOTSTRAP = '/api/mta/PublicationBinding'
@@ -40,6 +42,12 @@ def report_path(path):
     parent, _, name = path.rstrip('/').rpartition('/')
     return ((parent == '/api/mta' and name in REPORTS)
             or parent == '/api/mta/DownloadReports')
+
+
+def acquisition_path(path):
+    # Exports retain an established binding; no command enters this boundary.
+    return (report_path(path) and path.rstrip('/') != '/api/mta/GetExportDataAsync'
+            and not path.rstrip('/').startswith('/api/mta/DownloadReports/'))
 
 
 def enabled():
@@ -98,6 +106,14 @@ def snapshot():
         yield
 
 
+def date_envelope(request):
+    from mta.presentation.views import last_run_date
+    date_response = last_run_date(request)
+    if date_response.status_code != 200:
+        raise PublicationUnavailable('publication_date_unavailable')
+    return json.loads(date_response.content)
+
+
 def bootstrap_view(request):
     """Routed normally through Django; the middleware validates trusted identity."""
     if request.method != 'GET':
@@ -110,11 +126,9 @@ def bootstrap_view(request):
         # Reuse the normal Full/scoped date reader inside this same admitted
         # snapshot. The client need not make another admission round trip just
         # to label the count/grid reads bound by this response.
-        from mta.presentation.views import last_run_date
-        date_response = last_run_date(request)
-        if date_response.status_code != 200:
-            raise PublicationUnavailable('publication_date_unavailable')
-        value['date_response'] = json.loads(date_response.content)
+        from mta.presentation import scoped_selection
+        value['date_response'] = date_envelope(request)
+        value['report_acquisition'] = not scoped_selection.enabled()
     response = JsonResponse(value)
     response['Cache-Control'] = 'no-store'
     return response
@@ -158,13 +172,20 @@ class PublicationBindingMiddleware:
             token = scoped_identity(identity(admitted), {
                 'id': gateway['id'], 'report_scope_digest': request.headers.get(SCOPE_HEADER)})
             request._publication_binding = token
-            if not bootstrap and request.headers.get(HEADER) != token:
+            acquiring = (not scoped_selection.enabled() and acquisition_path(request.path)
+                         and request.method in ('GET', 'POST')
+                         and request.headers.get(HEADER) == ACQUIRE)
+            if not bootstrap and not acquiring and request.headers.get(HEADER) != token:
                 response = JsonResponse({'error': 'publication_binding_missing_or_stale'}, status=409)
                 response['Cache-Control'] = 'no-store'
             else:
+                acquired_date = date_envelope(request) if acquiring else None
                 response = self.get_response(request)
                 if not bootstrap:
                     response[HEADER] = token
+                    if acquiring and response.status_code == 200:
+                        response[DATE_HEADER] = json.dumps(acquired_date, separators=(',', ':'))
+                        response['Cache-Control'] = 'no-store'
             if not response.streaming:
                 stack.close()
                 return response

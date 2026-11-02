@@ -73,6 +73,16 @@ class PublicationTransportTests(SimpleTestCase):
         self.assertEqual(result['X-VectorFLOW-Publication'], 'a' * 64)
         result.close()
 
+    def test_acquired_report_date_is_forwarded_from_owner_only(self):
+        date = '{"status":200,"data":[{"formatted":"19 Oct 2026","rawDate":"2026-10-19"}]}'
+        upstream = Mock(status_code=200, headers={'Content-Type':'application/json',
+            'X-VectorFLOW-Publication':'b'*64,'X-VectorFLOW-Publication-Date':date})
+        upstream.iter_content.return_value = iter([b'{}'])
+        result = streamed_response(SimpleNamespace(method='POST',path='/api/mta/GetBTRData'),upstream)
+        self.assertEqual(result['X-VectorFLOW-Publication-Date'],date)
+        self.assertEqual(result['Cache-Control'],'no-store')
+        result.close()
+
     def test_json_adapter_uses_owner_assertion_never_browser_echo(self):
         factory = APIRequestFactory()
         for owner in (None, 'b' * 64):
@@ -81,7 +91,8 @@ class PublicationTransportTests(SimpleTestCase):
             view = API_GATEWAY_VIEW()
             request = view.initialize_request(request)
             upstream = Mock(status_code=200, text='{}', headers={})
-            upstream.headers = {} if owner is None else {'X-VectorFLOW-Publication': owner}
+            upstream.headers = {} if owner is None else {'X-VectorFLOW-Publication': owner,
+                'X-VectorFLOW-Publication-Date':'owner-date'}
             upstream.json.return_value = {'recordCount': '1'}
             interceptor = Mock()
             interceptor.return_value.forward.return_value = upstream
@@ -90,3 +101,4 @@ class PublicationTransportTests(SimpleTestCase):
                 view.headers = {}
                 response = view.finalize_response(request, response)
             self.assertEqual(response.get('X-VectorFLOW-Publication'), owner)
+            self.assertEqual(response.get('X-VectorFLOW-Publication-Date'), None if owner is None else 'owner-date')

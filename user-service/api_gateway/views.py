@@ -20,6 +20,10 @@ class API_GATEWAY_VIEW(APIView):
         publication = getattr(request, '_mta_response_publication', None)
         if request.path.startswith('/api/mta/') and response.status_code == 200 and publication:
             response['X-VectorFLOW-Publication'] = publication
+            date = getattr(request, '_mta_response_publication_date', None)
+            if date:
+                response['X-VectorFLOW-Publication-Date'] = date
+                response['Cache-Control'] = 'no-store'
         if request.path == '/api/mta/PublicationBinding':
             # This response is reconstructed here; retain the owner's no-cache
             # contract so an explicit refresh acquires the current revision.
@@ -32,6 +36,7 @@ class API_GATEWAY_VIEW(APIView):
             response = service_map[application_name]['interceptor']().forward(request, service_map)
             if application_name == 'mta':
                 request._mta_response_publication = response.headers.get('X-VectorFLOW-Publication')
+                request._mta_response_publication_date = response.headers.get('X-VectorFLOW-Publication-Date')
             return response
         except CatalogueUnavailable:
             return JsonResponse({'error': 'application_scope_catalogue_unavailable'}, status=503)

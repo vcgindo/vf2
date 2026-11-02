@@ -114,6 +114,9 @@ def streamed_response(request, upstream):
         result['Content-Disposition'] = upstream.headers['Content-Disposition']
     if 'X-VectorFLOW-Publication' in upstream.headers:
         result['X-VectorFLOW-Publication'] = upstream.headers['X-VectorFLOW-Publication']
+        if 'X-VectorFLOW-Publication-Date' in upstream.headers:
+            result['X-VectorFLOW-Publication-Date'] = upstream.headers['X-VectorFLOW-Publication-Date']
+            result['Cache-Control'] = 'no-store'
     # iter_content decodes transport compression: do not forward Content-Length,
     # Content-Encoding or hop-by-hop headers from the upstream transport.
     return result

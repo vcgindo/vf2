@@ -1,6 +1,7 @@
 /** Transport only: one publication/revision per coordinated report refresh. */
 import axios from 'axios';
 export const PUBLICATION_HEADER = 'X-VectorFLOW-Publication';
+export const PUBLICATION_DATE_HEADER = 'X-VectorFLOW-Publication-Date';
 export const PUBLICATION_BOOTSTRAP = '/api/mta/PublicationBinding';
 
 const reportNames = new Set(`GetOrderAllocationReportData GetOrderAllocationReportDataCount
@@ -32,38 +33,68 @@ const reportUrl = (config: any): URL | undefined => {
     (parts.length === 5 && parts[3] === 'DownloadReports')) ? url : undefined;
 };
 
+const copyDate = (value: any) => JSON.parse(JSON.stringify(value));
+const validateDate = (date: any) => {
+  if (date?.status !== 200 || !Array.isArray(date.data) || date.data.length !== 1 ||
+      typeof date.data[0]?.formatted !== 'string' || typeof date.data[0]?.rawDate !== 'string' ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(date.data[0].rawDate)) {
+    throw new Error('Publication date is unavailable. Refresh the report.');
+  }
+  return date;
+};
+const dateIdentity = (value: any): string => {
+  const canonical = (item: any): any => Array.isArray(item) ? item.map(canonical) :
+    item && typeof item === 'object' ? Object.fromEntries(Object.keys(item).sort().map(key => [key, canonical(item[key])])) : item;
+  return JSON.stringify(canonical(value));
+};
+
 export const createMtaPublicationBinding = (send: (config: any) => Promise<any>) => {
-  let bootstrap: Promise<{ token: string | null; dateResponse?: any }> | undefined;
+  type Binding = { token: string | null; dateResponse?: any };
+  let bootstrap: Promise<Binding> | undefined;
+  let pinned: Binding | undefined;
+  let capable = false;
+  let reportDates = false;
   let epoch = 0;
   const refreshListeners = new Set<() => void>();
-  const refresh = (notify = true) => {
-    epoch++; bootstrap = undefined;
+  const dateListeners = new Set<(date: any) => void>();
+  const refresh = (notify = true, reportReadWillFollow = false) => {
+    epoch++; bootstrap = undefined; pinned = undefined;
+    if (!notify) capable = false;
+    reportDates = notify && reportReadWillFollow && capable;
     if (notify) refreshListeners.forEach(listener => listener());
   };
   const isCurrent = (response: any) => response.config?._mtaPublicationEpoch === undefined ||
     response.config._mtaPublicationEpoch === epoch;
+  const pin = (value: Binding) => {
+    if (pinned && (pinned.token !== value.token || (pinned.dateResponse !== undefined &&
+        value.dateResponse !== undefined && dateIdentity(pinned.dateResponse) !== dateIdentity(value.dateResponse)))) {
+      throw new Error('Publication binding changed. Refresh the report.');
+    }
+    const publishDate = value.dateResponse !== undefined && pinned?.dateResponse === undefined;
+    pinned = {token: value.token, dateResponse: pinned?.dateResponse ?? value.dateResponse};
+    if (publishDate) dateListeners.forEach(listener => listener(copyDate(pinned!.dateResponse)));
+    return pinned;
+  };
   const acquire = (url: URL) => {
     if (!bootstrap) {
+      const requestedEpoch = epoch;
       bootstrap = send({ method: 'get', url: new URL(PUBLICATION_BOOTSTRAP, url.origin).href })
         .then(response => {
+          if (requestedEpoch !== epoch) throw new Error('Report refresh was superseded.');
           const value = response.data;
-          if (value?.mode === 'native' && /^[a-f0-9]{64}$/.test(value.binding)) {
-            const date = value.date_response;
-            // Older matched servers can still use their ordinary date endpoint.
-            // A supplied malformed date is unavailable, never a fallback value.
-            if (date !== undefined && (date?.status !== 200 || !Array.isArray(date.data) ||
-                date.data.length !== 1 || typeof date.data[0]?.formatted !== 'string' ||
-                typeof date.data[0]?.rawDate !== 'string' ||
-                !/^\d{4}-\d{2}-\d{2}$/.test(date.data[0]?.rawDate || ''))) {
-              throw new Error('Publication date is unavailable. Refresh the report.');
-            }
-            return { token: value.binding, dateResponse: date };
+          if (response.status !== undefined && response.status !== 200) throw new Error('Publication binding is unavailable. Refresh the report.');
+          if (value?.mode === 'native' && typeof value.binding === 'string' && /^[a-f0-9]{64}$/.test(value.binding)) {
+            const date = value.date_response === undefined ? undefined : validateDate(value.date_response);
+            const result = pin({token: value.binding, dateResponse: date});
+            capable = value.report_acquisition === true;
+            return result;
           }
-          if (value?.mode === 'legacy' && value.binding === null) return { token: null };
+          if (value?.mode === 'legacy' && value.binding === null) {
+            const result = pin({token: null}); capable = false; return result;
+          }
           throw new Error('Publication binding is unavailable. Refresh the report.');
         });
-      // Retry only at an explicit coordinated refresh; never silently adopt a
-      // later publication after companion reads have already started.
+      // Failed bootstrap remains failed until an explicit coordinated refresh.
     }
     return bootstrap;
   };
@@ -73,23 +104,28 @@ export const createMtaPublicationBinding = (send: (config: any) => Promise<any>)
       if (!url) return config;
       if (!isCurrent({ config })) throw new Error('Report refresh was superseded.');
       const requestedEpoch = epoch;
-      const { token, dateResponse } = await acquire(url);
+      config._mtaPublicationEpoch = requestedEpoch;
+      const previous = config._mtaPublicationBinding || config.headers?.[PUBLICATION_HEADER];
+      const ordinaryRead = !url.pathname.includes('/DownloadReports/') &&
+        !['GetLastRunDate', 'GetExportDataAsync'].includes(url.pathname.split('/').pop() || '') &&
+        ['get', 'post'].includes((config.method || 'get').toLowerCase());
+      if (reportDates && ordinaryRead && !pinned && (!previous || previous === 'acquire')) {
+        config.headers = {...config.headers, [PUBLICATION_HEADER]: 'acquire'};
+        config._mtaPublicationAcquire = true;
+        return config;
+      }
+      const { token, dateResponse } = pinned ?? await acquire(url);
       if (requestedEpoch !== epoch) throw new Error('Report refresh was superseded.');
       if (token) {
-        const previous = config.headers?.[PUBLICATION_HEADER];
-        if (previous && previous !== token) throw new Error('Publication binding changed. Refresh the report.');
+        if (previous && previous !== 'acquire' && previous !== token) throw new Error('Publication binding changed. Refresh the report.');
         config.headers = { ...config.headers, [PUBLICATION_HEADER]: token };
         config._mtaPublicationBinding = token;
-        config._mtaPublicationEpoch = epoch;
+        config._mtaPublicationAcquire = false;
         if (url.pathname === '/api/mta/GetLastRunDate' &&
             (config.method || 'get').toLowerCase() === 'get' && dateResponse !== undefined) {
-          // This is the owner's actual date envelope from the binding snapshot,
-          // not a date inferred from the browser or a separately cached release.
-          // The normal response interceptor still rejects a superseded epoch.
           config.adapter = async (actualConfig: any) => ({
             config: actualConfig, status: 200, statusText: 'OK',
-            headers: { [PUBLICATION_HEADER.toLowerCase()]: token },
-            data: JSON.parse(JSON.stringify(dateResponse)),
+            headers: { [PUBLICATION_HEADER.toLowerCase()]: token }, data: copyDate(dateResponse),
           });
         }
       }
@@ -98,7 +134,19 @@ export const createMtaPublicationBinding = (send: (config: any) => Promise<any>)
     response(response: any) {
       if (!isCurrent(response)) throw new Error('Report refresh was superseded.');
       const expected = response.config?._mtaPublicationBinding;
-      if (expected && response.headers?.[PUBLICATION_HEADER.toLowerCase()] !== expected) {
+      const actual = response.headers?.[PUBLICATION_HEADER.toLowerCase()];
+      if (response.config?._mtaPublicationAcquire) {
+        if (response.status !== 200 || (response.data?.status || 200) >= 400 || typeof actual !== 'string' || !/^[a-f0-9]{64}$/.test(actual)) {
+          throw new Error('Publication response is missing or stale. Refresh the report.');
+        }
+        let date;
+        try { date = validateDate(JSON.parse(response.headers?.[PUBLICATION_DATE_HEADER.toLowerCase()])); }
+        catch { throw new Error('Publication date is unavailable. Refresh the report.'); }
+        pin({token: actual, dateResponse: date});
+        response.config._mtaPublicationBinding = actual;
+        response.config.headers = {...response.config.headers, [PUBLICATION_HEADER]: actual};
+        response.config._mtaPublicationAcquire = false;
+      } else if (expected && actual !== expected) {
         throw new Error('Publication response is missing or stale. Refresh the report.');
       }
       const parts = transportUrl(response.config || {}).pathname.split('/');
@@ -107,6 +155,11 @@ export const createMtaPublicationBinding = (send: (config: any) => Promise<any>)
       return response;
     },
     refresh,
+    dateFromReports: () => reportDates,
+    subscribeDate(listener: (date: any) => void) {
+      dateListeners.add(listener);
+      return () => { dateListeners.delete(listener); };
+    },
     subscribeRefresh(listener: () => void) {
       refreshListeners.add(listener);
       return () => { refreshListeners.delete(listener); };
@@ -116,7 +169,9 @@ export const createMtaPublicationBinding = (send: (config: any) => Promise<any>)
 };
 
 export const mtaPublicationBinding = createMtaPublicationBinding(config => axios(config));
-export const refreshMtaReportBinding = () => mtaPublicationBinding.refresh();
+export const refreshMtaReportBinding = () => mtaPublicationBinding.refresh(true, true);
 export const resetMtaReportBinding = () => mtaPublicationBinding.refresh(false);
 export const subscribeMtaReportRefresh = (listener: () => void) => mtaPublicationBinding.subscribeRefresh(listener);
+export const subscribeMtaPublicationDate = (listener: (date: any) => void) => mtaPublicationBinding.subscribeDate(listener);
+export const mtaDateFromReports = () => mtaPublicationBinding.dateFromReports();
 export const isMtaReportCurrent = (response: any) => mtaPublicationBinding.isCurrent(response);

@@ -284,6 +284,7 @@ CORS_ALLOW_HEADERS = [
 CORS_EXPOSE_HEADERS=[
     'content-disposition',
     'x-vectorflow-publication',
+    'x-vectorflow-publication-date',
 ]
 
 CSRF_TRUSTED_ORIGINS = [ALLOWED_ORIGIN] if ALLOWED_ORIGIN else []

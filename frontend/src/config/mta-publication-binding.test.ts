@@ -174,3 +174,99 @@ test('a date array cannot pass string validation through regex coercion', async 
     date_response:{status:200,data:[{formatted:'19 Oct 2026',rawDate:['2026-10-19']}]}}}));
   await expect(binding.request({url:'/api/mta/GetLastRunDate'})).rejects.toThrow('date is unavailable');
 });
+const nativeDate = {status:200,recordCount:null,data:[{formatted:'19 Oct 2026',rawDate:'2026-10-19'}]};
+const dateHeader = 'x-vectorflow-publication-date';
+const fastClient = async () => {
+  const send = jest.fn().mockResolvedValue({data:{mode:'native',binding:A,date_response:nativeDate,report_acquisition:true}});
+  const binding = createMtaPublicationBinding(send);
+  await binding.request({url:'/api/mta/GetLastRunDate'});
+  binding.refresh(true,true);
+  const reply = (config:any, token=A, date:any=nativeDate, extra:any={}) => binding.response({
+    config,status:200,headers:{[lower]:token,[dateHeader]:JSON.stringify(date)},data:{status:200},...extra,
+  });
+  return {binding,send,reply};
+};
+
+test.each([false,true])('matching acquisition companions pin once in either response order (%s)',async reverse=>{
+  const {binding,send,reply}=await fastClient(); const dates=jest.fn();binding.subscribeDate(dates);
+  const requests=await Promise.all(['GetBTRDataCount','GetBTRData'].map(name=>binding.request({url:'/api/mta/'+name})));
+  expect(requests.map(r=>r.headers[PUBLICATION_HEADER])).toEqual(['acquire','acquire']);
+  if(reverse)requests.reverse(); requests.forEach(config=>reply(config));
+  expect(dates).toHaveBeenCalledTimes(1);expect(send).toHaveBeenCalledTimes(1);
+  expect((await binding.request({url:'/api/mta/GetPlanningDataGraph'})).headers[PUBLICATION_HEADER]).toBe(A);
+});
+
+test.each([false,true])('conflicting acquisition companions never replace first pin (%s)',async reverse=>{
+  const {binding,reply}=await fastClient();const dates=jest.fn();binding.subscribeDate(dates);
+  const requests=await Promise.all(['GetBTRDataCount','GetBTRData'].map(name=>binding.request({url:'/api/mta/'+name})));
+  if(reverse)requests.reverse(); reply(requests[0],A);
+  expect(()=>reply(requests[1],B)).toThrow('binding changed');
+  expect(dates).toHaveBeenCalledTimes(1);
+  expect((await binding.request({url:'/api/mta/GetBTRData'})).headers[PUBLICATION_HEADER]).toBe(A);
+});
+
+test.each([false,true])('bootstrap export and report acquisition share immutable pin (%s)',async bootstrapFirst=>{
+  const {binding,send,reply}=await fastClient();
+  const report=await binding.request({url:'/api/mta/GetBTRData'});
+  let finish!:(response:any)=>void;send.mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve;}));
+  const exporting=binding.request({url:'/api/mta/GetExportDataAsync'});
+  const bootstrap={data:{mode:'native',binding:B,date_response:nativeDate,report_acquisition:true}};
+  if(bootstrapFirst){finish(bootstrap);await exporting;expect(()=>reply(report,A)).toThrow('binding changed');}
+  else {reply(report,A);finish(bootstrap);await expect(exporting).rejects.toThrow('binding changed');}
+});
+
+test.each([
+  {status:500},{data:{status:400}},{headers:{}},
+  {headers:{[lower]:B,[dateHeader]:'bad-json'}},
+  {headers:{[lower]:B,[dateHeader]:JSON.stringify({...nativeDate,data:[{formatted:'x',rawDate:['2026-10-19']}]})}},
+])('failed/malformed acquisition cannot pin or publish date %#',async extra=>{
+  const {binding,reply}=await fastClient();const dates=jest.fn();binding.subscribeDate(dates);
+  const failed=await binding.request({url:'/api/mta/GetBTRDataCount'});
+  expect(()=>reply(failed,B,nativeDate,extra)).toThrow();expect(dates).not.toHaveBeenCalled();
+  const valid=await binding.request({url:'/api/mta/GetBTRData'});expect(valid.headers[PUBLICATION_HEADER]).toBe('acquire');
+  reply(valid,A);expect(dates).toHaveBeenCalledTimes(1);
+});
+
+test('same token cannot introduce conflicting date envelope',async()=>{
+ const {binding,reply}=await fastClient();const a=await binding.request({url:'/api/mta/GetBTRDataCount'});
+ const b=await binding.request({url:'/api/mta/GetBTRData'});reply(a);
+ expect(()=>reply(b,A,{...nativeDate,data:[{formatted:'20 Oct 2026',rawDate:'2026-10-20'}]})).toThrow('binding changed');
+});
+
+test('auth replay adopts companion pin, but explicit tokens and superseded epochs never change',async()=>{
+ const {binding,reply}=await fastClient();const retry=await binding.request({url:'/api/mta/GetBTRData'});
+ const companion=await binding.request({url:'/api/mta/GetBTRDataCount'});reply(companion,A);
+ expect((await binding.request(retry)).headers[PUBLICATION_HEADER]).toBe(A);
+ await expect(binding.request({url:'/api/mta/GetBTRData',headers:{[PUBLICATION_HEADER]:B}})).rejects.toThrow('binding changed');
+ binding.refresh(true,true);await expect(binding.request(retry)).rejects.toThrow('superseded');
+ expect(()=>reply(companion)).toThrow('superseded');
+});
+
+test('session reset and mutation refresh clear fast mode; only explicit capable refresh acquires',async()=>{
+ const {binding,send}=await fastClient();expect(binding.dateFromReports()).toBe(true);
+ binding.refresh();expect(binding.dateFromReports()).toBe(false);
+ await binding.request({url:'/api/mta/GetBTRData'});expect(send).toHaveBeenCalledTimes(2);
+ binding.refresh(false);binding.refresh(true,true);expect(binding.dateFromReports()).toBe(false);
+ await binding.request({url:'/api/mta/GetBTRData'});expect(send).toHaveBeenCalledTimes(3);
+});
+
+test('real axios acquisition has no bootstrap on explicit refresh and rejects conflicting response',async()=>{
+ const {binding,send}=await fastClient();const dates=jest.fn();binding.subscribeDate(dates);
+ let current=A;const network=jest.fn(async config=>({config,status:200,statusText:'OK',
+   headers:{[lower]:current,[dateHeader]:JSON.stringify(nativeDate)},data:{status:200}}));
+ const transport=axios.create({baseURL:'http://localhost',adapter:network});
+ transport.interceptors.request.use(binding.request);transport.interceptors.response.use(binding.response);
+ await transport.post('/api/mta/GetBTRDataCount');current=B;
+ await expect(transport.post('/api/mta/GetBTRData')).rejects.toThrow('missing or stale');
+ expect(send).toHaveBeenCalledTimes(1);expect(dates).toHaveBeenCalledTimes(1);
+});
+
+
+test('publication tokens must be strings rather than regex-coercible arrays',async()=>{
+ const invalid=createMtaPublicationBinding(async()=>({data:{mode:'native',binding:[A],date_response:nativeDate,report_acquisition:true}}));
+ await expect(invalid.request({url:'/api/mta/GetLastRunDate'})).rejects.toThrow('binding is unavailable');
+ const {binding,reply}=await fastClient();const dates=jest.fn();binding.subscribeDate(dates);
+ const config=await binding.request({url:'/api/mta/GetBTRData'});
+ expect(()=>reply(config,A,nativeDate,{headers:{[lower]:[A],[dateHeader]:JSON.stringify(nativeDate)}})).toThrow('missing or stale');
+ expect(dates).not.toHaveBeenCalled();
+});

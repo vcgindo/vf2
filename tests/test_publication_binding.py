@@ -107,6 +107,37 @@ class PublicationBindingTests(SimpleTestCase):
         for route in ('GetState', 'GetMasterData', 'GetCount', 'DBMApplySelectedNorms', 'AddRemark'):
             self.assertEqual(self.call('/api/mta/' + route)[0], 200)
 
+    def test_explicit_acquisition_returns_owner_date_in_same_snapshot_only_for_reads(self):
+        value = json.loads(self.call(binding.BOOTSTRAP)[1])
+        self.assertTrue(value['report_acquisition'])
+        response = self.call('/api/mta/GetBTRData', binding.ACQUIRE, consume=False)[1]
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response[binding.HEADER], self.token)
+        self.assertEqual(json.loads(response[binding.DATE_HEADER]), self.date_body)
+        self.assertEqual(response['Cache-Control'], 'no-store')
+        for route in ('GetExportDataAsync', 'DownloadReports/LogisticPickListReport'):
+            status, _, downstream = self.call('/api/mta/' + route, binding.ACQUIRE)
+            self.assertEqual(status, 409)
+            downstream.assert_not_called()
+        for claim in (None, '', 'ACQUIRE', 'random'):
+            self.assertEqual(self.call('/api/mta/GetBTRData', claim)[0], 409)
+
+    def test_scoped_cannot_advertise_or_accept_fast_acquisition(self):
+        with patch('mta.presentation.scoped_selection.enabled', return_value=True):
+            value = json.loads(self.call(binding.BOOTSTRAP)[1])
+            self.assertFalse(value['report_acquisition'])
+            self.assertEqual(self.call('/api/mta/GetBTRData', binding.ACQUIRE)[0], 409)
+
+    def test_acquisition_date_failure_precedes_body_and_error_response_has_no_date(self):
+        self.date_reader.side_effect = lambda request: JsonResponse({'error': 'missing'}, status=503)
+        status, _, downstream = self.call('/api/mta/GetBTRData', binding.ACQUIRE)
+        self.assertEqual(status, 503)
+        downstream.assert_not_called()
+        self.date_reader.side_effect = lambda request: JsonResponse(self.date_body)
+        response = self.call('/api/mta/GetBTRData', binding.ACQUIRE,
+            application=lambda request: JsonResponse({'error': 'denied'}, status=403), consume=False)[1]
+        self.assertNotIn(binding.DATE_HEADER, response)
+
     def test_date_failure_cannot_publish_a_successful_binding_envelope(self):
         self.date_reader.side_effect = lambda request: JsonResponse({'error': 'date unavailable'}, status=503)
         status, body, _ = self.call(binding.BOOTSTRAP)
