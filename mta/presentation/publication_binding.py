@@ -4,6 +4,7 @@ Only report reads participate. Installation/MDM metadata and commands retain
 their existing contracts. A read-only snapshot survives lazy export iteration.
 """
 from contextlib import ExitStack, contextmanager
+from inspect import unwrap
 import json
 
 from django.conf import settings
@@ -107,8 +108,14 @@ def snapshot():
 
 
 def date_envelope(request):
+    from mta.presentation import scoped_selection
     from mta.presentation.views import last_run_date
-    date_response = last_run_date(request)
+    # Scoped bootstrap is GET and keeps its existing decorated phase dispatch.
+    # Full POST acquisition reuses the exact core of the GET-only endpoint.
+    # This caller already owns authentication/admission/read scope; the public
+    # endpoint keeps its method guard and its pinned recipe source is unchanged.
+    date_response = (last_run_date(request) if scoped_selection.enabled()
+                     else unwrap(last_run_date)(request, {}))
     if date_response.status_code != 200:
         raise PublicationUnavailable('publication_date_unavailable')
     return json.loads(date_response.content)

@@ -2,7 +2,7 @@ import axios from 'axios';
 import { setupAxios } from './axios-config';
 import { MainService } from '../module-main/services/api';
 import { REQUEST_TIMEOUT_MS, DOWNLOAD_TIMEOUT_MS } from '../helpers/requestDeadline';
-import { PUBLICATION_HEADER, refreshMtaReportBinding } from './mta-publication-binding';
+import { PUBLICATION_HEADER, refreshMtaReportBinding, resetMtaReportBinding } from './mta-publication-binding';
 
 jest.mock('axios', () => {
   const actual = jest.requireActual('axios');
@@ -30,6 +30,24 @@ const handlers = () => {
   return { request: requests[requests.length - 1][0], reject: responses[responses.length - 1][1] };
 };
 beforeEach(() => { jest.clearAllMocks(); (axios as unknown as jest.Mock).mockResolvedValue({ status: 200 }); });
+
+test('actual error interceptor retains acquisition refusal and bootstraps only next explicit refresh', async () => {
+  resetMtaReportBinding();
+  const date={status:200,data:[{formatted:'19 Oct 2026',rawDate:'2026-10-19'}]};
+  (axios as unknown as jest.Mock).mockResolvedValue({data:{mode:'native',binding:'a'.repeat(64),date_response:date,report_acquisition:true}});
+  const {request,reject}=handlers();
+  await request({url:'/api/mta/GetLastRunDate',headers:{}});
+  refreshMtaReportBinding();
+  const original=await request({url:'/api/mta/GetBPRData',headers:{}});
+  expect(original.headers[PUBLICATION_HEADER]).toBe('acquire');
+  await expect(reject({isAxiosError:true,config:original,response:{status:409,data:{error:'publication_binding_missing_or_stale'}}})).rejects.toMatchObject({status:409});
+  expect(axios).toHaveBeenCalledTimes(1);
+  refreshMtaReportBinding();
+  expect((await request({url:'/api/mta/GetBPRData',headers:{}})).headers[PUBLICATION_HEADER]).toBe('a'.repeat(64));
+  expect(axios).toHaveBeenCalledTimes(2);
+  expect(MainService.refreshToken).not.toHaveBeenCalled();
+  resetMtaReportBinding();
+});
 
 test('ordinary requests and downloads have finite distinct deadlines', async () => {
   const { request } = handlers();

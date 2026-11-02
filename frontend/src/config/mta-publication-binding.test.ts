@@ -187,6 +187,32 @@ const fastClient = async () => {
   return {binding,send,reply};
 };
 
+test('acquisition refusal rediscovers scoped capability only on explicit refresh, ignoring old errors', async () => {
+  const {binding,send,reply}=await fastClient();
+  const requests=await Promise.all(['GetBPRDataCount','GetBPRData'].map(name=>binding.request({url:'/api/mta/'+name,method:'post'})));
+  const refusal=(config:any)=>({config,response:{status:409,data:{error:'publication_binding_missing_or_stale'}}});
+  reply(requests[0]); // A successful companion must never be repinned by recovery.
+  binding.refused(refusal(requests[1]));
+  expect(binding.dateFromReports()).toBe(true);
+  expect((await binding.request({url:'/api/mta/GetBPRData'})).headers[PUBLICATION_HEADER]).toBe(A);
+  expect(send).toHaveBeenCalledTimes(1); // No automatic bootstrap or replay.
+  const scopedDate={status:200,data:[{formatted:'20 Oct 2026',rawDate:'2026-10-20'}]};
+  send.mockResolvedValueOnce({data:{mode:'native',binding:B,date_response:scopedDate,report_acquisition:false}});
+  binding.refresh(true,true);
+  expect(binding.dateFromReports()).toBe(false);
+  const recovered=await Promise.all(['GetBPRDataCount','GetBPRData','GetLastRunDate'].map(name=>binding.request({url:'/api/mta/'+name})));
+  expect(recovered.map(c=>c.headers[PUBLICATION_HEADER])).toEqual([B,B,B]);
+  expect((await recovered[2].adapter(recovered[2])).data).toEqual(scopedDate);
+  expect(send).toHaveBeenCalledTimes(2);
+  // Rediscover Full normally; an old scoped refusal cannot disable its next refresh.
+  binding.refresh();
+  await binding.request({url:'/api/mta/GetLastRunDate'});
+  binding.refused(refusal(requests[1]));
+  binding.refresh(true,true);
+  expect(binding.dateFromReports()).toBe(true);
+  expect((await binding.request({url:'/api/mta/GetBTRData'})).headers[PUBLICATION_HEADER]).toBe('acquire');
+});
+
 test.each([false,true])('matching acquisition companions pin once in either response order (%s)',async reverse=>{
   const {binding,send,reply}=await fastClient(); const dates=jest.fn();binding.subscribeDate(dates);
   const requests=await Promise.all(['GetBTRDataCount','GetBTRData'].map(name=>binding.request({url:'/api/mta/'+name})));

@@ -52,7 +52,7 @@ class PublicationBindingTests(SimpleTestCase):
         self.date_body = {'status': 200, 'data': [{'formatted': '19 Oct 2026', 'rawDate': '2026-10-19'}]}
         from mta.presentation.views import last_run_date
         self.real_date_reader = last_run_date
-        def date_response(request):
+        def date_response(request=None, *args):
             self.assertTrue(self.active)
             return JsonResponse(self.date_body)
         owner = patch('mta.presentation.views.last_run_date', side_effect=date_response)
@@ -67,7 +67,7 @@ class PublicationBindingTests(SimpleTestCase):
         self.admission_reader = owner.start()
         self.addCleanup(owner.stop)
 
-    def call(self, path, claim=None, application=None, consume=True, authenticated=True, gateway=None):
+    def call(self, path, claim=None, application=None, consume=True, authenticated=True, gateway=None, method='GET'):
         from django.test import RequestFactory
         from django.http import JsonResponse
         headers = {'HTTP_X_VECTORFLOW_IDENTITY': json.dumps({'id': (gateway or self.gateway)['id']})} if authenticated else {}
@@ -75,7 +75,7 @@ class PublicationBindingTests(SimpleTestCase):
             headers['HTTP_X_VECTORFLOW_REPORT_SCOPE'] = (gateway or self.gateway).get('report_scope_digest', '')
         if claim is not None:
             headers[binding.ENVIRON_HEADER] = claim
-        request = RequestFactory().get(path, **headers)
+        request = getattr(RequestFactory(), method.lower())(path, **headers)
         request.META['vectorflow.admitted_publication'] = 'admitted'
         downstream = application or Mock(side_effect=lambda request: binding.bootstrap_view(request)
             if path == binding.BOOTSTRAP else JsonResponse({'rows': 'result'}))
@@ -129,17 +129,17 @@ class PublicationBindingTests(SimpleTestCase):
             self.assertEqual(self.call('/api/mta/GetBTRData', binding.ACQUIRE)[0], 409)
 
     def test_acquisition_date_failure_precedes_body_and_error_response_has_no_date(self):
-        self.date_reader.side_effect = lambda request: JsonResponse({'error': 'missing'}, status=503)
+        self.date_reader.side_effect = lambda *args: JsonResponse({'error': 'missing'}, status=503)
         status, _, downstream = self.call('/api/mta/GetBTRData', binding.ACQUIRE)
         self.assertEqual(status, 503)
         downstream.assert_not_called()
-        self.date_reader.side_effect = lambda request: JsonResponse(self.date_body)
+        self.date_reader.side_effect = lambda *args: JsonResponse(self.date_body)
         response = self.call('/api/mta/GetBTRData', binding.ACQUIRE,
             application=lambda request: JsonResponse({'error': 'denied'}, status=403), consume=False)[1]
         self.assertNotIn(binding.DATE_HEADER, response)
 
     def test_date_failure_cannot_publish_a_successful_binding_envelope(self):
-        self.date_reader.side_effect = lambda request: JsonResponse({'error': 'date unavailable'}, status=503)
+        self.date_reader.side_effect = lambda *args: JsonResponse({'error': 'date unavailable'}, status=503)
         status, body, _ = self.call(binding.BOOTSTRAP)
         self.assertEqual(status, 503)
         self.assertNotIn('binding', json.loads(body))
@@ -176,6 +176,16 @@ class PublicationBindingTests(SimpleTestCase):
             self.assertEqual(value['data'], [{'formatted': expected.strftime('%d %b %Y'), 'rawDate': expected.isoformat()}])
             self.assertEqual(value['status'], 200)
             self.assertIsNone(value['recordCount'])
+
+    def test_actual_full_date_core_supports_post_acquisition_without_changing_get_endpoint_method(self):
+        from datetime import date
+        from django.test import RequestFactory
+        with patch('mta.presentation.views.last_run_date', self.real_date_reader), \
+                patch('mta.presentation.views.selected_run', return_value=SimpleNamespace(business_date=date(2026,10,19))):
+            response = self.call('/api/mta/GetBTRData', binding.ACQUIRE, consume=False, method='POST')[1]
+            self.assertEqual(response.status_code,200)
+            self.assertEqual(json.loads(response[binding.DATE_HEADER])['data'],self.date_body['data'])
+            self.assertEqual(self.real_date_reader(RequestFactory().post('/api/mta/GetLastRunDate')).status_code,405)
 
     def test_report_date_cannot_succeed_with_old_count_binding_after_cutover(self):
         old = json.loads(self.call(binding.BOOTSTRAP)[1])['binding']

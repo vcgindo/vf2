@@ -155,6 +155,16 @@ export const createMtaPublicationBinding = (send: (config: any) => Promise<any>)
       return response;
     },
     refresh,
+    refused(error: any) {
+      // Keep the failed pair/pin intact. Only the next explicit refresh may
+      // rediscover a server or selection that no longer supports acquisition.
+      const config = error.config ?? error.response?.config;
+      if (config?._mtaPublicationEpoch === epoch && config._mtaPublicationAcquire &&
+          error.response?.status === 409 &&
+          error.response?.data?.error === 'publication_binding_missing_or_stale') {
+        capable = false;
+      }
+    },
     dateFromReports: () => reportDates,
     subscribeDate(listener: (date: any) => void) {
       dateListeners.add(listener);

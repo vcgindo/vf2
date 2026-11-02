@@ -54,6 +54,7 @@ export const setupAxios = () => {
     if (!mtaPublication.isCurrent({ config: originalRequest })) {
       return Promise.reject(new Error('Report refresh was superseded.'));
     }
+    mtaPublication.refused(error);
     let errorResp
 
     if (error.isAxiosError) {
