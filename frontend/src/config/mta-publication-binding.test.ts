@@ -168,3 +168,9 @@ test('ordinary legacy and old-server date reads retain their network adapter', a
     expect(config.adapter).toBe(adapter);
   }
 });
+
+test('a date array cannot pass string validation through regex coercion', async () => {
+  const binding=createMtaPublicationBinding(async()=>({data:{mode:'native',binding:A,
+    date_response:{status:200,data:[{formatted:'19 Oct 2026',rawDate:['2026-10-19']}]}}}));
+  await expect(binding.request({url:'/api/mta/GetLastRunDate'})).rejects.toThrow('date is unavailable');
+});

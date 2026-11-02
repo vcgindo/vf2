@@ -53,6 +53,7 @@ export const createMtaPublicationBinding = (send: (config: any) => Promise<any>)
             // A supplied malformed date is unavailable, never a fallback value.
             if (date !== undefined && (date?.status !== 200 || !Array.isArray(date.data) ||
                 date.data.length !== 1 || typeof date.data[0]?.formatted !== 'string' ||
+                typeof date.data[0]?.rawDate !== 'string' ||
                 !/^\d{4}-\d{2}-\d{2}$/.test(date.data[0]?.rawDate || ''))) {
               throw new Error('Publication date is unavailable. Refresh the report.');
             }
