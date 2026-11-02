@@ -49,6 +49,15 @@ class PublicationBindingTests(SimpleTestCase):
         owner = patch.object(binding, 'identity', side_effect=lambda admitted: self.publication)
         owner.start()
         self.addCleanup(owner.stop)
+        self.date_body = {'status': 200, 'data': [{'formatted': '19 Oct 2026', 'rawDate': '2026-10-19'}]}
+        from mta.presentation.views import last_run_date
+        self.real_date_reader = last_run_date
+        def date_response(request):
+            self.assertTrue(self.active)
+            return JsonResponse(self.date_body)
+        owner = patch('mta.presentation.views.last_run_date', side_effect=date_response)
+        self.date_reader = owner.start()
+        self.addCleanup(owner.stop)
 
     def call(self, path, claim=None, application=None, consume=True, authenticated=True, gateway=None):
         from django.test import RequestFactory
@@ -73,6 +82,7 @@ class PublicationBindingTests(SimpleTestCase):
     def test_bootstrap_then_count_cutover_data_and_paging_export_reject(self):
         status, body, _ = self.call(binding.BOOTSTRAP)
         self.assertEqual(json.loads(body)['binding'], self.token)
+        self.assertEqual(json.loads(body)['date_response'], self.date_body)
         self.assertEqual(self.call('/api/mta/RRRDataCount', self.token)[0], 200)
         old = self.token
         self.token = 'b' * 64
@@ -88,6 +98,36 @@ class PublicationBindingTests(SimpleTestCase):
         downstream.assert_not_called()
         for route in ('GetState', 'GetMasterData', 'GetCount', 'DBMApplySelectedNorms', 'AddRemark'):
             self.assertEqual(self.call('/api/mta/' + route)[0], 200)
+
+    def test_date_failure_cannot_publish_a_successful_binding_envelope(self):
+        self.date_reader.side_effect = lambda request: JsonResponse({'error': 'date unavailable'}, status=503)
+        status, body, _ = self.call(binding.BOOTSTRAP)
+        self.assertEqual(status, 503)
+        self.assertNotIn('binding', json.loads(body))
+
+    def test_new_bootstrap_uses_current_date_and_same_snapshot(self):
+        first = json.loads(self.call(binding.BOOTSTRAP)[1])
+        self.token = 'b' * 64
+        self.date_body = {'status': 200, 'data': [{'formatted': '20 Oct 2026', 'rawDate': '2026-10-20'}]}
+        second = json.loads(self.call(binding.BOOTSTRAP)[1])
+        self.assertNotEqual(first['binding'], second['binding'])
+        self.assertEqual(second['date_response'], self.date_body)
+        self.assertEqual(first['date_response']['data'][0]['rawDate'], '2026-10-19')
+
+    def test_bootstrap_reuses_actual_full_and_scoped_date_envelope(self):
+        from datetime import date
+        for scoped, expected in ((False, date(2026, 10, 19)), (True, date(2026, 10, 20))):
+            run = SimpleNamespace(business_date=expected)
+            with patch('mta.presentation.views.last_run_date', self.real_date_reader), \
+                    patch('mta.presentation.scoped_selection.enabled', return_value=scoped), \
+                    patch('mta.presentation.scoped_selection.selected', return_value=SimpleNamespace(run=run)), \
+                    patch('mta.presentation.views.selected_run', return_value=run):
+                status, body, _ = self.call(binding.BOOTSTRAP)
+            self.assertEqual(status, 200)
+            value = json.loads(body)['date_response']
+            self.assertEqual(value['data'], [{'formatted': expected.strftime('%d %b %Y'), 'rawDate': expected.isoformat()}])
+            self.assertEqual(value['status'], 200)
+            self.assertIsNone(value['recordCount'])
 
     def test_report_date_cannot_succeed_with_old_count_binding_after_cutover(self):
         old = json.loads(self.call(binding.BOOTSTRAP)[1])['binding']

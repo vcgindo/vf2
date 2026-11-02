@@ -33,7 +33,7 @@ const reportUrl = (config: any): URL | undefined => {
 };
 
 export const createMtaPublicationBinding = (send: (config: any) => Promise<any>) => {
-  let bootstrap: Promise<string | null> | undefined;
+  let bootstrap: Promise<{ token: string | null; dateResponse?: any }> | undefined;
   let epoch = 0;
   const refreshListeners = new Set<() => void>();
   const refresh = (notify = true) => {
@@ -47,8 +47,18 @@ export const createMtaPublicationBinding = (send: (config: any) => Promise<any>)
       bootstrap = send({ method: 'get', url: new URL(PUBLICATION_BOOTSTRAP, url.origin).href })
         .then(response => {
           const value = response.data;
-          if (value?.mode === 'native' && /^[a-f0-9]{64}$/.test(value.binding)) return value.binding;
-          if (value?.mode === 'legacy' && value.binding === null) return null;
+          if (value?.mode === 'native' && /^[a-f0-9]{64}$/.test(value.binding)) {
+            const date = value.date_response;
+            // Older matched servers can still use their ordinary date endpoint.
+            // A supplied malformed date is unavailable, never a fallback value.
+            if (date !== undefined && (date?.status !== 200 || !Array.isArray(date.data) ||
+                date.data.length !== 1 || typeof date.data[0]?.formatted !== 'string' ||
+                !/^\d{4}-\d{2}-\d{2}$/.test(date.data[0]?.rawDate || ''))) {
+              throw new Error('Publication date is unavailable. Refresh the report.');
+            }
+            return { token: value.binding, dateResponse: date };
+          }
+          if (value?.mode === 'legacy' && value.binding === null) return { token: null };
           throw new Error('Publication binding is unavailable. Refresh the report.');
         });
       // Retry only at an explicit coordinated refresh; never silently adopt a
@@ -62,7 +72,7 @@ export const createMtaPublicationBinding = (send: (config: any) => Promise<any>)
       if (!url) return config;
       if (!isCurrent({ config })) throw new Error('Report refresh was superseded.');
       const requestedEpoch = epoch;
-      const token = await acquire(url);
+      const { token, dateResponse } = await acquire(url);
       if (requestedEpoch !== epoch) throw new Error('Report refresh was superseded.');
       if (token) {
         const previous = config.headers?.[PUBLICATION_HEADER];
@@ -70,6 +80,17 @@ export const createMtaPublicationBinding = (send: (config: any) => Promise<any>)
         config.headers = { ...config.headers, [PUBLICATION_HEADER]: token };
         config._mtaPublicationBinding = token;
         config._mtaPublicationEpoch = epoch;
+        if (url.pathname === '/api/mta/GetLastRunDate' &&
+            (config.method || 'get').toLowerCase() === 'get' && dateResponse !== undefined) {
+          // This is the owner's actual date envelope from the binding snapshot,
+          // not a date inferred from the browser or a separately cached release.
+          // The normal response interceptor still rejects a superseded epoch.
+          config.adapter = async (actualConfig: any) => ({
+            config: actualConfig, status: 200, statusText: 'OK',
+            headers: { [PUBLICATION_HEADER.toLowerCase()]: token },
+            data: JSON.parse(JSON.stringify(dateResponse)),
+          });
+        }
       }
       return config;
     },

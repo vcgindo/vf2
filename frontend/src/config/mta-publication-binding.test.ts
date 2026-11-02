@@ -129,3 +129,42 @@ test('session invalidation does not notify metadata reads; explicit refresh unsu
   binding.refresh();expect(listener).toHaveBeenCalledTimes(1);
   unsubscribe();binding.refresh();expect(listener).toHaveBeenCalledTimes(1);
 });
+
+test('date and report pair share bootstrap; the date causes no second HTTP request', async () => {
+  const date = {status:200, data:[{formatted:'19 Oct 2026',rawDate:'2026-10-19'}]};
+  const send = jest.fn().mockResolvedValue({data:{mode:'native',binding:A,date_response:date}});
+  const binding = createMtaPublicationBinding(send);
+  const network = jest.fn(async config => ({config,status:200,statusText:'OK',headers:{[lower]:A},data:'grid'}));
+  const transport = axios.create({baseURL:'http://localhost',adapter:network});
+  transport.interceptors.request.use(binding.request);
+  transport.interceptors.response.use(binding.response);
+  const results = await Promise.all([transport.get('/api/mta/GetLastRunDate'),
+    transport.post('/api/mta/GetBTRDataCount'),transport.post('/api/mta/GetBTRData')]);
+  expect(send).toHaveBeenCalledTimes(1);
+  expect(network.mock.calls.map(call=>call[0].url)).toEqual(['/api/mta/GetBTRDataCount','/api/mta/GetBTRData']);
+  expect(results[0].data).toEqual(date);
+  expect(results.map(r=>r.config.headers[PUBLICATION_HEADER])).toEqual([A,A,A]);
+  results[0].data.data[0].rawDate='modified-by-consumer';
+  expect((await transport.get('/api/mta/GetLastRunDate')).data).toEqual(date);
+});
+
+test('piggyback date cannot survive a superseded refresh and cannot silently fall back when malformed', async () => {
+  let complete!: (value:any)=>void;
+  const send=jest.fn(()=>new Promise(resolve=>{complete=resolve;}));
+  const binding=createMtaPublicationBinding(send);
+  const pending=binding.request({url:'/api/mta/GetLastRunDate'});
+  binding.refresh();
+  complete({data:{mode:'native',binding:A,date_response:{status:200,data:[{formatted:'old',rawDate:'2026-10-19'}]}}});
+  await expect(pending).rejects.toThrow('superseded');
+  const malformed=createMtaPublicationBinding(async()=>({data:{mode:'native',binding:B,date_response:{status:200,data:[]}}}));
+  await expect(malformed.request({url:'/api/mta/GetLastRunDate'})).rejects.toThrow('date is unavailable');
+});
+
+test('ordinary legacy and old-server date reads retain their network adapter', async () => {
+  for(const data of [{mode:'legacy',binding:null},{mode:'native',binding:A}]){
+    const binding=createMtaPublicationBinding(async()=>({data}));
+    const adapter=jest.fn();
+    const config=await binding.request({url:'/api/mta/GetLastRunDate',adapter});
+    expect(config.adapter).toBe(adapter);
+  }
+});

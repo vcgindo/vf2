@@ -4,6 +4,7 @@ Only report reads participate. Installation/MDM metadata and commands retain
 their existing contracts. A read-only snapshot survives lazy export iteration.
 """
 from contextlib import ExitStack, contextmanager
+import json
 
 from django.conf import settings
 from django.db import connection, transaction
@@ -103,8 +104,18 @@ def bootstrap_view(request):
         return JsonResponse({'error': 'method_not_allowed'}, status=405)
     if not hasattr(request, '_publication_binding'):
         return JsonResponse({'error': 'publication_binding_not_admitted'}, status=503)
-    response = JsonResponse({'mode': 'native' if enabled() else 'legacy',
-                             'binding': request._publication_binding})
+    value = {'mode': 'native' if enabled() else 'legacy',
+             'binding': request._publication_binding}
+    if enabled():
+        # Reuse the normal Full/scoped date reader inside this same admitted
+        # snapshot. The client need not make another admission round trip just
+        # to label the count/grid reads bound by this response.
+        from mta.presentation.views import last_run_date
+        date_response = last_run_date(request)
+        if date_response.status_code != 200:
+            raise PublicationUnavailable('publication_date_unavailable')
+        value['date_response'] = json.loads(date_response.content)
+    response = JsonResponse(value)
     response['Cache-Control'] = 'no-store'
     return response
 
