@@ -147,7 +147,11 @@ class PublicationBindingMiddleware:
             # WSGI admission's outer scope ends when it returns the iterable.
             # Own a fresh scope here, including the entire lazy report body.
             stack.enter_context(read_request(request.path, fresh=True))
-            admitted = request.META.get('vectorflow.admitted_publication')
+            from mta.presentation import scoped_selection
+            # Full admission and consumer validation share one snapshot/cache.
+            # Certified scoped readiness retains its existing owned preflight.
+            admitted = (request.META.get('vectorflow.admitted_publication')
+                        if scoped_selection.enabled() else None)
             if admitted is None:
                 from mta.presentation.admission import require_admission
                 admitted = require_admission()

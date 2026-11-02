@@ -240,8 +240,16 @@ class AdmittedApplication:
         path = environ.get('PATH_INFO', '')
         if publication_binding.enabled() and (path == publication_binding.BOOTSTRAP
                                                or publication_binding.report_path(path)):
-            # Django middleware owns this scope through lazy body consumption.
-            return self._dispatch(environ, start_response)
+            from mta.presentation import scoped_selection
+            if scoped_selection.enabled():
+                # Certified phase readiness owns its preflight transaction.
+                # Do not move that separate contract into the report snapshot.
+                return self._dispatch(environ, start_response)
+            # The Full native report middleware performs the same live admission
+            # inside its read-only snapshot, then owns that request scope through
+            # lazy body consumption. A preflight here would repeat validation
+            # outside that snapshot without its bounded metadata reuse.
+            return self.application(environ, start_response)
         from mta.presentation.request_scope import read_request
         with read_request(environ.get('PATH_INFO', '')):
             return self._dispatch(environ, start_response)

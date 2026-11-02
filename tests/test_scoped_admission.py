@@ -53,6 +53,11 @@ class ScopedAdmissionTests(unittest.TestCase):
         captures.start().return_value.get.return_value = self.capture; self.addCleanup(captures.stop)
         certified = patch.object(scoped_admission, 'certified_source', return_value=self.source)
         self.certified = certified.start(); self.addCleanup(certified.stop)
+        # This unit fixture predates registered/scoped report input dispatch.
+        # Declare its unregistered input explicitly; typed input ownership is
+        # exercised by the PostgreSQL scope tests, not this metadata fixture.
+        inputs = patch('mta.runtime.input_reader.read_input', return_value={})
+        inputs.start(); self.addCleanup(inputs.stop)
         recipe = patch.object(scoped_selection, 'recipe_digest', return_value='3' * 64)
         recipe.start(); self.addCleanup(recipe.stop)
         old = admission._admitted; self.addCleanup(setattr, admission, '_admitted', old)

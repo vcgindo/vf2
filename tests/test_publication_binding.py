@@ -58,6 +58,14 @@ class PublicationBindingTests(SimpleTestCase):
         owner = patch('mta.presentation.views.last_run_date', side_effect=date_response)
         self.date_reader = owner.start()
         self.addCleanup(owner.stop)
+        def admitted():
+            from mta.presentation.request_scope import in_read_request
+            self.assertTrue(self.active)
+            self.assertTrue(in_read_request())
+            return 'admitted'
+        owner = patch('mta.presentation.admission.require_admission', side_effect=admitted)
+        self.admission_reader = owner.start()
+        self.addCleanup(owner.stop)
 
     def call(self, path, claim=None, application=None, consume=True, authenticated=True, gateway=None):
         from django.test import RequestFactory
@@ -104,6 +112,15 @@ class PublicationBindingTests(SimpleTestCase):
         status, body, _ = self.call(binding.BOOTSTRAP)
         self.assertEqual(status, 503)
         self.assertNotIn('binding', json.loads(body))
+
+    def test_admission_failure_rejects_even_a_supplied_preflight_identity(self):
+        from mta.presentation.context import PublicationUnavailable
+        self.admission_reader.side_effect = PublicationUnavailable('changed selection')
+        status, body, downstream = self.call('/api/mta/RRRData', self.token)
+        self.assertEqual(status, 503)
+        self.assertEqual(json.loads(body)['error'], 'publication_binding_unavailable')
+        downstream.assert_not_called()
+        self.assertEqual(self.events, ['open', 'close'])
 
     def test_new_bootstrap_uses_current_date_and_same_snapshot(self):
         first = json.loads(self.call(binding.BOOTSTRAP)[1])
@@ -182,9 +199,9 @@ class PublicationBindingTests(SimpleTestCase):
         from mta.presentation.request_scope import in_read_request
         application = admission.AdmittedApplication.__new__(admission.AdmittedApplication)
         application.application = WSGIHandler()
-        with patch.object(admission, 'require_admission', return_value='admitted'), \
-                patch('mta.presentation.installation_metadata.publication_configured', return_value=True):
+        with patch('mta.presentation.installation_metadata.publication_configured', return_value=True):
             for authenticated, expected in ((False, '403 Forbidden'), (True, '200 OK')):
+                self.admission_reader.reset_mock()
                 request = RequestFactory().get(binding.BOOTSTRAP,
                     **({'HTTP_X_VECTORFLOW_IDENTITY': json.dumps({'id': self.gateway['id']}),
                         'HTTP_X_VECTORFLOW_REPORT_SCOPE': self.gateway['report_scope_digest']} if authenticated else {}))
@@ -195,6 +212,49 @@ class PublicationBindingTests(SimpleTestCase):
                 self.assertEqual(start.call_args.args[0], expected, body)
                 self.assertFalse(self.active)
                 self.assertFalse(in_read_request())
+                self.assertEqual(self.admission_reader.call_count, int(authenticated))
+
+    @override_settings(ROOT_URLCONF=__name__, ALLOWED_HOSTS=['testserver'])
+    def test_scoped_wsgi_retains_its_owned_preflight_before_report_snapshot(self):
+        from django.core.handlers.wsgi import WSGIHandler
+        from django.test import RequestFactory
+        from mta.presentation import admission, scoped_selection
+        app = admission.AdmittedApplication.__new__(admission.AdmittedApplication)
+        app.application = WSGIHandler()
+        def preflight():
+            self.assertFalse(self.active)
+            return 'scoped-admitted'
+        self.admission_reader.side_effect = preflight
+        for schema in ('fresh-selected-bpr-v1', scoped_selection.DBM_SCHEMA):
+            with override_settings(VF_MTA_PHASE_SELECTION={'schema': schema}), \
+                    patch.object(scoped_selection, 'enabled', return_value=True), \
+                    patch('django.db.connection.get_autocommit', return_value=True), \
+                    patch('mta.presentation.installation_metadata.publication_configured', return_value=True):
+                for route in (binding.BOOTSTRAP, '/api/mta/RRRData'):
+                    self.admission_reader.reset_mock()
+                    request = RequestFactory().get(route,
+                        HTTP_X_VECTORFLOW_IDENTITY=json.dumps({'id': self.gateway['id']}),
+                        HTTP_X_VECTORFLOW_REPORT_SCOPE=self.gateway['report_scope_digest'],
+                        HTTP_X_VECTORFLOW_PUBLICATION=self.token)
+                    start = Mock()
+                    response = app(request.environ, start)
+                    body = b''.join(response); response.close()
+                    self.assertEqual(start.call_args.args[0], '200 OK', body)
+                    self.admission_reader.assert_called_once_with()
+                    self.assertFalse(self.active)
+
+    def test_bootstrap_metadata_reuse_ends_at_each_request(self):
+        from mta.presentation.request_scope import once_per_request, in_read_request
+        reader = Mock(return_value='metadata')
+        cached = once_per_request(reader)
+        def downstream(request):
+            self.assertTrue(in_read_request())
+            self.assertEqual(cached(), cached())
+            return binding.bootstrap_view(request)
+        for _ in range(2):
+            self.assertEqual(self.call(binding.BOOTSTRAP, application=downstream)[0], 200)
+            self.assertFalse(in_read_request())
+        self.assertEqual(reader.call_count, 2)
 
     def test_lazy_export_scope_and_snapshot_survive_until_exhaustion(self):
         from django.http import StreamingHttpResponse

@@ -146,7 +146,7 @@ READ_ROUTES = frozenset((
     'GetElephantOrderData', 'GetElephantOrderDataCount',
     'readyz',
     'GetAllPermmision', 'LocationType', 'GetEnvironmentConfiguration', 'SKUDesc', 'WHDesc',
-    'GetAllReports', 'GetUIConfig', 'GetLastRunDate', 'GetState',
+    'GetAllReports', 'GetUIConfig', 'GetLastRunDate', 'GetState', 'PublicationBinding',
     'GetBPRData', 'GetBPRDataCount', 'GetAnalyticsData', 'GetExportDataAsync', 'GetRemarkDetails',
     'GetPlanningDataGrid', 'GetPlanningDataCount', 'GetPlanningDataGraph',
     'GetPlanningDataGridCount', 'GetPlanningDataCustom',
