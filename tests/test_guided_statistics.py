@@ -51,6 +51,23 @@ class GuidedStatisticsTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'statistics failed'):
             self.invoke()
         self.assertEqual(cursor.execute.call_count, 1)
+        handler = self.connection.connection.add_notice_handler.call_args.args[0]
+        self.connection.connection.remove_notice_handler.assert_called_once_with(handler)
+
+    def test_skipped_analyze_warns_and_refuses_preparation(self):
+        physical = self.connection.connection
+        cursor = self.connection.cursor.return_value.__enter__.return_value
+
+        def skipped(_statement):
+            handler = physical.add_notice_handler.call_args.args[0]
+            handler(SimpleNamespace(severity_nonlocalized='WARNING',
+                                    message_primary='permission denied to analyze, skipping it'))
+
+        cursor.execute.side_effect = skipped
+        with self.assertRaisesRegex(ValueError, 'permission denied to analyze'):
+            self.invoke()
+        self.assertEqual(cursor.execute.call_count, 1)
+        physical.remove_notice_handler.assert_called_once_with(physical.add_notice_handler.call_args.args[0])
 
     def test_no_nonpostgres_fallback(self):
         self.connection.vendor = 'sqlite'

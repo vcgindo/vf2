@@ -26,6 +26,21 @@ def refresh_pending(run):
     if ReportAggregateReceipt.objects.filter(run=run).exists():
         return False
     with connection.cursor() as cursor:
-        for table in SOURCE_TABLES:
-            cursor.execute('ANALYZE ' + table)
+        # PostgreSQL can skip ANALYZE with a warning and still return success.
+        # Capture only notices from these statements on this connection.
+        warnings = []
+
+        def record_warning(notice):
+            if notice.severity_nonlocalized == 'WARNING':
+                warnings.append(notice.message_primary)
+
+        physical = connection.connection
+        physical.add_notice_handler(record_warning)
+        try:
+            for table in SOURCE_TABLES:
+                cursor.execute('ANALYZE ' + table)
+                if warnings:
+                    raise ValueError(f'Guided statistics refresh failed for {table}: {warnings[0]}')
+        finally:
+            physical.remove_notice_handler(record_warning)
     return True
