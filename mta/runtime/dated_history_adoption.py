@@ -6,7 +6,7 @@ from django.db import connection,transaction
 from mta.serialization import digest
 from mta.runtime.models import ProductionInitialization
 from mta.runtime.state_cut_models import OperationalStateCut
-from mta.runtime.dated_history_delta import FAMILIES,supports_descriptor,source_table
+from mta.runtime.dated_history_delta import FAMILIES,supports_descriptor,source_table,family_enabled
 from mta.runtime.dated_history_reader import read_cut
 from mta.runtime.dated_history_writer import opening_path,seal_anchor_rows
 from mta.runtime.rationing_adoption import accepted_terminal
@@ -29,6 +29,10 @@ def adopt(owner):
                 raise ValueError('History adoption requires the exact initialized manifest')
             manifest_digest=owner.input_manifest_digest
             settings=owner.configuration_digest
+            from mta.runtime.input_storage import read_input
+            profile=read_input(owner,components=('profile',),image_reader=opening_storage.load_image)['profile']
+            if digest(profile)!=settings:
+                raise ValueError('History adoption initialized profile differs')
         else:
             manifest=run.production_manifest
             if manifest.get('version') not in (2,3) or digest(manifest)!=run.production_digest:
@@ -38,9 +42,15 @@ def adopt(owner):
             if frozen['initialization_binding']['id']!=str(owner.pk):
                 raise ValueError('History adoption captured initialization differs')
             settings=require_snapshot(owner,frozen['profile'],frozen.get('execution_settings'),run.business_date)
+            profile=frozen['profile']
         result={}
         for family in FAMILIES:
             existing=OperationalStateCut.objects.filter(initialization=owner,family=family).order_by('-position').first()
+            if not family_enabled(family,profile):
+                if existing is not None or run is not None and family in manifest['images']:
+                    raise ValueError('Disabled complete history has an activated terminal image')
+                result[family]=dict(status='FINALIZATION_DISABLED')
+                continue
             if existing is not None:
                 cut=read_cut(existing.pk)
                 if cut.run!=(run.pk if run else None):

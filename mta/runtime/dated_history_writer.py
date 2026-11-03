@@ -9,7 +9,7 @@ from contextlib import closing
 from django.db import connection, transaction
 
 from mta.serialization import canonical_parts,digest
-from mta.runtime.dated_history_delta import changes,Fact,Removal,Counts,Occurrence,fields,supports_descriptor,_tables,FAMILIES,source_table
+from mta.runtime.dated_history_delta import changes,Fact,Removal,Counts,Occurrence,fields,supports_descriptor,_tables,FAMILIES,source_table,COMPLETE_REMARKS,family_enabled
 from mta.runtime.dated_history_reader import FORMAT,Cut,table,read_cut,iter_occurrences,image_metadata
 from mta.runtime.rationing_writer import _Digest
 from mta.runtime.relational_state import copy_rows,db_value,quote,wire_type,wire_value
@@ -171,12 +171,15 @@ def opening_path(family):
     return 'input/opening/state/'+family.removeprefix('closing/')+'/values'
 
 
-def begin_initial_anchors(owner):
+def begin_initial_anchors(owner, *, profile):
     """After opening storage, before its existing immutable initialization seal."""
     if not connection.in_atomic_block:
         raise ValueError('History anchors require the existing initialization transaction')
+    if digest(profile)!=owner.configuration_digest:
+        raise ValueError('History anchor profile differs from initialized configuration')
     cuts={}
     for family in FAMILIES:
+        if not family_enabled(family,profile):continue
         item=owner.input_payload['images'].get(opening_path(family))
         if item is not None and supports_descriptor(family,item['fields'],item['count']):
             cuts[family]=OperationalStateCut.objects.create(initialization=owner,family=family,position=0,
@@ -217,6 +220,8 @@ def write_frozen_day(run,family,rows,*,frozen,profile_digest):
     with transaction.atomic():
         owner=ProductionInitialization.objects.select_for_update().get(pk=frozen['initialization_binding']['id'])
         _check_snapshot_digest(owner,profile_digest,frozen.get('execution_settings'),run.business_date)
+        if not family_enabled(family,frozen['profile']):
+            raise ValueError('Disabled complete history has no terminal image')
         parent_row=OperationalStateCut.objects.filter(initialization=owner,family=family,run_id=run.predecessor_id).first()
         if parent_row is None:
             source=(run.predecessor.production_manifest['images'].get(family) if run.predecessor_id
@@ -231,6 +236,9 @@ def write_frozen_day(run,family,rows,*,frozen,profile_digest):
             from mta.application.daily_finalization import configuration
             finalization=configuration(frozen['profile'])
             horizon=finalization['consumption_days'] if finalization is not None else None
+        if family in COMPLETE_REMARKS:
+            from mta.application.daily_finalization import configuration
+            horizon=configuration(frozen['profile'])['remark_days']
         unchanged=False
         if family=='closing/dbm/SuspendHistory':
             flag=batch['GatherSuspensionHistory']

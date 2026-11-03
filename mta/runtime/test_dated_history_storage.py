@@ -7,7 +7,7 @@ from django.test import TestCase
 
 from mta.serialization import digest
 from mta.runtime.test_rationing_cut_guards import RationingCutGuardTests as Fixture
-from mta.runtime.dated_history_delta import FAMILIES,fields
+from mta.runtime.dated_history_delta import FAMILIES,fields,COMPLETE_REMARKS
 from mta.runtime.dated_history_reader import read_cut,iter_occurrences,iter_image,table
 from mta.runtime.dated_history_writer import seal_anchor_rows,write_delta,opening_path
 from mta.runtime.state_cut_models import OperationalStateCut
@@ -15,7 +15,8 @@ from mta.runtime.state_cut_models import OperationalStateCut
 
 def row(family,stamp):
     result = dict.fromkeys(fields(family))
-    result.update(SKUCode='sku ',**{('WHCode' if '/bpr/' in family else 'WhCode'):'wh',FAMILIES[family][0]:stamp})
+    if family in COMPLETE_REMARKS and stamp is not None and len(stamp)==10:stamp+='T00:00:00'
+    result.update(SKUCode='sku ',**{('WHCode' if 'WHCode' in result else 'WhCode'):'wh',FAMILIES[family][0]:stamp})
     if family.endswith('/SpikeOrderClosureHistory'):
         result.update(IsSpike=False,IsElephant=False)
     return result
@@ -39,7 +40,11 @@ class DatedHistoryStorageTests(TestCase):
             self.opening['closing/orders/SpikeOrderClosureHistory']=[
                 dict(closure(stamp),IsSpike=1,IsElephant=0)
                 for stamp in ([None,'2026-07-10','2026-07-11']+['2026-07-09']*9998)]
-        for section in ('dbm','bpr','orders'):
+        if self._testMethodName == 'test_complete_remarks_mature_pruner_rollback_successor_and_sql_guards':
+            for f in COMPLETE_REMARKS:
+                self.opening[f]=[row(f,t) for t in (['2026-06-09T00:00:00']*600+
+                    [None,'2026-06-10T00:00:00']+['2026-06-10T00:00:00.000001']*9399)]
+        for section in ('dbm','bpr','orders','complete'):
             self.raw['opening']['state'][section] = {f.rsplit('/',1)[1]:r for f,r in self.opening.items() if f.split('/')[1]==section}
         self.owner.input_digest=digest(self.raw)
         self.owner.save(update_fields=['input_digest'])
@@ -133,6 +138,56 @@ class DatedHistoryStorageTests(TestCase):
             position=parent.position+1,parent_id=parent.identity,run=run,input_digest=run.input_digest,
             settings_digest=self.owner.configuration_digest)
 
+    def test_complete_remarks_mature_pruner_rollback_successor_and_sql_guards(self):
+        from copy import deepcopy
+        from mta.row_sequences import RecordRows
+        from mta.domain.complete_daily_completion import prune_bpr_history
+        from mta.runtime.dated_history_reader import load_cut
+        from mta.runtime.dated_history_audit import audit_image
+        actual={'DailyConsumption':[]};control={'DailyConsumption':[]}
+        for f in COMPLETE_REMARKS:
+            actual[f.rsplit('/',1)[1]]=load_cut(self.anchors[f])
+            self.assertIsInstance(actual[f.rsplit('/',1)[1]],RecordRows)
+            control[f.rsplit('/',1)[1]]=deepcopy(self.opening[f])
+        produced=prune_bpr_history(actual,[{'LastRunDate':'2026-07-10'}],consumption_days=1,remark_days=30)
+        expected=prune_bpr_history(control,[{'LastRunDate':'2026-07-10'}],consumption_days=1,remark_days=30)
+        run=self.new_run();images={};cuts={}
+        for f in COMPLETE_REMARKS:
+            name=f.rsplit('/',1)[1];rows=list(produced[name])
+            self.assertEqual(rows,expected[name]);self.assertEqual(len(rows),9400)
+            parent=self.anchors[f];c=self.pending(run,parent);cuts[f]=c
+            with self.assertRaisesRegex(ValueError,'cannot append business rows'):
+                write_delta(c,parent,rows+[row(f,'2026-07-10')],today=run.business_date,horizon=30)
+            with connection.cursor() as cursor:
+                cursor.execute('SELECT count(*),count(closing_cut_id) FROM '+table(f))
+                self.assertEqual(cursor.fetchone(),(10001,0))
+            with self.assertRaisesMessage(DatabaseError,'cannot append business rows'),transaction.atomic(),connection.cursor() as cursor:
+                cursor.execute('INSERT INTO '+table(f)+' (cut_id,vf_ordinal,initialization_id,born_position) VALUES (%s,0,%s,1)',[c.pk,self.owner.pk])
+            images[f]=write_delta(c,parent,rows,today=run.business_date,horizon=30)
+        self.accept(run,images)
+        successor=self.new_run(predecessor=run,business_date=date(2026,7,11));next_images={}
+        later=prune_bpr_history(expected,[{'LastRunDate':'2026-07-11'}],consumption_days=1,remark_days=30)
+        for f in COMPLETE_REMARKS:
+            parent=read_cut(cuts[f].pk);c=self.pending(successor,parent)
+            next_images[f]=write_delta(c,parent,later[f.rsplit('/',1)[1]],today=successor.business_date,horizon=30)
+        self.accept(successor,next_images)
+        for f in COMPLETE_REMARKS:
+            self.assertEqual(list(load_cut(self.anchors[f])),self.opening[f])
+            self.assertEqual(list(iter_image(run,images[f])),expected[f.rsplit('/',1)[1]])
+            self.assertEqual(list(iter_image(successor,next_images[f])),[row(f,None)])
+            audit=audit_image(successor,next_images[f])
+            self.assertEqual((audit['facts'],audit['removals']),(10001,10000))
+            with connection.cursor() as cursor:
+                cursor.execute('SELECT born_position,count(*) FROM '+table(f)+' GROUP BY born_position')
+                self.assertEqual(cursor.fetchall(),[(0,10001)])
+            for statement in ('UPDATE '+table(f)+' SET "SKUCode"=\'changed\'','DELETE FROM '+table(f),'TRUNCATE '+table(f)):
+                with self.assertRaises(DatabaseError),transaction.atomic(),connection.cursor() as cursor:cursor.execute(statement)
+            with connection.cursor() as cursor:
+                cursor.execute('SET LOCAL ROLE vectorflow_mta_runtime')
+                try:
+                    with self.assertRaises(DatabaseError),transaction.atomic():cursor.execute('UPDATE '+table(f)+' SET end_position=99')
+                finally:cursor.execute('SET LOCAL ROLE vectorflow_mta_owner')
+
     def accept(self,run,images):
         from django.utils import timezone
         from mta.runtime.mdm_daily_models import MdmDailyInputCapture
@@ -154,9 +209,10 @@ class DatedHistoryStorageTests(TestCase):
         images={};cuts={};expected={}
         for f,parent in self.anchors.items():
             expected[f]=(self.opening[f] if f.endswith('/SpikeOrderClosureHistory') else self.opening[f][:2]+self.opening[f][3:])+[row(f,'2026-07-10')]*2
+            if f in COMPLETE_REMARKS:expected[f]=self.opening[f]
             c=self.pending(run,parent)
             images[f]=write_delta(c,parent,expected[f],today=run.business_date,
-                                  horizon=30 if f.endswith('/DailyConsumption') else None)
+                                  horizon=30 if f.endswith('/DailyConsumption') or f in COMPLETE_REMARKS else None)
             cuts[f]=c
         self.accept(run,images)
         next_run=self.new_run(predecessor=run,business_date=date(2026,7,11))
@@ -165,23 +221,33 @@ class DatedHistoryStorageTests(TestCase):
             parent=read_cut(c.pk)
             self.assertEqual(list(iter_image(run,images[f])),expected[f])
             new=self.pending(next_run,parent)
-            next_images[f]=write_delta(new,parent,expected[f]+[row(f,'2026-07-11')],today=next_run.business_date,
-                                       horizon=30 if f.endswith('/DailyConsumption') else None)
+            next_images[f]=write_delta(new,parent,expected[f]+([] if f in COMPLETE_REMARKS else [row(f,'2026-07-11')]),today=next_run.business_date,
+                                       horizon=30 if f.endswith('/DailyConsumption') or f in COMPLETE_REMARKS else None)
         self.accept(next_run,next_images)
         for f in FAMILIES:
             self.assertEqual([v for _,v in iter_occurrences(self.anchors[f])],self.opening[f])
             self.assertEqual(list(iter_image(run,images[f])),expected[f])
-            self.assertEqual(list(iter_image(next_run,next_images[f])),expected[f]+[row(f,'2026-07-11')])
+            self.assertEqual(list(iter_image(next_run,next_images[f])),expected[f]+([] if f in COMPLETE_REMARKS else [row(f,'2026-07-11')]))
             self.assertEqual(list(load_accepted_image(run,images[f])),expected[f])
-            self.assertEqual(list(audited_image(next_run,next_images[f])),expected[f]+[row(f,'2026-07-11')])
-            self.assertEqual(image_field(run,f,'SKUCode'),[r['SKUCode'] for r in expected[f]])
+            self.assertEqual(list(audited_image(next_run,next_images[f])),expected[f]+([] if f in COMPLETE_REMARKS else [row(f,'2026-07-11')]))
+            if f in COMPLETE_REMARKS:
+                # Terminal history transport does not publish a new UI route.
+                from mta.presentation.context import PublicationUnavailable
+                from mta.runtime.runtime_report_sources import image_rows
+                from mta.runtime.dated_history_delta import source_table
+                with self.assertRaisesRegex(PublicationUnavailable,'selected_report_image_not_published'):
+                    image_field(run,f,'SKUCode')
+                self.assertEqual(list(image_rows(run,images[f],expected_table=source_table(f),fields=('SKUCode',))),
+                                 [{'SKUCode':r['SKUCode']} for r in expected[f]])
+            else:
+                self.assertEqual(image_field(run,f,'SKUCode'),[r['SKUCode'] for r in expected[f]])
             self.assertEqual(audit_cut(self.anchors[f])['facts'],4)
-            self.assertEqual(audit_image(run,images[f])['facts'],6)
+            self.assertEqual(audit_image(run,images[f])['facts'],4 if f in COMPLETE_REMARKS else 6)
             audited=audit_image(next_run,next_images[f])
-            self.assertEqual((audited['cuts'],audited['facts'],audited['removals']),(3,7,0 if f.endswith('/SpikeOrderClosureHistory') else 1))
+            self.assertEqual((audited['cuts'],audited['facts'],audited['removals']),(3,4,0) if f in COMPLETE_REMARKS else (3,7,0 if f.endswith('/SpikeOrderClosureHistory') else 1))
             with connection.cursor() as cursor:
                 cursor.execute('SELECT born_position,count(*) FROM '+table(f)+' GROUP BY born_position ORDER BY born_position')
-                self.assertEqual(cursor.fetchall(),[(0,4),(1,2),(2,1)])
+                self.assertEqual(cursor.fetchall(),[(0,4)] if f in COMPLETE_REMARKS else [(0,4),(1,2),(2,1)])
 
     def test_late_invalid_fact_rolls_back_flushed_writes_and_closures(self):
         f='closing/dbm/OrderData';parent=self.anchors[f];run=self.new_run();c=self.pending(run,parent)

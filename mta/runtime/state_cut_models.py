@@ -9,7 +9,7 @@ from django.db.models.lookups import LessThanOrEqual
 class OperationalStateCut(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     initialization = models.ForeignKey('fresh_mta.ProductionInitialization', on_delete=models.PROTECT)
-    family = models.CharField(max_length=48)
+    family = models.CharField(max_length=64)
     position = models.PositiveBigIntegerField()
     run = models.ForeignKey('fresh_mta.CalculationRun', null=True, on_delete=models.PROTECT)
     parent = models.ForeignKey('self', null=True, on_delete=models.PROTECT)
@@ -27,7 +27,9 @@ class OperationalStateCut(models.Model):
                 'closing/dbm/OrderData', 'closing/dbm/OrderDataSummary',
                 'closing/dbm/SuggestionsLog', 'closing/dbm/DiscardedSuggestions',
                 'closing/dbm/SpikeReport', 'closing/dbm/SuspendHistory',
-                'closing/bpr/DailyConsumption','closing/orders/SpikeOrderClosureHistory')),
+                'closing/bpr/DailyConsumption','closing/orders/SpikeOrderClosureHistory',
+                'closing/complete/BPRReport_RemarkDetails','closing/complete/OpenExpeditRequestRemarksHistory',
+                'closing/complete/InTransitWhereAboutsRemarks')),
                                    name='state_cut_qualified_family'),
             models.CheckConstraint(condition=(models.Q(position=0, parent__isnull=True) |
                 models.Q(position__gt=0, parent__isnull=False, run__isnull=False)),

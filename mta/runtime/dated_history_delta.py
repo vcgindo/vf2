@@ -7,7 +7,7 @@ ancestor replay establishes identity. A caller must consume the entire stream
 atomically: only the final Counts event certifies complete correspondence.
 """
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
 from functools import cache
 import json
 import math
@@ -32,7 +32,21 @@ FAMILIES = {
     'closing/dbm/SuspendHistory': ('ReportDate', 'ninety-strict', False),
     'closing/bpr/DailyConsumption': ('ReportDate', 'bpr-configured-strict', True),
     'closing/orders/SpikeOrderClosureHistory': ('ClosureDate', 'order-closure-append', True),
+    'closing/complete/BPRReport_RemarkDetails': ('RemarkDate', 'bpr-remarks-prune-only', True),
+    'closing/complete/OpenExpeditRequestRemarksHistory': ('RemarkDate', 'bpr-remarks-prune-only', True),
+    'closing/complete/InTransitWhereAboutsRemarks': ('RemarksDate', 'bpr-remarks-prune-only', True),
 }
+
+COMPLETE_REMARKS = frozenset(f for f,(_,rule,_) in FAMILIES.items() if rule=='bpr-remarks-prune-only')
+
+
+def family_enabled(family, profile):
+    if family not in FAMILIES:
+        raise ValueError('Unqualified dated history family')
+    if family in COMPLETE_REMARKS:
+        from mta.application.daily_finalization import configuration
+        return configuration(profile) is not None
+    return True
 
 
 def source_table(family):
@@ -40,6 +54,8 @@ def source_table(family):
         raise ValueError('Unqualified dated history family')
     if family == 'closing/orders/SpikeOrderClosureHistory':
         return 'BPR/SpikeOrderClosureHistory'
+    if family in COMPLETE_REMARKS:
+        return 'complete/BPR/'+family.rsplit('/',1)[1]
     _, section, name = family.split('/')
     return section.upper()+'/'+name
 
@@ -80,7 +96,8 @@ def _tables():
                            'config/production_state_schema_v1.json').read_text())
     if digest(catalogue) != '84f01ea82866a3898dd134eafac32bca4e35daa193aca9d55da4716074b1e512':
         raise ValueError('Pinned history column schema differs')
-    return catalogue['tables']
+    from mta.runtime.complete_daily_state import TABLES
+    return {**catalogue['tables'],**TABLES}
 
 
 @cache
@@ -153,12 +170,16 @@ def changes(prior, closing, *, family, today, position, horizon=None, unchanged=
         raise ValueError('History requires a business date and positive cut position')
     if rule == 'configured-strict':
         cutoff = horizon_cutoff(today, horizon, inclusive=False)
-    elif rule == 'bpr-configured-strict':
+    elif rule in ('bpr-configured-strict','bpr-remarks-prune-only'):
         # Independent ClearHistoryData_BPR owner. No finalization means no
         # pruning; do not import DBM's horizon or its timestamp-range rule.
         if horizon is not None and (type(horizon) is not int or not -2147483648 <= horizon <= 2147483647):
             raise ValueError('BPR history horizon must be a signed32-bit integer')
         cutoff = today-timedelta(days=horizon) if horizon is not None else None
+        if rule=='bpr-remarks-prune-only':
+            if horizon is None:
+                raise ValueError('Complete remark history requires its frozen retention horizon')
+            cutoff=datetime.combine(cutoff,time())
     else:
         if horizon is not None:
             raise ValueError('Unexpected history horizon override')
@@ -173,6 +194,11 @@ def changes(prior, closing, *, family, today, position, horizon=None, unchanged=
             return True
         return day >= cutoff if rule == 'ninety-inclusive' else day > cutoff
 
+    def remark_timestamp(value):
+        if value is None:return None
+        from mta.domain.complete_daily_completion import _typed_datetime
+        return _typed_datetime(value)
+
     current = iter(closing)
     missing = object()
     previous_occurrence = None
@@ -183,13 +209,15 @@ def changes(prior, closing, *, family, today, position, horizon=None, unchanged=
             raise ValueError('History prior occurrence ownership/order differs')
         previous_occurrence = occurrence
         before = _row(original, columns)
-        stamp = None if unchanged or rule=='order-closure-append' else (_date(before[field]) if rule != 'literal-current' else before[field])
+        stamp = None if unchanged or rule in ('order-closure-append','bpr-remarks-prune-only') else (_date(before[field]) if rule != 'literal-current' else before[field])
         seen += 1
         # Postrules compare str(value), unlike ingestion's parsed SQL dates.
         # Preserve that owner distinction even for noncanonical direct inputs.
         keep = True if unchanged else (stamp != today.isoformat() if rule == 'literal-current' else stamp != today and in_window(stamp))
         if rule == 'bpr-configured-strict':
             keep = before[field] != today.isoformat() and in_window(stamp)
+        if rule == 'bpr-remarks-prune-only':
+            keep = in_window(remark_timestamp(before[field]))
         if rule == 'order-closure-append':
             # ImportSpikeOrders retains the entire prior prefix. Its existing
             # producer casts these two bit fields to bool even on the first
@@ -211,6 +239,8 @@ def changes(prior, closing, *, family, today, position, horizon=None, unchanged=
             raise ValueError('Retained history values/type/order differ')
         retained += 1
     for raw in current:
+        if rule=='bpr-remarks-prune-only':
+            raise ValueError('Complete remark history cannot append business rows')
         if unchanged:
             raise ValueError('Disabled suspension gathering must retain exactly its prior image')
         row = _row(raw, columns)

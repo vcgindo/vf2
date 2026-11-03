@@ -10,7 +10,7 @@ from mta.serialization import digest
 from mta.runtime.test_rationing_adoption import RationingAdoptionTests as AdoptionFixture
 from mta.runtime.test_rationing_cut_guards import RationingCutGuardTests as Fixture
 from mta.runtime.test_dated_history_storage import DatedHistoryStorageTests,row
-from mta.runtime.dated_history_delta import FAMILIES
+from mta.runtime.dated_history_delta import FAMILIES,COMPLETE_REMARKS
 from mta.runtime.dated_history_reader import read_cut,iter_occurrences,iter_image
 from mta.runtime.dated_history_adoption import adopt
 from mta.runtime.dated_history_writer import begin_initial_anchors,seal_initial_anchors,write_day
@@ -33,7 +33,7 @@ class DatedHistoryLifecycleTests(TestCase):
         self.profile['complete_daily']={'policy':'generic-finalization-v1','consumption_days':1,'remark_days':30}
         self.opening={f:[row(f,'2026-07-09'),row(f,'2026-07-09'),row(f,'2026-07-10'),row(f,'2026-01-01')]
                       for f in FAMILIES}
-        for section in ('dbm','bpr','orders'):
+        for section in ('dbm','bpr','orders','complete'):
             self.raw['opening']['state'][section]={f.rsplit('/',1)[1]:rr for f,rr in self.opening.items() if f.split('/')[1]==section}
 
     def initialize(self,*,anchors=False):
@@ -45,7 +45,7 @@ class DatedHistoryLifecycleTests(TestCase):
         self.owner.save(update_fields=['input_digest','configuration_digest'])
         self.owner.input_payload=save_input(self.owner,self.raw,version=3,
             image_writer=opening_storage.save_image,table_selector=initialization_table)
-        cuts=begin_initial_anchors(self.owner) if anchors else {}
+        cuts=begin_initial_anchors(self.owner,profile=self.profile) if anchors else {}
         self.owner.input_manifest_digest=digest(self.owner.input_payload)
         self.owner.receipt_digest='7'*64
         self.owner.save(update_fields=['input_payload','input_manifest_digest','receipt_digest'])
@@ -72,13 +72,13 @@ class DatedHistoryLifecycleTests(TestCase):
             prior=self.opening[f] if f.endswith('/SpikeOrderClosureHistory') else self.opening[f][:2]+self.opening[f][3:]
             if f.endswith('/DailyConsumption'):prior=[]
             elif f.endswith(('/OrderDataSummary','/SuspendHistory')):prior=prior[:2]
-            first[f]=prior+[row(f,'2026-07-10')]
+            first[f]=self.opening[f][:3] if f in COMPLETE_REMARKS else prior+[row(f,'2026-07-10')]
         epoch=IngestionRevisionState.objects.get(pk=self.owner.pk).operational_epoch
         images={f:write_day(run,f,rr) for f,rr in first.items()}
         self.accept(run,images)
         self.assertGreater(IngestionRevisionState.objects.get(pk=self.owner.pk).operational_epoch,epoch)
         successor=self.new_run(predecessor=run,business_date=date(2026,7,11))
-        next_rows={f:([] if f.endswith('/DailyConsumption') else rr)+[row(f,'2026-07-11')] for f,rr in first.items()}
+        next_rows={f:([] if f.endswith('/DailyConsumption') else rr)+([] if f in COMPLETE_REMARKS else [row(f,'2026-07-11')]) for f,rr in first.items()}
         newer={f:write_day(successor,f,rr) for f,rr in next_rows.items()}
         self.accept(successor,newer)
         for f in FAMILIES:
@@ -126,6 +126,41 @@ class DatedHistoryLifecycleTests(TestCase):
         self.accept(run,{f:item})
         self.assertEqual(list(iter_image(run,item)),expected)
 
+    def test_disabled_complete_families_stay_absent_across_initialization_and_adoption(self):
+        del self.profile['complete_daily']
+        anchors=self.initialize(anchors=True)
+        self.certify_metadata()
+        self.assertFalse(set(anchors)&COMPLETE_REMARKS)
+        # Empty terminal population is not a substitute for an absent owner.
+        run=self.new_run()
+        for f in COMPLETE_REMARKS:
+            with self.assertRaisesRegex(ValueError,'Disabled complete history'):
+                write_day(run,f,[])
+        images={}
+        for f in FAMILIES:
+            if f in COMPLETE_REMARKS:continue
+            prior=self.opening[f] if f.endswith('/SpikeOrderClosureHistory') else self.opening[f][:2]+self.opening[f][3:]
+            if f=='closing/dbm/DailyConsumption':prior=[]
+            elif f.endswith(('/OrderDataSummary','/SuspendHistory')):prior=prior[:2]
+            images[f]=write_day(run,f,prior+[row(f,'2026-07-10')])
+        self.accept(run,images)
+        before=self.preserved()
+        with self.provisioner():
+            receipts=adopt(self.owner);repeat=adopt(self.owner)
+        for f in COMPLETE_REMARKS:
+            self.assertEqual(receipts[f],{'status':'FINALIZATION_DISABLED'})
+        self.assertEqual(receipts,repeat)
+        self.assertEqual(self.preserved(),before)
+        self.assertFalse(OperationalStateCut.objects.filter(family__in=COMPLETE_REMARKS).exists())
+
+    def test_initial_anchor_profile_must_match_initialized_configuration(self):
+        self.initialize()
+        from copy import deepcopy
+        altered=deepcopy(self.profile);altered['complete_daily']['remark_days']=1
+        with self.assertRaisesRegex(ValueError,'profile differs'):
+            begin_initial_anchors(self.owner,profile=altered)
+        self.assertFalse(OperationalStateCut.objects.exists())
+
     def test_unowned_frozen_profile_and_missing_qualified_anchor_refuse(self):
         from copy import deepcopy
         self.initialize()
@@ -162,7 +197,7 @@ class DatedHistoryLifecycleTests(TestCase):
             self.assertEqual(load_image(first,old1[f]),[row(f,'2026-07-10')])
             self.assertEqual(load_image(last,old2[f]),values[f])
         next_run=self.new_run(predecessor=last,business_date=date(2026,7,12))
-        images={f:write_day(next_run,f,([] if f.endswith('/DailyConsumption') else rr)+[row(f,'2026-07-12')])
+        images={f:write_day(next_run,f,([] if f.endswith('/DailyConsumption') else rr)+([] if f in COMPLETE_REMARKS else [row(f,'2026-07-12')]))
                 for f,rr in values.items()}
         self.accept(next_run,images)
         self.assertEqual(self.preserved()[0][:2],before[0][:2])
