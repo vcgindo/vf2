@@ -44,7 +44,13 @@ def read_cut(identity):
 
 def authenticate_cut(row):
     """Validate an already fetched header; also used by the explicit audit."""
-    if not row['root_body'] or not row['root_digest'] or row['run_id'] is not None and row['run__status'] != 'SUCCEEDED':
+    if row['run_id'] is not None and row['run__status'] != 'SUCCEEDED':
+        raise ValueError('Rationing image requires its accepted sealed cut')
+    return _sealed_header(row)
+
+
+def _sealed_header(row):
+    if not row['root_body'] or not row['root_digest']:
         raise ValueError('Rationing image requires its accepted sealed cut')
     body = json.loads(row['root_body'])
     if (type(body) is not dict or digest(body) != row['root_digest']

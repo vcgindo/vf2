@@ -181,6 +181,10 @@ def register(run,work,*,attempt=None,worker_token=None,final_unit=None):
     from mta.runtime.runtime_report_execution import require_stage_authority
     require_stage_authority(run,work)
     require_publication_writer();authorize()
+    # This in-transaction manifest is saved by finish_run after registration.
+    # Authenticate the cut against its actual owner before using it.
+    history_image = (run.production_manifest.get('images', {}).get('closing/btr/RationingHistory')
+                     if work.placement == 'PostBTR' else None)
     run=CalculationRun.objects.select_for_update().get(pk=run.pk)
     raw,request,config,anchor=configuration(run)
     current,phase=_context(run,work,request,attempt=attempt,worker_token=worker_token,final_unit=final_unit)
@@ -205,10 +209,18 @@ def register(run,work,*,attempt=None,worker_token=None,final_unit=None):
     with ExitStack() as context:
         if current is not None:context.enter_context(_setting('fresh.scope_worker',worker_token))
         context.enter_context(_image_owner(work.candidate_id))
-        saved=stages.persist_sources(run,work)
+        from mta.runtime.rationing_reader import TABLE, uses_occurrences
+        reference = None
+        if history_image is not None and uses_occurrences(history_image) and TABLE in work.sources:
+            from mta.runtime.placement_rationing import persist
+            saved, reference = persist(run, work, history_image)
+        else:
+            saved=stages.persist_sources(run,work)
         metadata=dict(schema=SCHEMA,candidate=deepcopy(work.candidate),catalogue=deepcopy(work.catalogue),
             anchor=anchor if prior is None else None,previous_digest=expected_previous,
             authority=dict(request_node=_request_node(run),owner=deepcopy(work.owner),images=saved))
+        if reference is not None:
+            metadata['authority']['rationing_source'] = reference
         row=RuntimeReportPublication(id=work.candidate_id,run=run,owner_kind=work.owner['kind'],
             phase=phase,scope_attempt=current,operational_attempt=None,catalogue_parent=prior,
             placement=work.placement,input_digest=run.input_digest,input_manifest_digest=run.input_manifest_digest,

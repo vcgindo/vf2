@@ -76,7 +76,8 @@ def open_file(run,payload,selector):
     logical=set(describe(definition)['sources'].values())
     fields={name:([item[0] for item in manifest['images'][name]['fields']]
                   or [field for field,_kind in images.LOGICAL[name]]) for name in logical}
-    sources=images.read(run,manifest,candidate_id=str(row.pk),placement=row.placement,fields=fields)
+    from mta.runtime.placement_rationing import read_sources
+    sources=read_sources(run,row,fields=fields)
     products,locations=scope(payload,attributes=_attributes(run))
     projected=project(definition,sources)
     if not allowed(permission_rows(projected,definition['Id']),definition['Id'],products,locations):
