@@ -119,6 +119,7 @@ def _owner_member_oids(cursor, owner_oid):
 def _acl_violations(cursor, database, registration):
     """Count grants outside the exact owner, consumer and operational acceptor."""
     cursor.execute("""
+        SELECT * FROM (
         WITH database_bad AS (
           SELECT 1
             FROM pg_catalog.pg_database d
@@ -165,6 +166,7 @@ def _acl_violations(cursor, database, registration):
                (SELECT count(*) FROM relation_bad),
                pg_catalog.has_database_privilege(%s,%s,'CONNECT'),
                pg_catalog.has_database_privilege(%s,%s,'CONNECT')
+        ) AS namespace_acl_check
     """, [database['oid'], registration['issuer_oid'], registration['consumer_oid'],
           registration['issuer_oid'], registration['consumer_oid'],
           registration['owner_oid'], registration['consumer_oid'],
@@ -552,6 +554,7 @@ def _application_catalogue(cursor):
         sequence_for=(pn+'.'+parent+'.'+column if pn and parent and column else None))
         for n,name,oid,kind,owner,pn,parent,column in cursor.fetchall()]
     cursor.execute("""
+        SELECT * FROM (
         WITH acl AS (
           SELECT 'database' scope,d.datname::text name,d.oid::bigint oid,d.datdba::bigint owner,
             NULL::text col,a.* FROM pg_database d CROSS JOIN LATERAL aclexplode(
@@ -587,7 +590,9 @@ def _application_catalogue(cursor):
             LEFT JOIN pg_namespace n ON n.oid=d.defaclnamespace
             CROSS JOIN LATERAL aclexplode(d.defaclacl) a
         ) SELECT scope,name,oid,owner,col,grantor::bigint,grantee::bigint,privilege_type,is_grantable
-          FROM acl ORDER BY scope,name,col NULLS FIRST,grantor,grantee,privilege_type,is_grantable
+          FROM acl
+        ) AS application_acl
+        ORDER BY scope,name,col NULLS FIRST,grantor,grantee,privilege_type,is_grantable
     """)
     grants = [dict(zip(('scope','name','oid','owner','column','grantor','grantee','privilege','grantable'), row))
               for row in cursor.fetchall()]
