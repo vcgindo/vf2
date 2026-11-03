@@ -209,9 +209,11 @@ def prepare(run_id,*,expected_output_digest):
         cursor.execute('SELECT pg_try_advisory_lock(%s)',[lock])
         if not cursor.fetchone()[0]:raise ValueError('Report preparation already running')
     try:
-        version = 2 if run.evidence_mode == 'production' else 1
-        row,_=DailyReportGeneration.objects.get_or_create(run=run,defaults=dict(version=version,
-            source_digest=run.production_digest,recipe_digest=lambda: recipe_identity(version)))
+        from functools import cache
+        from mta.runtime.btr_import_image import report_version
+        candidate_version = cache(lambda: report_version(run))
+        row,_=DailyReportGeneration.objects.get_or_create(run=run,defaults=dict(version=candidate_version,
+            source_digest=run.production_digest,recipe_digest=lambda: recipe_identity(candidate_version())))
         if row.status=='READY':
             return generation(run)
         if row.source_digest!=run.production_digest or row.recipe_digest!=recipe_identity(row.version):

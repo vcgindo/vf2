@@ -89,7 +89,10 @@ def image_rows(run, metadata, *, expected_table, fields, registry=None):
     if metadata['fields'] and not set(requested) <= available.keys():
         raise ValueError('Required report source image columns missing')
     from mta.runtime.rationing_reader import uses_occurrences
-    if uses_occurrences(metadata):
+    from mta.runtime import btr_import_image
+    if btr_import_image.owns(metadata):
+        original = btr_import_image.load(run,metadata,audit=True)
+    elif uses_occurrences(metadata):
         # The new immutable cut was fully verified at commit. Its selected
         # header and indexed relation replace a repeated full-prefix audit.
         from mta.runtime.rationing_reader import load_cut, require_image

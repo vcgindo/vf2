@@ -430,6 +430,10 @@ def _consumer_graph(run, *, include_reports=True):
     manifest = run.production_manifest
 
     def image(item):
+        if 'storage_format' in item or 'cut_id' in item:
+            from mta.runtime import state_image_read
+            return (RecordRows(item['count'], lambda: state_image_read.iter_image(run,item))
+                    if item['count'] > 10000 else state_image_read.load_image(run,item))
         return (RecordRows(item['count'], lambda: iter_image(run, item))
                 if item['count'] > 10000 else load_image(run, item))
 

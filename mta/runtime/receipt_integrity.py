@@ -101,10 +101,9 @@ def audit_input(run):
 
 def audit_output(run):
     from mta.runtime.relational_state import iter_image, iter_export
-    from mta.runtime.rationing_reader import uses_occurrences
     from mta.runtime.state_image_read import iter_image as iter_versioned_image
     for metadata in run.production_manifest['images'].values():
-        reader = iter_versioned_image if uses_occurrences(metadata) else iter_image
+        reader = iter_versioned_image if 'storage_format' in metadata or 'cut_id' in metadata else iter_image
         for _ in reader(run,metadata):pass
     for stage in run.production_manifest['reports']:
         for node in stage['tables'].values():

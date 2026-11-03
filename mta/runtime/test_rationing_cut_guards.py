@@ -245,6 +245,35 @@ class RationingCutGuardTests(TestCase):
         with connection.cursor() as cursor:
             cursor.execute('SET CONSTRAINTS state_cut_complete DEFERRED')
 
+    def test_btr_import_commit_requires_exact_retained_sources_and_amounts(self):
+        from copy import deepcopy
+        from mta.runtime import btr_import_image, btr_import_relation as bpr
+        from mta.runtime.rationing_reader import IMAGE
+        from mta.runtime.rationing_writer import write_day
+        from mta.runtime.relational_state import save_image
+        self.initialized_writer([])
+        parent = self.new_run()
+        first = [dict(SKUCode='S',WHCode='W',Stock=2,ReportDate=parent.business_date.isoformat())]
+        anchor = save_image(parent,bpr.HISTORY,bpr.HISTORY,first)
+        first_cut = write_day(parent,[])
+        self.accept_storage_fixture(parent,first_cut,manifest=dict(version=3,images={IMAGE:first_cut,bpr.HISTORY:anchor}))
+        run = self.new_run(predecessor=parent,business_date=date(2026,7,11))
+        daily = save_image(run,bpr.DAILY,bpr.DAILY,[dict(SKUCode='S',WhCode='W',Stock=4)]*2)
+        logical = first+[dict(first[0],Stock=4,ReportDate=run.business_date.isoformat())]*2
+        cut = write_day(run,[])
+        item = btr_import_image.save(run,logical,daily)
+        manifest=dict(version=3,images={IMAGE:cut,bpr.HISTORY:item,bpr.DAILY:daily})
+        for field,value in (('owner',str(parent.pk)),('count',1),('digest','0'*64)):
+            wrong=deepcopy(manifest)
+            wrong['images'][bpr.HISTORY]['sources']['daily'][0][field]=value
+            self.denied(lambda:self.accept_storage_fixture(run,cut,manifest=wrong),'differs from its accepted sources')
+        self.accept_storage_fixture(run,cut,manifest=manifest)
+        self.assertEqual(btr_import_image.load(run,item,audit=True),logical)
+        altered=deepcopy(item)
+        altered['sources']['anchor']['owner']=str(run.pk)
+        with self.assertRaisesRegex(ValueError,'sealed sources'):
+            btr_import_image.load(run,altered,audit=False)
+
     def test_admitted_opening_order_survives_new_facts_and_audit(self):
         from tests.test_rationing_delta import row
         from mta.runtime.rationing_writer import write_day

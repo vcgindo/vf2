@@ -59,7 +59,10 @@ def image_field(run, path, field):
         return [row[field] for row in daily_opening_sob.read(run, item)]
     _, column, kind = selected[0]
     from mta.presentation import btr_calendar_images as calendar
-    if calendar.owns(item):
+    from mta.runtime import btr_import_image
+    if btr_import_image.owns(item):
+        relation, params = btr_import_image.relation(run,item)
+    elif calendar.owns(item):
         relation, params = calendar.published_query(run, item)
     else:
         relation = 'SELECT * FROM '+table_sql(item['table'])+' WHERE vf_run_id=%s AND vf_image=%s'
@@ -75,6 +78,9 @@ def image_field(run, path, field):
 def image_query(run, path, *, metadata=None):
     """Trusted manifest/schema-bound relation; values are always parameters."""
     item = metadata if metadata is not None else image_metadata(run, path)
+    from mta.runtime import btr_import_image
+    if btr_import_image.owns(item):
+        return btr_import_image.relation(run,item)
     from mta.presentation import btr_calendar_images as calendar
     if calendar.owns(item):
         return calendar.published_query(run, item)

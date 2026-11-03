@@ -390,6 +390,9 @@ def load_export(run,item):
 def save_daily(run,output, *, frozen=None,profile_digest=None):
     closing=output['ClosingState'][0]
     images={};template={}
+    from mta.runtime import btr_import_image
+    defer_bpr = (frozen is not None and output.get('_ReportBoundary') and run.evidence_mode=='production' and output.get('BPRFinal')
+                 and btr_import_image.compatible_parent(run))
     def image(path,binding,rows):
         if path=='closing/btr/RationingHistory' and frozen is not None:
             from mta.runtime.rationing_writer import write_frozen_day
@@ -410,6 +413,8 @@ def save_daily(run,output, *, frozen=None,profile_digest=None):
                     records=rows.items() if isinstance(rows,dict) else ((r['table'],r['rows']) for r in rows)
                     tables[name]={'scratch_kind':'dict' if isinstance(rows,dict) else 'list','items':[
                         [table,image(path+'/'+table,'scratch/'+table,values)] for table,values in records]}
+                elif defer_bpr and path=='closing/btr/BPR':
+                    tables[name]={'image':path}
                 else:tables[name]=image(path,path,rows)
             template[section]={'tables':tables}
     reports=[]
@@ -436,6 +441,8 @@ def save_daily(run,output, *, frozen=None,profile_digest=None):
         reports.append(report)
     bpr={name:image('reports/bpr/'+name,'reports/bpr/'+name,output['BPRFinal'][0][name])
          for name in ('BPR_Table','vf_RationedReqReport')} if output.get('BPRFinal') else {}
+    if defer_bpr:
+        images['closing/btr/BPR']=btr_import_image.save(run,closing['btr']['BPR'],images['reports/bpr/vf_RationedReqReport'])
     manifest=dict(version=1,closing=template,images=images,reports=reports,bpr=bpr,
         lineage=output['Lineage'],publication=output.get('PublicationContext',[]))
     if len(json.dumps(manifest))>1024*1024:raise ValueError('Operational metadata exceeds bounded manifest size')
