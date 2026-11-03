@@ -1,6 +1,6 @@
-"""Storage correspondence for qualified, already-calculated DBM history bags.
+"""Storage correspondence for qualified, already-calculated history bags.
 
-This is not a business producer or a database writer. These seven producers
+This is not a business producer or a database writer. These qualified producers
 retain an ordered subsequence of their own prior occurrences and then append
 today's occurrences. No pair/date key, deduplication, row matching heuristic or
 ancestor replay establishes identity. A caller must consume the entire stream
@@ -30,7 +30,15 @@ FAMILIES = {
     'closing/dbm/DiscardedSuggestions': ('SuggestionDate', 'literal-current', True),
     'closing/dbm/SpikeReport': ('SuspendFromDate', 'literal-current', True),
     'closing/dbm/SuspendHistory': ('ReportDate', 'ninety-strict', False),
+    'closing/bpr/DailyConsumption': ('ReportDate', 'bpr-configured-strict', True),
 }
+
+
+def source_table(family):
+    if family not in FAMILIES:
+        raise ValueError('Unqualified dated history family')
+    _, section, name = family.split('/')
+    return section.upper()+'/'+name
 
 
 @dataclass(frozen=True, order=True)
@@ -76,7 +84,7 @@ def _tables():
 def fields(family):
     if family not in FAMILIES:
         raise ValueError('Unqualified dated history family')
-    return tuple(name for name, _ in _tables()['DBM/'+family.rsplit('/', 1)[1]])
+    return tuple(name for name, _ in _tables()[source_table(family)])
 
 
 def supports_descriptor(family, descriptors, count):
@@ -142,6 +150,12 @@ def changes(prior, closing, *, family, today, position, horizon=None, unchanged=
         raise ValueError('History requires a business date and positive cut position')
     if rule == 'configured-strict':
         cutoff = horizon_cutoff(today, horizon, inclusive=False)
+    elif rule == 'bpr-configured-strict':
+        # Independent ClearHistoryData_BPR owner. No finalization means no
+        # pruning; do not import DBM's horizon or its timestamp-range rule.
+        if horizon is not None and (type(horizon) is not int or not -2147483648 <= horizon <= 2147483647):
+            raise ValueError('BPR history horizon must be a signed32-bit integer')
+        cutoff = today-timedelta(days=horizon) if horizon is not None else None
     else:
         if horizon is not None:
             raise ValueError('Unexpected history horizon override')
@@ -171,6 +185,8 @@ def changes(prior, closing, *, family, today, position, horizon=None, unchanged=
         # Postrules compare str(value), unlike ingestion's parsed SQL dates.
         # Preserve that owner distinction even for noncanonical direct inputs.
         keep = True if unchanged else (stamp != today.isoformat() if rule == 'literal-current' else stamp != today and in_window(stamp))
+        if rule == 'bpr-configured-strict':
+            keep = before[field] != today.isoformat() and in_window(stamp)
         if not keep:
             removed += 1
             yield Removal(occurrence)

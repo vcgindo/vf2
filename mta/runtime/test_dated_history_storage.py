@@ -9,13 +9,13 @@ from mta.serialization import digest
 from mta.runtime.test_rationing_cut_guards import RationingCutGuardTests as Fixture
 from mta.runtime.dated_history_delta import FAMILIES,fields
 from mta.runtime.dated_history_reader import read_cut,iter_occurrences,iter_image,table
-from mta.runtime.dated_history_writer import seal_anchor_rows,write_delta
+from mta.runtime.dated_history_writer import seal_anchor_rows,write_delta,opening_path
 from mta.runtime.state_cut_models import OperationalStateCut
 
 
 def row(family,stamp):
     result = dict.fromkeys(fields(family))
-    result.update(SKUCode='sku ',WhCode='wh',**{FAMILIES[family][0]:stamp})
+    result.update(SKUCode='sku ',**{('WHCode' if '/bpr/' in family else 'WhCode'):'wh',FAMILIES[family][0]:stamp})
     return result
 
 
@@ -32,7 +32,8 @@ class DatedHistoryStorageTests(TestCase):
         Fixture.setUp(self)
         self.opening = {f:[row(f,'2026-07-09'),row(f,'2026-07-09'),row(f,'2026-07-10'),
                            row(f,None if FAMILIES[f][2] else '2026-07-08')] for f in FAMILIES}
-        self.raw['opening']['state']['dbm'] = {f.rsplit('/',1)[1]:r for f,r in self.opening.items()}
+        for section in ('dbm','bpr'):
+            self.raw['opening']['state'][section] = {f.rsplit('/',1)[1]:r for f,r in self.opening.items() if f.split('/')[1]==section}
         self.owner.input_digest=digest(self.raw)
         self.owner.save(update_fields=['input_digest'])
         pending = {f:OperationalStateCut.objects.create(initialization=self.owner,family=f,position=0,
@@ -40,7 +41,7 @@ class DatedHistoryStorageTests(TestCase):
         self.seal_initialization()
         from mta.runtime.opening_storage import iter_image as opening_rows
         for f,c in pending.items():
-            item=self.owner.input_payload['images']['input/opening/state/dbm/'+f.rsplit('/',1)[1]+'/values']
+            item=self.owner.input_payload['images'][opening_path(f)]
             anchor=dict(owner_kind='INITIALIZATION',owner_id=str(self.owner.pk),manifest_digest=self.owner.input_manifest_digest,
                         image=item['image'],digest=item['digest'],count=item['count'])
             if self._testMethodName == 'test_anchor_rejects_same_count_substitution' and f.endswith('/OrderData'):

@@ -6,7 +6,7 @@ from django.db import connection,transaction
 from mta.serialization import digest
 from mta.runtime.models import ProductionInitialization
 from mta.runtime.state_cut_models import OperationalStateCut
-from mta.runtime.dated_history_delta import FAMILIES,supports_descriptor
+from mta.runtime.dated_history_delta import FAMILIES,supports_descriptor,source_table
 from mta.runtime.dated_history_reader import read_cut
 from mta.runtime.dated_history_writer import opening_path,seal_anchor_rows
 from mta.runtime.rationing_adoption import accepted_terminal
@@ -52,7 +52,7 @@ def adopt(owner):
             if item is None:
                 result[family]=dict(status='SOURCE_ABSENT')
                 continue
-            if item.get('image')!=path or 'storage_format' in item or item.get('table')!='DBM/'+family.rsplit('/',1)[1]:
+            if item.get('image')!=path or 'storage_format' in item or item.get('table')!=source_table(family):
                 raise ValueError('History adoption requires its exact old-format source image')
             if not supports_descriptor(family,item['fields'],item['count']):
                 result[family]=dict(status='LEGACY_DESCRIPTOR_RETAINED')

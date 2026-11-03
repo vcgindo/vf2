@@ -5,7 +5,7 @@ from django.db import connection
 
 from mta.row_sequences import RecordRows
 from mta.serialization import digest
-from mta.runtime.dated_history_delta import FAMILIES, Occurrence, supports_descriptor
+from mta.runtime.dated_history_delta import FAMILIES, Occurrence, supports_descriptor, source_table
 from mta.runtime.rationing_reader import Cut, CUT_FIELDS, IMAGE_KEYS
 from mta.runtime.relational_state import quote, wire_value
 from mta.runtime.state_cut_models import OperationalStateCut
@@ -19,7 +19,7 @@ ROOT_KEYS = frozenset(('format','cut','initialization','family','position','run'
 def table(family):
     if family not in FAMILIES:
         raise ValueError('Unqualified dated history family')
-    return 'mta_state.history_dbm_' + family.rsplit('/', 1)[1].lower()
+    return 'mta_state.history_' + source_table(family).replace('/','_').lower()
 
 
 def read_cut(identity):
@@ -46,7 +46,7 @@ def authenticate_cut(row):
 
 def image_metadata(cut):
     family = cut.body['family']
-    return dict(image=family,table='DBM/'+family.rsplit('/',1)[1],count=cut.body['count'],
+    return dict(image=family,table=source_table(family),count=cut.body['count'],
         digest=cut.root_digest,fields=cut.body['fields'],storage_format=FORMAT,cut_id=str(cut.identity))
 
 

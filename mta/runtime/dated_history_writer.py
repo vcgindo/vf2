@@ -9,7 +9,7 @@ from contextlib import closing
 from django.db import connection, transaction
 
 from mta.serialization import canonical_parts,digest
-from mta.runtime.dated_history_delta import changes,Fact,Removal,Counts,Occurrence,fields,supports_descriptor,_tables,FAMILIES
+from mta.runtime.dated_history_delta import changes,Fact,Removal,Counts,Occurrence,fields,supports_descriptor,_tables,FAMILIES,source_table
 from mta.runtime.dated_history_reader import FORMAT,Cut,table,read_cut,iter_occurrences,image_metadata
 from mta.runtime.rationing_writer import _Digest
 from mta.runtime.relational_state import copy_rows,db_value,quote,wire_type,wire_value
@@ -47,7 +47,7 @@ class _Shape:
 
 def _flush(cut,events):
     relation = table(cut.family)
-    columns = _tables()['DBM/'+cut.family.rsplit('/',1)[1]]
+    columns = _tables()[source_table(cut.family)]
     facts = [e for e in events if type(e) is Fact]
     if facts:
         copy_rows(relation,['cut_id','vf_ordinal','initialization_id','born_position',*[n for n,_ in columns]],
@@ -168,7 +168,7 @@ def seal_anchor_rows(cut,item,rows,anchor):
 def opening_path(family):
     if family not in FAMILIES:
         raise ValueError('Unqualified dated history family')
-    return 'input/opening/state/dbm/'+family.rsplit('/',1)[1]+'/values'
+    return 'input/opening/state/'+family.removeprefix('closing/')+'/values'
 
 
 def begin_initial_anchors(owner):
@@ -227,6 +227,10 @@ def write_frozen_day(run,family,rows,*,frozen,profile_digest):
         parent=read_cut(parent_row.pk)
         batch=frozen['profile']['delivery']['batch']
         horizon=batch['DailyConsumptionHorizonDBM'] if family=='closing/dbm/DailyConsumption' else None
+        if family=='closing/bpr/DailyConsumption':
+            from mta.application.daily_finalization import configuration
+            finalization=configuration(frozen['profile'])
+            horizon=finalization['consumption_days'] if finalization is not None else None
         unchanged=False
         if family=='closing/dbm/SuspendHistory':
             flag=batch['GatherSuspensionHistory']

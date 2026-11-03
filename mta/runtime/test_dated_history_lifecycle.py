@@ -30,9 +30,11 @@ class DatedHistoryLifecycleTests(TestCase):
     def setUp(self):
         AdoptionFixture.setUp(self)
         self.profile['delivery']['batch']={'DailyConsumptionHorizonDBM':1,'GatherSuspensionHistory':1}
+        self.profile['complete_daily']={'policy':'generic-finalization-v1','consumption_days':1,'remark_days':30}
         self.opening={f:[row(f,'2026-07-09'),row(f,'2026-07-09'),row(f,'2026-07-10'),row(f,'2026-01-01')]
                       for f in FAMILIES}
-        self.raw['opening']['state']['dbm']={f.rsplit('/',1)[1]:rr for f,rr in self.opening.items()}
+        for section in ('dbm','bpr'):
+            self.raw['opening']['state'][section]={f.rsplit('/',1)[1]:rr for f,rr in self.opening.items() if f.split('/')[1]==section}
 
     def initialize(self,*,anchors=False):
         from mta.runtime.input_storage import save_input
@@ -97,6 +99,31 @@ class DatedHistoryLifecycleTests(TestCase):
         self.accept(run,{f:item})
         cut=read_cut(item['cut_id'])
         self.assertEqual((cut.body['inserted'],cut.body['removed']),(0,0))
+        self.assertEqual(list(iter_image(run,item)),expected)
+
+    def test_bpr_retention_uses_its_own_frozen_finalization_control(self):
+        self.profile['complete_daily']['consumption_days']=30
+        self.initialize(anchors=True)
+        run=self.new_run()
+        self.profile['complete_daily']['consumption_days']=1
+        f='closing/bpr/DailyConsumption'
+        expected=self.opening[f][:2]+[row(f,'2026-07-10')]
+        item=write_day(run,f,expected)
+        dbm='closing/dbm/DailyConsumption'
+        dbm_item=write_day(run,dbm,[row(dbm,'2026-07-10')])
+        self.accept(run,{f:item,dbm:dbm_item})
+        self.assertEqual(list(iter_image(run,item)),expected)
+        self.assertEqual(list(iter_image(run,dbm_item)),[row(dbm,'2026-07-10')])
+        self.assertEqual(item['table'],'BPR/DailyConsumption')
+        self.assertEqual(dbm_item['table'],'DBM/DailyConsumption')
+
+    def test_bpr_without_finalization_retains_old_rows_and_replaces_only_today(self):
+        del self.profile['complete_daily']
+        self.initialize(anchors=True)
+        run=self.new_run();f='closing/bpr/DailyConsumption'
+        expected=self.opening[f][:2]+self.opening[f][3:]+[row(f,'2026-07-10')]
+        item=write_day(run,f,expected)
+        self.accept(run,{f:item})
         self.assertEqual(list(iter_image(run,item)),expected)
 
     def test_unowned_frozen_profile_and_missing_qualified_anchor_refuse(self):
