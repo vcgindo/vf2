@@ -686,6 +686,9 @@ def planning_grid(request, payload, *, count=False):
     if str(payload.get('category', '')).casefold() == 'expedite' and count:
         if not _no_active_filters(payload):
             raise PublicationUnavailable('selected_planning_filters_not_yet_connected')
+        if native_enabled() and not (settings.VF_MTA_HIERARCHY_FILE or settings.VF_MTA_HIERARCHY_SHA256):
+            from mta.presentation.planning_expedite_sql import counts
+            return envelope(data=counts(selected_run(), payload))
         from mta.presentation.expedite_read import expedite_context
         context = expedite_context(include_master=False)
         rows = context.rows
@@ -731,6 +734,13 @@ def planning_grid(request, payload, *, count=False):
 def planning_custom(request, payload):
     from mta.presentation.native_publication import enabled as native_enabled
     if payload.get('category') == 'expedite':
+        if native_enabled() and not (settings.VF_MTA_HIERARCHY_FILE or settings.VF_MTA_HIERARCHY_SHA256):
+            from mta.presentation.selective import image_metadata
+            run = selected_run()
+            # Empty NMS uses the retained terminal producer-order exception.
+            if image_metadata(run, 'closing/consumer_context/NMSAllItems')['count']:
+                from mta.presentation.planning_expedite_custom_sql import custom_grid
+                return envelope(data=custom_grid(run, payload))
         from mta.presentation.expedite_read import custom_grid as expedite_custom_grid
         return envelope(data=expedite_custom_grid(payload))
     if payload.get('category') == 'git':

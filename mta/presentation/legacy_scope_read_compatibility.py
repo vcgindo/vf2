@@ -46,14 +46,14 @@ DISPATCHERS = {
 @once_per_request
 def verify():
     from mta.presentation.runtime_report_view import LEGACY_DEPENDENCIES
-    from mta.presentation.registered_read_compatibility import GIT_NMS_READ_GRAPH
+    from mta.presentation.registered_read_compatibility import PREPARED_REPORT_READERS
     if set(ADAPTED_DEPENDENCIES) - set(LEGACY_DEPENDENCIES):
         raise PublicationUnavailable('legacy_scope_read_profile_dependency_unknown')
     expected = dict(LEGACY_DEPENDENCIES, **ADAPTED_DEPENDENCIES, **DISPATCHERS)
     for name, checksum in expected.items():
         actual = hashlib.sha256(inspect.getsource(import_module(name)).encode()).hexdigest()
         if actual != checksum:
-            if name == 'mta.presentation.scoped_read_graph' and actual == GIT_NMS_READ_GRAPH:
+            if PREPARED_REPORT_READERS.get(name) == actual:
                 continue
             raise PublicationUnavailable('legacy_scope_read_profile_source_differs:' + name)
 
