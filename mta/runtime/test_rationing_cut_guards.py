@@ -215,14 +215,14 @@ class RationingCutGuardTests(TestCase):
             cursor.execute('SET CONSTRAINTS state_cut_complete DEFERRED')
         return cut
 
-    def accept_storage_fixture(self, run, item):
+    def accept_storage_fixture(self, run, item, *, manifest=None):
         """Complete only this rollback-owned storage fixture, not a business run."""
         from django.utils import timezone
         from mta.runtime.rationing_reader import IMAGE
         with connection.cursor() as cursor:
             cursor.execute("SELECT set_config('fresh.mdm_consuming_run',%s,true)", [str(run.pk)])
         MdmDailyInputCapture.objects.filter(run=run).update(status='CONSUMED', consumed_at=timezone.now())
-        run.production_manifest = {'images': {IMAGE: item}}
+        run.production_manifest = {'images': {IMAGE: item}} if manifest is None else manifest
         run.production_digest = digest(run.production_manifest)
         run.status = 'SUCCEEDED'
         run.save(update_fields=['production_manifest', 'production_digest', 'status'])
@@ -443,6 +443,34 @@ class RationingCutGuardTests(TestCase):
             with self.assertRaisesMessage(ValueError, 'exact accepted run/cut'):
                 read(SimpleNamespace(pk=uuid.uuid4()), item)
         self.assertEqual(item['table'], TABLE)
+
+    def test_daily_storage_integration_reuses_frozen_profile_and_serves_typed_projection(self):
+        from unittest.mock import patch
+        from tests.test_rationing_delta import row
+        from mta.runtime import relational_state, accepted_state_read, runtime_report_sources
+        from mta.runtime.input_reader import read_execution_input
+        from mta.runtime.rationing_reader import IMAGE, TABLE
+        self.initialized_writer([])
+        run = self.new_run()
+        rows = [row('2026-07-10'), row('2026-07-10')]
+        output = dict(ClosingState=[dict(dbm={}, btr={'RationingHistory': rows})], Lineage=[])
+        frozen = read_execution_input(run, components=('profile', 'execution_settings', 'initialization_binding'))
+        profile_digest = digest(frozen['profile'])
+        with patch('mta.runtime.input_reader.read_execution_input', side_effect=AssertionError('extra profile read')):
+            manifest = relational_state.save_daily(run, output, frozen=frozen, profile_digest=profile_digest)
+        manifest['version'] = 3
+        item = manifest['images'][IMAGE]
+        self.assertEqual(item['storage_format'], 'rationing-occurrences-v1')
+        self.accept_storage_fixture(run, item, manifest=manifest)
+        self.assertEqual(relational_state.read_daily(run, include_reports=False)['BTRFinal'][0]['RationingHistory'], rows)
+        self.assertEqual(accepted_state_read.read_accepted_daily(run, include_reports=False)['BTRFinal'][0]['RationingHistory'], rows)
+        with patch('mta.runtime.rationing_audit.audit_cut', side_effect=AssertionError('routine prefix audit')):
+            projected = runtime_report_sources.image_rows(run, item, expected_table=TABLE,
+                fields=('SKUCode', 'ReportDate', 'Dispatch'))
+            self.assertEqual(list(projected), [dict(SKUCode='S', ReportDate=date(2026, 7, 10), Dispatch=None)]*2)
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT count(*) FROM mta_state.btr_rationinghistory WHERE vf_run_id=%s', [run.pk])
+            self.assertEqual(cursor.fetchone()[0], 0)
 
     def test_prior_cursor_expiry_flush_rolls_back_and_preserves_parent(self):
         from tests.test_rationing_delta import row

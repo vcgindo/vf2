@@ -1,7 +1,7 @@
 """Atomic typed rationing deltas; no unchanged-history payload writes.
 
-Normal execution has not yet opted into this adapter. The outer execute_day
-transaction remains the publication boundary. This module adds a savepoint so
+The outer execute_day transaction remains the publication boundary. Normal
+finish_run supplies its frozen input once. This module adds a savepoint so
 even a caller catching a late mismatch cannot retain a partial storage prefix.
 """
 import hashlib
@@ -196,13 +196,25 @@ def write_day(run, rows):
     if not connection.in_atomic_block:
         raise ValueError('Rationing storage requires the existing day transaction')
     from mta.runtime.input_reader import read_execution_input
+    frozen = read_execution_input(run, components=('profile', 'execution_settings', 'initialization_binding'))
+    return write_frozen_day(run, rows, frozen=frozen, profile_digest=digest(frozen['profile']))
+
+
+def write_frozen_day(run, rows, *, frozen, profile_digest):
+    """Internal commit adapter: reuse finish_run's decoded input and local hash.
+
+    The caller computes the profile digest from this same frozen profile once.
+    SQL independently binds the cut to the actual captured settings reference.
+    No live management values or operator-supplied policy enters this path.
+    """
+    if not connection.in_atomic_block:
+        raise ValueError('Rationing storage requires the existing day transaction')
     from mta.runtime.initialization_models import ProductionInitialization
-    from mta.runtime.execution_settings import require_snapshot
+    from mta.runtime.execution_settings import _check_snapshot_digest
     with transaction.atomic():
-        frozen = read_execution_input(run, components=('profile', 'execution_settings', 'initialization_binding'))
         owner = ProductionInitialization.objects.select_for_update().get(pk=frozen['initialization_binding']['id'])
         profile = frozen['profile']
-        settings_digest = require_snapshot(owner, profile, frozen.get('execution_settings'), run.business_date)
+        _check_snapshot_digest(owner, profile_digest, frozen.get('execution_settings'), run.business_date)
         policy = profile['delivery']['btr_settings']
         # The engine already qualified the Importer flag/COUNT=1 relationship.
         # Here the exact frozen flag controls only storage correspondence.
@@ -213,7 +225,7 @@ def write_day(run, rows):
         parent_row = OperationalStateCut.objects.get(initialization=owner, family=FAMILY, run_id=run.predecessor_id)
         parent = read_cut(parent_row.pk)
         cut = OperationalStateCut.objects.create(initialization=owner, family=FAMILY, position=parent.position+1,
-            run=run, parent=parent_row, input_digest=run.input_digest, settings_digest=settings_digest)
+            run=run, parent=parent_row, input_digest=run.input_digest, settings_digest=profile_digest)
         return _write_delta(cut, parent, rows, today=run.business_date,
                             capture_enabled=enabled, horizon=policy.get('RationingHistoryHorizonBTR'))
 
@@ -234,23 +246,28 @@ def seal_initial_anchor(cut, owner):
     from mta.runtime.btr_history_storage import OPENING
     with transaction.atomic():
         item = owner.input_payload['images'][OPENING]
-        require_fields(item['fields'], item['count'])
         rows = load_image(owner, item)
-        checks = {name: _Digest() for name in ('facts', 'revisions', 'expiry')}
-        batch = []
-        for ordinal, row in enumerate(rows):
-            event = Fact(Occurrence(0, ordinal), row)
-            checks['facts'].add([ordinal, row])
-            batch.append(event)
-            if len(batch) == BATCH:
-                _facts(cut, batch)
-                batch = []
-        if batch:
-            _facts(cut, batch)
-        if checks['facts'].count != item['count']:
-            raise ValueError('Rationing anchor source population differs')
-        counts = Counts(0, 0, item['count'], 0, 0, item['count'])
         anchor = dict(owner_kind='INITIALIZATION', owner_id=str(owner.pk),
             manifest_digest=owner.input_manifest_digest, image=OPENING,
             digest=item['digest'], count=item['count'])
-        return _seal(cut, parent=None, fields=item['fields'], counts=counts, checks=checks, anchor=anchor)
+        return seal_anchor_rows(cut, item, rows, anchor)
+
+
+def seal_anchor_rows(cut, item, rows, anchor):
+    """Private one-time transport of an independently audited opening/prefix."""
+    require_fields(item['fields'], item['count'])
+    checks = {name: _Digest() for name in ('facts', 'revisions', 'expiry')}
+    batch = []
+    for ordinal, row in enumerate(rows):
+        event = Fact(Occurrence(0, ordinal), row)
+        checks['facts'].add([ordinal, row])
+        batch.append(event)
+        if len(batch) == BATCH:
+            _facts(cut, batch)
+            batch = []
+    if batch:
+        _facts(cut, batch)
+    if checks['facts'].count != item['count']:
+        raise ValueError('Rationing anchor source population differs')
+    counts = Counts(0, 0, item['count'], 0, 0, item['count'])
+    return _seal(cut, parent=None, fields=item['fields'], counts=counts, checks=checks, anchor=anchor)

@@ -1,8 +1,8 @@
 """Typed report cells from verified immutable images, without owner selection.
 
 The caller authenticates the accepted phase/run and chooses its source image.
-This adapter checks that physical table/field contract, uses the existing full
-checksum/ordinal reader, then decodes only requested cells. It never changes
+This adapter checks that physical table/field contract, uses the legacy full
+checksum reader or the accepted immutable cut, then decodes requested cells. It never changes
 stored wire values, supplies a missing column or substitutes another image.
 """
 from collections.abc import Mapping
@@ -88,7 +88,14 @@ def image_rows(run, metadata, *, expected_table, fields, registry=None):
     # column just because a particular image currently contains zero rows.
     if metadata['fields'] and not set(requested) <= available.keys():
         raise ValueError('Required report source image columns missing')
-    original = relational_state.load_image(run, metadata, table_registry=registry)
+    from mta.runtime.rationing_reader import uses_occurrences
+    if uses_occurrences(metadata):
+        # The new immutable cut was fully verified at commit. Its selected
+        # header and indexed relation replace a repeated full-prefix audit.
+        from mta.runtime.accepted_state_read import load_accepted_image
+        original = load_accepted_image(run, metadata, table_registry=registry)
+    else:
+        original = relational_state.load_image(run, metadata, table_registry=registry)
     if len(original) != metadata['count']:
         raise ValueError('Report source row count differs')
 

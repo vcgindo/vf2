@@ -252,6 +252,8 @@ def _initialize(raw, expected_sha256, *, expected_configuration, expected_recipe
             input_sha256=expected_sha256, recipe_sha256=expected_recipe,
             configuration_digest=expected_configuration, implementation_digest=implementation,
             input_digest=content_digest)
+        from mta.runtime.rationing_writer import begin_initial_anchor, seal_initial_anchor
+        history_anchor = begin_initial_anchor(owner)
         with connection.cursor() as cursor:
             cursor.execute("SELECT set_config('fresh.production_initialization',%s,true), "
                 "set_config('fresh.mdm_current_bootstrap',%s,true)", [str(owner.pk), str(source.pk)])
@@ -274,6 +276,7 @@ def _initialize(raw, expected_sha256, *, expected_configuration, expected_recipe
             manifest_digest=owner.input_manifest_digest, content_digest=owner.input_digest)
         owner.receipt_digest = digest(owner.receipt)
         owner.save(update_fields=('input_payload', 'input_manifest_digest', 'receipt', 'receipt_digest'))
+        seal_initial_anchor(history_anchor, owner)
         owner.opening_date = owner._meta.get_field('opening_date').to_python(owner.opening_date)
         if complete:
             _complete(owner, frame)

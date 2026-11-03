@@ -387,11 +387,15 @@ def load_export(run,item):
         return list(iter_export(run,item))
 
 
-def save_daily(run,output):
+def save_daily(run,output, *, frozen=None,profile_digest=None):
     closing=output['ClosingState'][0]
     images={};template={}
     def image(path,binding,rows):
-        images[path]=save_image(run,path,binding,rows)
+        if path=='closing/btr/RationingHistory' and frozen is not None:
+            from mta.runtime.rationing_writer import write_frozen_day
+            images[path]=write_frozen_day(run,rows,frozen=frozen,profile_digest=profile_digest)
+        else:
+            images[path]=save_image(run,path,binding,rows)
         return {'image':path}
     for section,state in closing.items():
         if section=='publication_context':
@@ -441,7 +445,12 @@ def save_daily(run,output):
 def read_daily(run, *, include_reports=True):
     manifest=run.production_manifest
     def resolve(node):
-        if 'image' in node:return load_image(run,manifest['images'][node['image']])
+        if 'image' in node:
+            item=manifest['images'][node['image']]
+            if 'storage_format' in item or 'cut_id' in item:
+                from mta.runtime.state_image_read import load_image as load_operational_image
+                return load_operational_image(run,item)
+            return load_image(run,item)
         if 'metadata' in node:return node['metadata']
         if 'export' in node:return load_export(run,node['export'])
         if 'scratch_kind' in node:

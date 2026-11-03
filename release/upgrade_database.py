@@ -281,11 +281,14 @@ def run(phase, initialization, previous, receipt):
                 if plan or adoption:
                     schema_admission.append(cursor,owner.pk,target)
                 _admit(cursor,owner.pk,target,pending=True)
+                from mta.runtime.rationing_adoption import adopt as adopt_rationing
+                storage_adoption=adopt_rationing(owner)
                 after=snapshot(owner);preserved(before,after)
                 if selected(owner) != selection_before:
                     raise ValueError('Upgrade changed the selected publication')
         value=dict(status='UPGRADE_DATABASE_APPLIED',initialization_id=str(owner.pk),
             target_release=target,selected=selection_before,
+            storage_adoption=storage_adoption,
             applied_migrations=[m.name for m,_backwards in plan],
             preserved_metadata_digest=digest(before),code_release_authority_appends=0)
     elif phase=='verify':
