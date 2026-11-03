@@ -30,7 +30,8 @@ class RationingCutGuardTests(TestCase):
     def setUp(self):
         with connection.cursor() as cursor:
             cursor.execute('SET CONSTRAINTS state_cut_complete DEFERRED')
-        self.profile = {'delivery': {'site_code': 'IR1-GUARD'}}
+        self.profile = {'delivery': {'site_code': 'IR1-GUARD', 'btr_settings': {
+            'CaptureDispatchExecutionEfficiency': 1, 'RationingHistoryHorizonBTR': 30}}}
         self.source = MdmSource.objects.create(digest='7'*64, database_name='ir1-guard',
             receipt={'schema': 'fresh-production-mdm-source-v1'})
         identity = uuid.uuid4()
@@ -109,7 +110,7 @@ class RationingCutGuardTests(TestCase):
                 self.denied(changed, 'Anchor final initialization ownership differs')
                 self.owner.refresh_from_db()
 
-    def new_run(self, ref=None, *, raw_change=None, predecessor=None):
+    def new_run(self, ref=None, *, raw_change=None, predecessor=None, business_date=date(2026, 7, 10)):
         raw = dict(profile=self.profile, initialization_binding=dict(id=str(self.owner.pk),
             configuration_digest=self.owner.configuration_digest))
         if ref is not None:
@@ -118,7 +119,7 @@ class RationingCutGuardTests(TestCase):
             raw_change(raw)
         run = CalculationRun.objects.create(input_digest=digest(raw), input_payload={},
             execution_revision=str(uuid.uuid4()), kind='DAILY_CHAIN', status='RUNNING',
-            business_date=date(2026, 7, 10), predecessor=predecessor)
+            business_date=business_date, predecessor=predecessor)
         run.input_payload = save_input(run, raw)
         run.input_manifest_digest = digest(run.input_payload)
         run.save(update_fields=['input_payload', 'input_manifest_digest'])
@@ -200,3 +201,218 @@ class RationingCutGuardTests(TestCase):
             actual = list(iter_occurrences(read_cut(cut.pk)))
         self.assertEqual(actual, [(Occurrence(0, n), storage(r)) for n, r in enumerate(rows)])
         self.assertLessEqual(len(queries), 3)
+
+    def initialized_writer(self, rows):
+        from mta.runtime.rationing_writer import begin_initial_anchor, seal_initial_anchor
+        self.raw['opening']['state']['btr']['RationingHistory'] = rows
+        self.owner.input_digest = digest(self.raw)
+        self.owner.save(update_fields=['input_digest'])
+        cut = begin_initial_anchor(self.owner)
+        self.seal_initialization()
+        seal_initial_anchor(cut, self.owner)
+        self.constraints()
+        with connection.cursor() as cursor:
+            cursor.execute('SET CONSTRAINTS state_cut_complete DEFERRED')
+        return cut
+
+    def accept_storage_fixture(self, run, item):
+        """Complete only this rollback-owned storage fixture, not a business run."""
+        from django.utils import timezone
+        from mta.runtime.rationing_reader import IMAGE
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT set_config('fresh.mdm_consuming_run',%s,true)", [str(run.pk)])
+        MdmDailyInputCapture.objects.filter(run=run).update(status='CONSUMED', consumed_at=timezone.now())
+        run.production_manifest = {'images': {IMAGE: item}}
+        run.production_digest = digest(run.production_manifest)
+        run.status = 'SUCCEEDED'
+        run.save(update_fields=['production_manifest', 'production_digest', 'status'])
+        self.constraints()
+        with connection.cursor() as cursor:
+            cursor.execute('SET CONSTRAINTS state_cut_complete DEFERRED')
+
+    def test_writer_first_successor_expiry_and_historical_reads_exact(self):
+        from copy import deepcopy
+        from tests.test_rationing_delta import row
+        from mta.domain.btr_rationing_history import collect, SOURCE_FIELDS
+        from mta.runtime.rationing_writer import write_day
+        from mta.runtime.rationing_reader import load_image
+        before = [row('2026-07-09'), row('2026-07-09'), row(None)]
+        self.initialized_writer(before)
+        old = deepcopy(before)
+        accepted = []
+        parent = None
+        for day, git, receipts in [('2026-07-10', 14, 3), ('2026-07-11', 16, 1), ('2026-08-15', 20, 0)]:
+            current = row(day, GIT=git)
+            after = collect(day, before, [{name: current[name] for name in SOURCE_FIELDS}],
+                [dict(SKUCode='S', WHCode='W', ReportDate=day, Receipts=receipts, Consumption=2)], [], 30)
+            if not accepted:
+                self.assertEqual([r['Dispatch'] for r in after[:2]], [7, 7])
+            run = self.new_run(predecessor=parent, business_date=date.fromisoformat(day))
+            item = write_day(run, after)
+            self.accept_storage_fixture(run, item)
+            self.assertEqual(load_image(run, item), after)
+            accepted.append((run, item, deepcopy(after)))
+            before, parent = after, run
+        for run, item, expected in accepted:
+            self.assertEqual(load_image(run, item), expected)
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT count(*) FROM mta_state.rationing_fact')
+            self.assertEqual(cursor.fetchone()[0], len(old)+3)
+            cursor.execute('SELECT count(*) FROM mta_state.rationing_expiry')
+            self.assertEqual(cursor.fetchone()[0], 4)
+
+    def test_late_mismatch_rolls_back_written_batches_and_can_retry(self):
+        from tests.test_rationing_delta import row
+        from mta.runtime.rationing_writer import write_day
+        from mta.runtime.rationing_reader import load_image
+        self.initialized_writer([])
+        run = self.new_run()
+        after = [row('2026-07-10') for _ in range(501)]
+        bad = after + [row('2026-07-09')]
+        with self.assertRaisesMessage(ValueError, 'current producer'):
+            write_day(run, bad)
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT (SELECT count(*) FROM mta_state.rationing_fact),'
+                           '(SELECT count(*) FROM mta_state.rationing_lifetime),'
+                           '(SELECT count(*) FROM mta.fresh_mta_operationalstatecut)')
+            self.assertEqual(cursor.fetchone(), (0, 0, 1))
+        item = write_day(run, after)
+        self.accept_storage_fixture(run, item)
+        self.assertEqual(load_image(run, item), after)
+
+    def test_disabled_capture_writes_only_bounded_cut_metadata(self):
+        from tests.test_rationing_delta import row
+        from mta.runtime.rationing_writer import write_day
+        from mta.runtime.rationing_reader import read_cut, load_image
+        self.profile['delivery']['btr_settings']['CaptureDispatchExecutionEfficiency'] = 0
+        self.owner.configuration_digest = digest(self.profile)
+        self.owner.save(update_fields=['configuration_digest'])
+        before = [row('2026-07-09', Dispatch=-4), row(None)]
+        self.initialized_writer(before)
+        run = self.new_run()
+        item = write_day(run, before)
+        self.accept_storage_fixture(run, item)
+        cut = read_cut(item['cut_id'])
+        self.assertEqual([cut.body[k] for k in ('inserted', 'revised', 'expired')], [0, 0, 0])
+        self.assertEqual(load_image(run, item), before)
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT (SELECT count(*) FROM mta_state.rationing_fact),'
+                           '(SELECT count(*) FROM mta_state.rationing_dispatch),'
+                           '(SELECT count(*) FROM mta_state.rationing_expiry)')
+            self.assertEqual(cursor.fetchone(), (2, 0, 0))
+
+    def test_persisted_value_mismatch_refuses_seal_and_rolls_back(self):
+        from unittest.mock import patch
+        from dataclasses import replace
+        from tests.test_rationing_delta import row
+        from mta.runtime import rationing_writer as writer
+        self.initialized_writer([])
+        run = self.new_run()
+        original = writer._facts
+        def corrupted(cut, rows):
+            changed = [replace(e, values={**e.values, 'GIT': e.values['GIT']+1}) for e in rows]
+            original(cut, changed)
+        with patch.object(writer, '_facts', corrupted):
+            with self.assertRaisesMessage(ValueError, 'persisted delta values/type/order differ'):
+                writer.write_day(run, [row('2026-07-10')])
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT (SELECT count(*) FROM mta_state.rationing_fact),'
+                           '(SELECT count(*) FROM mta.fresh_mta_operationalstatecut)')
+            self.assertEqual(cursor.fetchone(), (0, 1))
+
+    def test_serving_role_cannot_write_operational_cut_or_delta_tables(self):
+        with connection.cursor() as cursor:
+            for table in ('mta.fresh_mta_operationalstatecut', 'mta_state.rationing_fact',
+                          'mta_state.rationing_dispatch', 'mta_state.rationing_expiry',
+                          'mta_state.rationing_lifetime'):
+                for privilege in ('INSERT', 'UPDATE', 'DELETE', 'TRUNCATE'):
+                    cursor.execute('SELECT has_table_privilege(%s,%s,%s)',
+                                   ['vectorflow_mta_runtime', table, privilege])
+                    self.assertFalse(cursor.fetchone()[0], (table, privilege))
+
+    def test_prior_cursor_expiry_flush_rolls_back_and_preserves_parent(self):
+        from tests.test_rationing_delta import row
+        from mta.runtime.rationing_writer import write_day
+        from mta.runtime.rationing_reader import read_cut, iter_occurrences, load_image
+        before = [row('2026-07-09') for _ in range(501)]
+        anchor = self.initialized_writer(before)
+        run = self.new_run(business_date=date(2026, 8, 15))
+        with self.assertRaisesMessage(ValueError, 'current producer'):
+            write_day(run, [row('2026-08-14')])
+        self.assertEqual([r for _, r in iter_occurrences(read_cut(anchor.pk))], before)
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT (SELECT count(*) FROM mta_state.rationing_expiry),'
+                           '(SELECT count(*) FROM mta_state.rationing_lifetime WHERE end_position IS NOT NULL)')
+            self.assertEqual(cursor.fetchone(), (0, 0))
+        after = [row('2026-08-15')]
+        item = write_day(run, after)
+        self.accept_storage_fixture(run, item)
+        self.assertEqual(load_image(run, item), after)
+        self.assertEqual([r for _, r in iter_occurrences(read_cut(anchor.pk))], before)
+
+    def test_prior_cursor_revision_flush_rolls_back_and_preserves_parent(self):
+        from copy import deepcopy
+        from tests.test_rationing_delta import row
+        from mta.domain.btr_rationing_history import collect, SOURCE_FIELDS
+        from mta.runtime.rationing_writer import write_day
+        from mta.runtime.rationing_reader import read_cut, iter_occurrences, load_image
+        before = [row('2026-07-09') for _ in range(501)]
+        anchor = self.initialized_writer(before)
+        current = row('2026-07-10', GIT=14)
+        after = collect('2026-07-10', before, [{k: current[k] for k in SOURCE_FIELDS}],
+            [dict(SKUCode='S', WHCode='W', ReportDate='2026-07-10', Receipts=3, Consumption=2)], [], 30)
+        self.assertEqual([r['Dispatch'] for r in after[:501]], [7]*501)
+        bad = deepcopy(after)
+        bad[500]['GIT'] += 1
+        run = self.new_run()
+        with self.assertRaisesMessage(ValueError, 'immutable values/type/order differ'):
+            write_day(run, bad)
+        self.assertEqual([r for _, r in iter_occurrences(read_cut(anchor.pk))], before)
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT count(*) FROM mta_state.rationing_dispatch')
+            self.assertEqual(cursor.fetchone()[0], 0)
+        item = write_day(run, after)
+        self.accept_storage_fixture(run, item)
+        self.assertEqual(load_image(run, item), after)
+        self.assertEqual([r for _, r in iter_occurrences(read_cut(anchor.pk))], before)
+
+    def test_declared_population_mismatch_rolls_back(self):
+        from tests.test_rationing_delta import row
+        from mta.row_sequences import RecordRows
+        from mta.runtime.rationing_writer import write_day
+        self.initialized_writer([])
+        run = self.new_run()
+        with self.assertRaisesMessage(ValueError, 'History factory population drift'):
+            write_day(run, RecordRows(2, lambda: iter([row('2026-07-10')])))
+        self.assertEqual(OperationalStateCut.objects.count(), 1)
+
+    def test_database_failure_after_flush_leaves_same_connection_usable(self):
+        from unittest.mock import patch
+        from tests.test_rationing_delta import row
+        from mta.runtime import rationing_writer as writer
+        from mta.runtime.rationing_reader import read_cut, iter_occurrences
+        # Second flush happens while the named prior cursor still has one
+        # unread occurrence, so cleanup also runs in an aborted SQL TX.
+        before = [row('2026-07-09') for _ in range(1001)]
+        anchor = self.initialized_writer(before)
+        run = self.new_run()
+        after = [{**r, 'Dispatch': 7} for r in before] + [row('2026-07-10')]
+        flush = writer._flush
+        calls = 0
+        def fail_second(cut, events):
+            nonlocal calls
+            calls += 1
+            if calls == 2:
+                with connection.cursor() as cursor:
+                    cursor.execute('SELECT 1/0')
+            flush(cut, events)
+        with patch.object(writer, '_flush', fail_second):
+            with self.assertRaisesMessage(DatabaseError, 'division by zero'):
+                writer.write_day(run, after)
+        self.assertEqual(calls, 2)
+        self.assertEqual([r for _, r in iter_occurrences(read_cut(anchor.pk))], before)
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT count(*) FROM mta_state.rationing_dispatch')
+            self.assertEqual(cursor.fetchone()[0], 0)
+        item = writer.write_day(run, after)
+        self.accept_storage_fixture(run, item)
