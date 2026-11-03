@@ -316,12 +316,12 @@ def dispatch(function, request, payload, arguments):
             chunks = Chunks()
         elif report == 'BTR':
             from mta.presentation.scoped_btr import bind
-            from mta.presentation.btr_sql import read_btr
+            from mta.presentation.btr_sql import read_btr, export_chunks
             from mta.presentation.btr_export import selected_headers as headers
             rows, dates = read_btr(view.run, payload, paging=None, export=True, read_binding=bind(view))
             layout = 'BTRon-hand' if payload.get('name') == 'tech' else 'BTRpipeline'
             state = views.ui_state.get_layout(views.identity(request)['id'], layout)
-            chunks = csv_chunks(rows, headers(state, dates))
+            chunks = export_chunks(rows, headers(state, dates))
         else:
             from mta.presentation.scoped_rrr import read
             rows = read(view.run, payload, paging=None, read_binding=view.pick)

@@ -56,7 +56,7 @@ def _summary_ready(run):
 def _btr_ready(run):
     from mta.presentation.btr_reporting import selected_generation
     generation = selected_generation(run)
-    if generation is not None and generation.version == 2:
+    if generation is not None and generation.version in (2,3):
         from mta.presentation.btr_snapshot import reference_generation
         reference_generation(run, generation)
 

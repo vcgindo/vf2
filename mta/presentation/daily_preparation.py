@@ -259,7 +259,7 @@ def _btr_result(run, *, verify_only, generation_id=None):
         from mta.runtime.models import BtrReportingGeneration
         generation = BtrReportingGeneration.objects.get(
             pk=generation_id,run=run,status='READY')
-        if (generation.version not in (1,2) or generation.source_digest!=
+        if (generation.version not in (1,2,3) or generation.source_digest!=
                 value_digest(source_identity(run,generation.version)) or
                 (generation.version==1 and generation.eligible)):
             raise PublicationUnavailable('btr_daily_display_generation_mismatch')

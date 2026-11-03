@@ -82,7 +82,7 @@ def read_btr(run, payload, *, paging, count=False, export=False, read_binding=No
     def source_query(path):
         return image_query(run, path) if read_binding is None else read_binding.query(path)
     generation = btr_reporting.selected_generation(run) if read_binding is None else None
-    if generation is not None and generation.version == 2:
+    if generation is not None and generation.version in (2,3):
         from mta.presentation.btr_snapshot import read_snapshot, reference_generation
         if not count and (not export) and (payload.get('displayPrepared') is True):
             return read_snapshot(run, generation, payload, paging)
@@ -229,10 +229,22 @@ def read_btr(run, payload, *, paging, count=False, export=False, read_binding=No
 
 
 def iter_rows(query, values):
-    """Preserve SQL types for CsvHelper-compatible serialization in bounded batches."""
-    with connection.cursor() as cursor:
+    """Stream rows from the pinned PostgreSQL transaction when serving an export."""
+    open_cursor = (connection.chunked_cursor if connection.vendor=='postgresql' and connection.in_atomic_block
+                   else connection.cursor)
+    with open_cursor() as cursor:
         cursor.execute(query, values)
         names = [c[0] for c in cursor.description]
         while rows := cursor.fetchmany(256):
             for row in rows:
                 yield dict(zip(names, row))
+
+
+def export_chunks(rows, headers):
+    from mta.presentation.rrr_export import csv_chunks
+    try:
+        yield from csv_chunks(rows, headers)
+    finally:
+        close = getattr(rows, 'close', None)
+        if close:
+            close()

@@ -8,13 +8,14 @@ import hashlib
 import json
 import logging
 import math
+from contextlib import nullcontext
 
 from django.db import connection, transaction
 from django.conf import settings
 from django.utils import timezone
 
 from mta.presentation import btr, btr_display, btr_reporting, hierarchy
-from mta.presentation.btr_copy import write_batch
+from mta.presentation.btr_copy import write_batch, write_scalar_batch, SCALAR_FIELDS as SCALAR_STORAGE
 from mta.presentation.btr_filters import BtrPredicate, unavailable
 from mta.presentation.btr_snapshot_fields import (
     TEXT_FIELDS, DISPLAY_FIELDS, SCALAR_FIELDS, DAILY_FIELDS, FILTER_FIELDS,
@@ -52,8 +53,9 @@ def _save_dimensions(generation, dimensions):
 
 def rows_identity(generation):
     checksum, count = hashlib.sha256(), 0
+    fields = tuple(f.attname for f in SCALAR_STORAGE if f.attname != 'generation_id') if generation.version==3 else ROW_FIELDS
     for row in BtrPresentationRow.objects.filter(generation=generation).order_by('id').values_list(
-            *ROW_FIELDS).iterator(chunk_size=128):
+            *fields).iterator(chunk_size=128):
         checksum.update((json.dumps(row, ensure_ascii=False, separators=(',', ':'), default=str) + '\n').encode())
         count += 1
     return count, checksum.hexdigest()
@@ -68,14 +70,14 @@ def reference_generation(run, generation):
     return reference
 
 
-def prepared_values(raw):
+def prepared_values(raw, *, dated=False):
     """Build-time only: exact accepted string-to-JS display conversion."""
     converted = {name: btr_display._convert(name, '' if value is None else str(value))
                  for name, value in raw.items()}
     fields, tokens, result = [], [], {}
     for name in TEXT_FIELDS:
         result[display_field(name, 'text')] = converted[name]
-    for name in DISPLAY_FIELDS:
+    for name in (SCALAR_FIELDS if dated else DISPLAY_FIELDS):
         value = converted[name]
         if isinstance(value, float):
             if not math.isfinite(value):
@@ -87,6 +89,10 @@ def prepared_values(raw):
         else:
             result[display_field(name, 'number')] = None
             result[display_field(name, 'text')] = value
+    if dated:
+        result.update(availability=None, available_prefix=[], empty_prefix=[],
+                      nonfinite_fields=fields, nonfinite_tokens=tokens)
+        return result
     available, empty = [0], [0]
     for name in DAILY_FIELDS:
         value = converted[name]
@@ -119,7 +125,12 @@ def _source_operands(run, reference, generation):
             path = btr_reporting.SOURCES[branch + '_' + alias if alias in ('A', 'btd') else alias]
             if path in operands['sources']:
                 continue
-            query, params = image_query(run, path)
+            if generation.version==3 and alias in ('A','btd'):
+                from mta.presentation.btr_page_dates import roster_query
+                query, params = roster_query(run, reference.lineage['images'][branch+'_'+alias],
+                                             current_colour=alias=='btd')
+            else:
+                query, params = image_query(run, path)
             source = connection.ops.quote_name('vf_btr_snapshot_' + generation.pk.hex + '_' + str(len(operands['sources'])))
             with connection.cursor() as cursor:
                 cursor.execute('CREATE TEMP TABLE ' + source + ' ON COMMIT DROP AS SELECT * FROM (' + query + ') source', params)
@@ -129,7 +140,7 @@ def _source_operands(run, reference, generation):
     return operands
 
 
-def _source_rows(run, reference, branch, *, operands=None):
+def _source_rows(run, reference, branch, *, operands=None, dated=False):
     """Retained unique-source qualification makes each stored join occurrence exact."""
     ctes, params = [], []
     for alias in (*btr_reporting.ORDINALS, 'sd', 'ld'):
@@ -155,8 +166,9 @@ def _source_rows(run, reference, branch, *, operands=None):
                ('WhCode', 'A."WhCode"'), ('LocationName', 'ld."WHDescription"'),
                ('Norm', 'E."Norm"'), ('VirtualNorm', 'E."VirtualNorm"'),
                ('pc', 'btd."ParentWhCode"'), ('pn', 'pld."WHDescription"')]
-    display += [(day, 'A.' + quote(day)) for day in DAILY_FIELDS]
-    display += [('C' + day, 'btd.' + quote(day)) for day in DAILY_FIELDS]
+    if not dated:
+        display += [(day, 'A.' + quote(day)) for day in DAILY_FIELDS]
+        display += [('C' + day, 'btd.' + quote(day)) for day in DAILY_FIELDS]
     display += [(name, 'btd.' + quote(field)) for name, field in (
         ('age', 'Age'), ('bc', 'BlackCount'), ('rc', 'RedCount'), ('yc', 'YellowCount'),
         ('gc', 'GreenCount'), ('blc', 'BlueCount'), ('wc', 'WhiteCount'))]
@@ -204,24 +216,29 @@ def _build(run,reference,*,admission=None,allow_outer=False):
     outer=not transaction.get_autocommit()
     if outer and not allow_outer:
         raise ValueError('BTR builder requires its own transaction boundary')
-    if reference is not None and reference.version == 2:
+    if reference is not None and reference.version in (2,3):
         reference = reference_generation(run, reference)
     if (reference is None or reference.run_id!=run.pk or reference.version!=1 or
             reference.status!='READY' or not reference.eligible or
             reference.source_digest!=digest(btr_reporting.source_identity(run))):
         raise PublicationUnavailable('btr_snapshot_requires_qualified_reference')
-    lineage = btr_reporting.source_identity(run, 2)
+    if digest(reference.lineage) != reference.source_digest:
+        raise PublicationUnavailable('btr_snapshot_reference_lineage_mismatch')
+    from mta.presentation.btr_calendar_images import owns
+    dated = owns(reference.lineage['images']['tech_A'])
+    version = 3 if dated else 2
+    lineage = btr_reporting.source_identity(run, version)
     source, generation = digest(lineage), None
     lock = int(source[:15], 16)
     with connection.cursor() as cursor:
         cursor.execute('SELECT pg_advisory_lock(%s)', [lock])
     try:
-        existing = BtrReportingGeneration.objects.filter(run=run, version=2, source_digest=source, status='READY').first()
+        existing = BtrReportingGeneration.objects.filter(run=run, version=version, source_digest=source, status='READY').first()
         if existing:
             return existing
-        BtrReportingGeneration.objects.filter(run=run, version=2, source_digest=source, status='BUILDING').update(
+        BtrReportingGeneration.objects.filter(run=run, version=version, source_digest=source, status='BUILDING').update(
             status='FAILED', failure='Interrupted snapshot build; never selected', completed_at=timezone.now())
-        generation = BtrReportingGeneration.objects.create(run=run, version=2, source_kind=run.kind,
+        generation = BtrReportingGeneration.objects.create(run=run, version=version, source_kind=run.kind,
             business_date=run.business_date, source_digest=source, lineage=lineage)
         with transaction.atomic():
             with connection.cursor() as cursor:
@@ -232,18 +249,23 @@ def _build(run,reference,*,admission=None,allow_outer=False):
             counts = {}
             dimensions = {owner: set() for owner, *_ in SCOPE_SOURCES}
             operands = _source_operands(run, reference, generation)
+            def store(batch):
+                if dated:
+                    write_scalar_batch(generation,batch)
+                else:
+                    write_batch(batch)
             for branch in ('tech', 'eco'):
                 count, batch = 0, []
-                for source_fields, raw in _source_rows(run, reference, branch, operands=operands):
+                for source_fields, raw in _source_rows(run, reference, branch, operands=operands, dated=dated):
                     _collect_dimensions(dimensions, source_fields)
-                    batch.append(BtrPresentationRow(generation=generation, branch=branch,
-                                                   **source_fields, **prepared_values(raw)))
+                    values = dict(branch=branch, **source_fields, **prepared_values(raw,dated=dated))
+                    batch.append(values if dated else BtrPresentationRow(generation=generation, **values))
                     count += 1
                     if len(batch) == 64:
-                        write_batch(batch)
+                        store(batch)
                         batch.clear()
                 if batch:
-                    write_batch(batch)
+                    store(batch)
                 if count != reference.qualification['populations'][branch + '_grid']:
                     raise PublicationUnavailable('btr_snapshot_population_mismatch')
                 counts[branch] = count
@@ -253,7 +275,7 @@ def _build(run,reference,*,admission=None,allow_outer=False):
                 from mta.presentation.admission import binding
                 if binding()[1]!=admission:
                     raise PublicationUnavailable('btr_snapshot_source_changed')
-            if btr_reporting.source_identity(run, 2) != lineage:
+            if btr_reporting.source_identity(run, version) != lineage:
                 raise PublicationUnavailable('btr_snapshot_source_changed')
             generation.qualification = dict(reference_generation=str(reference.pk), populations=counts,
                 labels=image_rows(run, btr_reporting.SOURCES['dates']), mapper='retained-js-v1')
@@ -353,7 +375,17 @@ def read_snapshot(run, generation, payload, paging):
     # only two summary differences, never decode 182 prefix cells per grid row.
     summary = ','.join('0' if default_range or left > right else
         f'S.{field}[{right + 1}]-S.{field}[{left}]' for field in ('available_prefix', 'empty_prefix'))
-    projection, slots = _display_projection(columns)
+    dated = generation.version == 3
+    if dated:
+        from mta.presentation import btr_page_dates
+        from mta.presentation.operational_reports import generation as report_generation
+        derived = report_generation(run)
+        if derived.version != 2 or derived.digest != generation.lineage.get('dated_report_digest'):
+            raise PublicationUnavailable('btr_dated_report_source_required')
+        date_slots = btr_page_dates.date_slots(generation.qualification['labels'][0], columns)
+    projection, slots = _display_projection(() if dated else columns)
+    tail = ('S.sku_key,S.location_key,S.btd_ordinal,S.nonfinite_fields,S.nonfinite_tokens'
+            if dated else 'S.availability,' + summary + ',S.nonfinite_fields,S.nonfinite_tokens')
     for branch in ('tech', 'eco'):
         if selected_name not in (branch, 'both'):
             continue
@@ -367,13 +399,33 @@ def read_snapshot(run, generation, payload, paging):
         # Keep the ordered, bounded page as the outer relation. OFFSET 0 prevents
         # flattening this typed lookup into a wide join before page selection.
         sql = ('WITH ' + ','.join(local) + ' SELECT display.* FROM page CROSS JOIN LATERAL (SELECT ' + projection +
-               ',S.availability,' + summary + ',S.nonfinite_fields,S.nonfinite_tokens'
+               ',' + tail +
                ' FROM S WHERE S.id=page.id OFFSET 0) display ORDER BY '
                'page.sku_key NULLS FIRST,page.location_key NULLS FIRST')
         values = params + [generation.pk, branch] + filters.params + filters.children + [paging[1], (paging[0]-1)*paging[1]] + filters.children + [paging[1]]
-        with connection.cursor() as cursor:
+        scope_read = transaction.atomic() if dated and not connection.in_atomic_block else nullcontext()
+        with scope_read, connection.cursor() as cursor:
             cursor.execute(sql, values)
-            for index, values in enumerate(cursor.fetchall()):
+            page = cursor.fetchall()
+            if dated:
+                from mta.domain.sql_identity_keys import group_key
+                observations = btr_page_dates.page_observations(run, derived.metadata['btr_calendar'],
+                                                                [r[-5:-3] for r in page])
+                for index, values in enumerate(page):
+                    sku, location, ordinal, fields, tokens = values[-5:]
+                    row = _display_row(values, slots, fields)
+                    cells, markers = btr_page_dates.display_dates(branch,index,
+                        observations.get(group_key(sku,location),{}),date_slots,horizon,
+                        has_colour_row=ordinal is not None)
+                    row.update(cells)
+                    if 'Availability' in markers:
+                        result['displayNonFinite'].append(markers.pop('Availability'))
+                    result['displayNonFinite'].extend([branch,index,field,token]
+                        for field,token in zip(fields,tokens,strict=True) if field in row)
+                    result['displayNonFinite'].extend(markers.values())
+                    result[branch].append(row)
+                continue
+            for index, values in enumerate(page):
                 default, available, empty, fields, tokens = values[-5:]
                 row = _display_row(values, slots, fields)
                 availability = default if default_range else btr_display._availability(available, horizon - empty)

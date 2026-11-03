@@ -197,6 +197,10 @@ class PublicationBindingMiddleware:
                 stack.close()
                 return response
             original = iter(response.streaming_content)
+            # Django wraps the body in a byte-mapping iterator. Close the
+            # underlying generator while its named database cursor is still
+            # inside this request's repeatable-read transaction.
+            close_body = getattr(response._iterator, 'close', None)
             closed = False
             def close():
                 nonlocal closed
@@ -204,9 +208,8 @@ class PublicationBindingMiddleware:
                     return
                 closed = True
                 try:
-                    closer = getattr(original, 'close', None)
-                    if closer:
-                        closer()
+                    if close_body:
+                        close_body()
                 finally:
                     stack.close()
             def chunks():

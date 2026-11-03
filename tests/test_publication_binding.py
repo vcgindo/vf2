@@ -320,6 +320,29 @@ class PublicationBindingTests(SimpleTestCase):
         self.assertFalse(in_read_request())
         self.assertEqual(self.events, ['open', 'close'])
 
+    def test_btr_export_disconnect_closes_rows_before_the_pinned_transaction(self):
+        from django.http import StreamingHttpResponse
+        from mta.presentation.btr_sql import export_chunks
+        events = []
+        def rows():
+            try:
+                for value in (1,2):
+                    events.append(('read',self.active))
+                    yield {'x':value}
+            finally:
+                events.append(('cursor closed',self.active))
+        for consumed in (0,1,2):
+            events.clear()
+            def downstream(request):
+                return StreamingHttpResponse(export_chunks(rows(), [('X','x')]))
+            _, response, _ = self.call('/api/mta/GetExportDataAsync', self.token, downstream, consume=False)
+            stream = iter(response.streaming_content)
+            for _ in range(consumed):
+                next(stream)
+            response.close()
+            self.assertFalse(self.active)
+            self.assertEqual(events,[('read',True),('cursor closed',True)] if consumed==2 else [])
+
     def test_disconnect_before_first_chunk_and_iterator_error_close_once(self):
         from django.http import StreamingHttpResponse
         for fail in (False, True):

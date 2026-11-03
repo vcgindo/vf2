@@ -12,6 +12,7 @@ from django.utils import timezone
 from mta.runtime.models import CalculationRun,DailyReportGeneration
 from mta.serialization import digest,storage
 from mta.application.stage_observation import stage,summary
+from mta.presentation.request_scope import once_per_request
 from mta.runtime.relational_state import save_image,save_export,load_image,load_export,iter_image,iter_export
 from mta.runtime.accepted_state_read import read_accepted_daily as read_daily
 
@@ -48,6 +49,7 @@ def consumer_metadata(run):
     return result
 
 
+@once_per_request
 def generation(run):
     row=DailyReportGeneration.objects.filter(run=run,status='READY').first()
     if (row is None or row.version not in (1,2) or row.source_digest!=run.production_digest

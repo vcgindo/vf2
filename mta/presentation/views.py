@@ -549,12 +549,15 @@ def export_data(request, payload):
         raise PublicationUnavailable('selected_report_export_not_connected')
     run = selected_run()
     if payload['reportName'] == 'BTR':
-        from mta.presentation.btr_sql import read_btr
+        from mta.presentation.btr_sql import read_btr, export_chunks
         from mta.presentation.btr_export import selected_headers as btr_headers
         rows, dates = read_btr(run, payload, paging=None, export=True)
         report = 'BTRon-hand' if payload.get('name') == 'tech' else 'BTRpipeline'
         state = ui_state.get_layout(identity(request)['id'], report)
         headers = btr_headers(state, dates)
+        response = StreamingHttpResponse(export_chunks(rows, headers), content_type='text/csv')
+        response['Content-Disposition'] = 'attachment'
+        return response
     elif payload['reportName'] == 'BPR':
         from mta.presentation.bpr_export import selected_headers as bpr_headers
         from mta.presentation.native_publication import enabled as native_enabled

@@ -41,10 +41,17 @@ ROW_FIELDS = ('branch', 'export', 'sku_code', 'location_code', 'sku_key', 'locat
 
 
 def source_identity(run, version=VERSION):
-    return dict(version=version, run=str(run.pk), kind=run.kind, date=str(run.business_date),
+    identity = dict(version=version, run=str(run.pk), kind=run.kind, date=str(run.business_date),
                 input_digest=run.input_digest, output_digest=run.output_digest,
                 production_digest=run.production_digest,
                 images={role: image_metadata(run, path) for role, path in SOURCES.items()})
+    if version == 3:
+        from mta.presentation.operational_reports import generation
+        report = generation(run)
+        if report.version != 2:
+            raise PublicationUnavailable('btr_dated_report_source_required')
+        identity['dated_report_digest'] = report.digest
+    return identity
 
 
 def selected_generation(run):
@@ -55,9 +62,10 @@ def selected_generation(run):
         generation = BtrReportingGeneration.objects.get(pk=UUID(identifier), status='READY')
     except (ValueError, BtrReportingGeneration.DoesNotExist) as exc:
         raise PublicationUnavailable('btr_reporting_generation_not_ready') from exc
-    if (generation.run_id != run.pk or generation.version not in (VERSION, 2) or
+    if (generation.run_id != run.pk or generation.version not in (VERSION, 2, 3) or
             generation.source_kind != run.kind or generation.business_date != run.business_date or
-            generation.source_digest != digest(source_identity(run, generation.version))):
+            generation.source_digest != digest(source_identity(run, generation.version)) or
+            (generation.version == 3 and digest(generation.lineage) != generation.source_digest)):
         raise PublicationUnavailable('btr_reporting_generation_source_mismatch')
     return generation
 
@@ -72,7 +80,7 @@ def admission_identity(run):
 
 
 def rows_identity(generation):
-    if generation.version == 2:
+    if generation.version in (2,3):
         from mta.presentation.btr_snapshot import rows_identity as snapshot_identity
         return snapshot_identity(generation)
     checksum = hashlib.sha256()
@@ -86,11 +94,20 @@ def rows_identity(generation):
 def verify_generation(generation):
     if generation.status != 'READY' or rows_identity(generation) != (generation.row_count, generation.rows_digest):
         raise PublicationUnavailable('btr_reporting_rows_changed')
-    if generation.version == 2:
+    if generation.version in (2,3):
         # Counts/exports still consume this immutable predecessor. Keep their
         # full startup readback proof when the prepared grid is selected.
         from mta.presentation.btr_snapshot import reference_generation
         verify_generation(reference_generation(generation.run, generation))
+
+
+def _key_source(run, path):
+    from mta.presentation import btr_calendar_images as calendar
+    from mta.presentation.btr_page_dates import roster_query
+    item = image_metadata(run, path)
+    if calendar.owns(item):
+        return roster_query(run, item)
+    return image_query(run, path, metadata=item)
 
 
 def _duplicates(run):
@@ -102,7 +119,7 @@ def _duplicates(run):
                 continue
             columns = ('SKUCode',) if role in ('sa', 'sd') else ('WHCode',) if role in ('la', 'ld') else (
                 'SKUCode', 'LocCode' if role == 'sla' else 'WhCode')
-            query, values = image_query(run, path)
+            query, values = _key_source(run, path)
             keys = ','.join(key('"' + column + '"') for column in columns)
             cursor.execute('SELECT count(*) FROM (SELECT 1 FROM (' + query + ') s GROUP BY ' +
                            keys + ' HAVING count(*)>1) d', values)
@@ -137,7 +154,7 @@ def _reference_tables(run, generation):
             fields = ['source.vf_ordinal', *(value for value in (sku, location) if value)]
             fields += [key(sku or 'NULL::text') + ' AS "_vf_btr_sku_key"',
                        key(location or 'NULL::text') + ' AS "_vf_btr_location_key"']
-            query, bound = image_query(run, path)
+            query, bound = _key_source(run, path)
             name = connection.ops.quote_name(prefix + str(len(tables)))
             with connection.cursor() as cursor:
                 cursor.execute('CREATE TEMP TABLE ' + name + ' ON COMMIT DROP AS SELECT ' +
