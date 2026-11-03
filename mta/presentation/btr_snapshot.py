@@ -53,7 +53,7 @@ def _save_dimensions(generation, dimensions):
 
 def rows_identity(generation):
     checksum, count = hashlib.sha256(), 0
-    fields = tuple(f.attname for f in SCALAR_STORAGE if f.attname != 'generation_id') if generation.version==3 else ROW_FIELDS
+    fields = tuple(f.attname for f in SCALAR_STORAGE if f.attname != 'generation_id') if generation.version in (3,4) else ROW_FIELDS
     for row in BtrPresentationRow.objects.filter(generation=generation).order_by('id').values_list(
             *fields).iterator(chunk_size=128):
         checksum.update((json.dumps(row, ensure_ascii=False, separators=(',', ':'), default=str) + '\n').encode())
@@ -105,7 +105,7 @@ def prepared_values(raw, *, dated=False):
     return result
 
 
-def _source_operands(run, reference, generation):
+def _source_operands(run, reference, generation, *, reference_table=None):
     """Give fresh driving populations statistics in their owning transaction.
 
     Shared-table statistics cannot describe an uncommitted generation UUID.
@@ -116,7 +116,7 @@ def _source_operands(run, reference, generation):
     name = connection.ops.quote_name('vf_btr_snapshot_ref_' + generation.pk.hex)
     with connection.cursor() as cursor:
         cursor.execute('CREATE TEMP TABLE ' + name + ' ON COMMIT DROP AS '
-            'SELECT * FROM ' + btr_reporting.REF_TABLE +
+            'SELECT * FROM ' + (reference_table or btr_reporting.REF_TABLE) +
             ' WHERE generation_id=%s AND export=false', [reference.pk])
         cursor.execute('ANALYZE ' + name)
     operands = {'reference': 'pg_temp.' + name, 'sources': {}}
@@ -125,7 +125,7 @@ def _source_operands(run, reference, generation):
             path = btr_reporting.SOURCES[branch + '_' + alias if alias in ('A', 'btd') else alias]
             if path in operands['sources']:
                 continue
-            if generation.version==3 and alias in ('A','btd'):
+            if generation.version in (3,4) and alias in ('A','btd'):
                 from mta.presentation.btr_page_dates import roster_query
                 query, params = roster_query(run, reference.lineage['images'][branch+'_'+alias],
                                              current_colour=alias=='btd')
@@ -212,21 +212,41 @@ def build_run(run,reference):
     return _build(run,reference,allow_outer=True)
 
 
-def _build(run,reference,*,admission=None,allow_outer=False):
+def try_combined(run):
+    from mta.presentation import btr_reference_projection as projection
+    from mta.presentation.operational_reports import generation as derived
+    if run.production_manifest.get('version')!=3:
+        return None
+    if (run.kind!='DAILY_CHAIN' or run.status!='SUCCEEDED'
+            or str(run.pk)==str(settings.VF_MTA_PUBLISHED_RUN)):
+        raise PublicationUnavailable('btr_snapshot_requires_unselected_committed_daily_run')
+    if derived(run).version != 3 or BtrReportingGeneration.objects.filter(run=run,version=1,status='READY').exists():
+        return None
+    try:
+        with transaction.atomic():
+            return _build(run,None,allow_outer=True,combined=True)
+    except projection.RequiresPhysicalReferences:
+        return None
+
+
+def _build(run,reference,*,admission=None,allow_outer=False,combined=False):
     outer=not transaction.get_autocommit()
     if outer and not allow_outer:
         raise ValueError('BTR builder requires its own transaction boundary')
-    if reference is not None and reference.version in (2,3):
-        reference = reference_generation(run, reference)
-    if (reference is None or reference.run_id!=run.pk or reference.version!=1 or
-            reference.status!='READY' or not reference.eligible or
-            reference.source_digest!=digest(btr_reporting.source_identity(run))):
-        raise PublicationUnavailable('btr_snapshot_requires_qualified_reference')
-    if digest(reference.lineage) != reference.source_digest:
-        raise PublicationUnavailable('btr_snapshot_reference_lineage_mismatch')
-    from mta.presentation.btr_calendar_images import owns
-    dated = owns(reference.lineage['images']['tech_A'])
-    version = 3 if dated else 2
+    if combined:
+        dated, version = True, 4
+    else:
+        if reference is not None and reference.version in (2,3):
+            reference = reference_generation(run, reference)
+        if (reference is None or reference.run_id!=run.pk or reference.version!=1 or
+                reference.status!='READY' or not reference.eligible or
+                reference.source_digest!=digest(btr_reporting.source_identity(run))):
+            raise PublicationUnavailable('btr_snapshot_requires_qualified_reference')
+        if digest(reference.lineage) != reference.source_digest:
+            raise PublicationUnavailable('btr_snapshot_reference_lineage_mismatch')
+        from mta.presentation.btr_calendar_images import owns
+        dated = owns(reference.lineage['images']['tech_A'])
+        version = 3 if dated else 2
     lineage = btr_reporting.source_identity(run, version)
     source, generation = digest(lineage), None
     lock = int(source[:15], 16)
@@ -248,7 +268,14 @@ def _build(run,reference,*,admission=None,allow_outer=False):
                 cursor.execute("SET LOCAL work_mem='32MB'")
             counts = {}
             dimensions = {owner: set() for owner, *_ in SCOPE_SOURCES}
-            operands = _source_operands(run, reference, generation)
+            private = None
+            if combined:
+                from mta.presentation import btr_reference_projection as projection
+                if btr_reporting._duplicates(run):
+                    raise projection.RequiresPhysicalReferences('ambiguous native join')
+                private = projection.private_references(run, generation)
+                reference = generation
+            operands = _source_operands(run, reference, generation, reference_table=private)
             def store(batch):
                 if dated:
                     write_scalar_batch(generation,batch)
@@ -266,7 +293,9 @@ def _build(run,reference,*,admission=None,allow_outer=False):
                         batch.clear()
                 if batch:
                     store(batch)
-                if count != reference.qualification['populations'][branch + '_grid']:
+                expected = (lineage['images'][branch+'_A']['count'] if combined else
+                            reference.qualification['populations'][branch + '_grid'])
+                if count != expected:
                     raise PublicationUnavailable('btr_snapshot_population_mismatch')
                 counts[branch] = count
             _save_dimensions(generation, dimensions)
@@ -277,8 +306,12 @@ def _build(run,reference,*,admission=None,allow_outer=False):
                     raise PublicationUnavailable('btr_snapshot_source_changed')
             if btr_reporting.source_identity(run, version) != lineage:
                 raise PublicationUnavailable('btr_snapshot_source_changed')
-            generation.qualification = dict(reference_generation=str(reference.pk), populations=counts,
+            generation.qualification = dict(populations=counts,
                 labels=image_rows(run, btr_reporting.SOURCES['dates']), mapper='retained-js-v1')
+            if combined:
+                generation.qualification['reference_projection'] = projection.certify(run,generation,private,counts)
+            else:
+                generation.qualification['reference_generation'] = str(reference.pk)
             generation.eligible, generation.status, generation.completed_at = True, 'READY', timezone.now()
             generation.save()
         if not outer:
@@ -375,7 +408,7 @@ def read_snapshot(run, generation, payload, paging):
     # only two summary differences, never decode 182 prefix cells per grid row.
     summary = ','.join('0' if default_range or left > right else
         f'S.{field}[{right + 1}]-S.{field}[{left}]' for field in ('available_prefix', 'empty_prefix'))
-    dated = generation.version == 3
+    dated = generation.version in (3,4)
     if dated:
         from mta.presentation import btr_page_dates
         from mta.presentation.operational_reports import generation as report_generation

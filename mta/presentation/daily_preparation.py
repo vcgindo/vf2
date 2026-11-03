@@ -259,16 +259,19 @@ def _btr_result(run, *, verify_only, generation_id=None):
         from mta.runtime.models import BtrReportingGeneration
         generation = BtrReportingGeneration.objects.get(
             pk=generation_id,run=run,status='READY')
-        if (generation.version not in (1,2,3) or generation.source_digest!=
+        if (generation.version not in (1,2,3,4) or generation.source_digest!=
                 value_digest(source_identity(run,generation.version)) or
                 (generation.version==1 and generation.eligible)):
             raise PublicationUnavailable('btr_daily_display_generation_mismatch')
         verify_generation(generation)
     else:
-        generation = build_run(run)
-        if generation.eligible:
-            from mta.presentation.btr_snapshot import build_run as build_display
-            generation=build_display(run,generation)
+        from mta.presentation.btr_snapshot import try_combined
+        generation = try_combined(run)
+        if generation is None:
+            generation = build_run(run)
+            if generation.eligible:
+                from mta.presentation.btr_snapshot import build_run as build_display
+                generation=build_display(run,generation)
     result=dict(source_digest=generation.source_digest,
                 recipe_digest=value_digest(dict(version=generation.version)),
                 rows_digest=generation.rows_digest, row_count=generation.row_count,

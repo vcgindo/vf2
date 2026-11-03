@@ -408,6 +408,7 @@ class BtrPresentationRow(models.Model):
     class Meta:
         indexes = [models.Index(fields=['generation', 'branch', 'sku_key', 'location_key'],
                                 name='fresh_btr_presentation_keys'),
+                   models.Index(fields=['generation','branch','id'], name='fresh_btr_display_order'),
                    models.Index(fields=['generation', 'sa_ordinal'],
                                 include=['filter_sa_skucode', 'filter_sa_sl1', 'filter_sa_sl2', 'filter_sa_sl3'],
                                 condition=models.Q(sa_ordinal__isnull=False), name='fresh_btr_snapshot_sku_scope'),

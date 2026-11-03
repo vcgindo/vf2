@@ -82,11 +82,12 @@ def read_btr(run, payload, *, paging, count=False, export=False, read_binding=No
     def source_query(path):
         return image_query(run, path) if read_binding is None else read_binding.query(path)
     generation = btr_reporting.selected_generation(run) if read_binding is None else None
-    if generation is not None and generation.version in (2,3):
+    if generation is not None and generation.version in (2,3,4):
         from mta.presentation.btr_snapshot import read_snapshot, reference_generation
         if not count and (not export) and (payload.get('displayPrepared') is True):
             return read_snapshot(run, generation, payload, paging)
-        generation = reference_generation(run, generation)
+        if generation.version != 4:
+            generation = reference_generation(run, generation)
     columns = tuple((f'D{i}' for i in range(1, 91))) if export else btr.horizon_columns(run.business_date.isoformat(), payload)
     attributes = {name: source_rows('closing/btr/' + name) for name in ('SkuAttributeData', 'LocationAttributeData')}
     try:
@@ -168,8 +169,15 @@ def read_btr(run, payload, *, paging, count=False, export=False, read_binding=No
             local_ctes.append(alias + ' AS ' + inline + '(' + query + ')')
             values.extend(bound)
         if reporting:
-            local_ctes.append('J AS NOT MATERIALIZED (SELECT * FROM ' + btr_reporting.REF_TABLE + ' WHERE generation_id=%s AND branch=%s AND export=%s)')
-            values.extend([generation.pk, name, export])
+            if generation.version == 4:
+                from mta.presentation.btr_reference_projection import relation
+                pair = (next(iter(products)), next(iter(locations))) if len(products)==len(locations)==1 else None
+                source, reference_params = relation(generation,name,export,generation.qualification['reference_projection']['bounds'],pair=pair)
+                local_ctes.append('J AS NOT MATERIALIZED ('+source+')')
+                values.extend(reference_params)
+            else:
+                local_ctes.append('J AS NOT MATERIALIZED (SELECT * FROM ' + btr_reporting.REF_TABLE + ' WHERE generation_id=%s AND branch=%s AND export=%s)')
+                values.extend([generation.pk, name, export])
             selected_where = btr_reporting.substitute_keys(where)
             selected_auth = ' JOIN P ON J.sku_key=' + key('P.column1') + ' JOIN L ON J.location_key=' + key('L.column1')
             selected_order = 'J.sku_key NULLS FIRST,J.location_key NULLS FIRST'

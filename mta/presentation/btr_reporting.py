@@ -45,7 +45,7 @@ def source_identity(run, version=VERSION):
                 input_digest=run.input_digest, output_digest=run.output_digest,
                 production_digest=run.production_digest,
                 images={role: image_metadata(run, path) for role, path in SOURCES.items()})
-    if version == 3:
+    if version in (3,4):
         from mta.presentation.operational_reports import generation
         report = generation(run)
         if report.version not in (2, 3):
@@ -62,10 +62,10 @@ def selected_generation(run):
         generation = BtrReportingGeneration.objects.get(pk=UUID(identifier), status='READY')
     except (ValueError, BtrReportingGeneration.DoesNotExist) as exc:
         raise PublicationUnavailable('btr_reporting_generation_not_ready') from exc
-    if (generation.run_id != run.pk or generation.version not in (VERSION, 2, 3) or
+    if (generation.run_id != run.pk or generation.version not in (VERSION, 2, 3, 4) or
             generation.source_kind != run.kind or generation.business_date != run.business_date or
             generation.source_digest != digest(source_identity(run, generation.version)) or
-            (generation.version == 3 and digest(generation.lineage) != generation.source_digest)):
+            (generation.version in (3,4) and digest(generation.lineage) != generation.source_digest)):
         raise PublicationUnavailable('btr_reporting_generation_source_mismatch')
     return generation
 
@@ -80,7 +80,7 @@ def admission_identity(run):
 
 
 def rows_identity(generation):
-    if generation.version in (2,3):
+    if generation.version in (2,3,4):
         from mta.presentation.btr_snapshot import rows_identity as snapshot_identity
         return snapshot_identity(generation)
     checksum = hashlib.sha256()
@@ -164,7 +164,7 @@ def _reference_tables(run, generation):
     return tables
 
 
-def _populate(run, generation):
+def _populate(run, generation, *, target=None):
     tables = _reference_tables(run, generation)
     for branch in ('tech', 'eco'):
         for export in (False, True):
@@ -185,7 +185,7 @@ def _populate(run, generation):
             expressions = ['%s', '%s', 'A."SKUCode"', 'A."WhCode"', key('A."SKUCode"'), key('A."WhCode"')]
             expressions += ['NULL::bigint' if export and alias == 'sla' else alias + '.vf_ordinal' for alias in ORDINALS]
             with connection.cursor() as cursor:
-                cursor.execute('WITH ' + ','.join(ctes) + ' INSERT INTO ' + REF_TABLE +
+                cursor.execute('WITH ' + ','.join(ctes) + ' INSERT INTO ' + (target or REF_TABLE) +
                     ' (generation_id,' + ','.join('"' + f + '"' for f in ROW_FIELDS) + ') SELECT %s,' +
                     ','.join(expressions) + ' FROM A' + joins, [generation.pk, branch, export])
 
@@ -270,7 +270,7 @@ def build_selected():
 
 
 def eligible_request(generation, products, locations):
-    return generation is not None and generation.version == VERSION and generation.eligible and all(
+    return generation is not None and generation.version in (VERSION,4) and generation.eligible and all(
         count == 1 for codes in (products, locations) for count in codes.multiplicities.values())
 
 

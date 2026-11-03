@@ -20,7 +20,7 @@ SCALAR_FIELDS = tuple(field for field in _FIELDS if field.attname not in _DATED_
 
 def write_scalar_batch(generation, rows):
     """Write v3 scalar occurrences; omitted nullable day columns have no payload."""
-    if not connection.in_atomic_block or generation.version != 3 or not 0 < len(rows) <= BATCH_SIZE:
+    if not connection.in_atomic_block or generation.version not in (3,4) or not 0 < len(rows) <= BATCH_SIZE:
         raise ValueError('BTR scalar COPY requires a private dated generation batch')
     quote = connection.ops.quote_name
     names = {field.attname for field in SCALAR_FIELDS if field.attname != 'generation_id'}
