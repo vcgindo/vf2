@@ -9,6 +9,7 @@ from contextlib import closing
 
 from django.db import connection, transaction
 
+from mta.application.stage_observation import stage, summary
 from mta.domain.btr_rationing_history import COLUMNS, FIELDS
 from mta.serialization import canonical_parts, digest
 from mta.runtime.rationing_delta import changes, Fact, DispatchRevision, Expiry, Counts
@@ -27,12 +28,17 @@ class _Digest:
     def __init__(self):
         self.hash = hashlib.sha256(b'[')
         self.count = 0
+        # Canonical hash-input bytes, including array delimiters. This is not
+        # physical PostgreSQL storage, WAL, network traffic or a memory peak.
+        self.canonical_bytes = 2
 
     def add(self, value):
         if self.count:
             self.hash.update(b',')
+            self.canonical_bytes += 1
         for part in canonical_parts(value):
             self.hash.update(part)
+            self.canonical_bytes += len(part)
         self.count += 1
 
     def value(self):
@@ -137,7 +143,9 @@ def _stored_digests(cut, fields):
 
 
 def _seal(cut, *, parent, fields, counts, checks, anchor=None):
-    stored = _stored_digests(cut, fields)
+    with stage('rationing_delta_readback', facts=checks['facts'].count,
+               revisions=checks['revisions'].count, expiry=checks['expiry'].count):
+        stored = _stored_digests(cut, fields)
     if any((stored[name].count, stored[name].value()) != (expected.count, expected.value())
            for name, expected in checks.items()):
         raise ValueError('Rationing persisted delta values/type/order differ')
@@ -152,9 +160,17 @@ def _seal(cut, *, parent, fields, counts, checks, anchor=None):
     cut.root_body = b''.join(canonical_parts(body)).decode('utf-8')
     cut.root_digest = digest(body)
     cut.save(update_fields=['root_body', 'root_digest'])
+    summary('rationing_delta_work', position=cut.position,
+        logical_prior_rows=counts.prior, logical_closing_rows=counts.closing,
+        inserted_facts=checks['facts'].count, dispatch_revisions=checks['revisions'].count,
+        expired_occurrences=checks['expiry'].count,
+        canonical_delta_hash_bytes=sum(check.canonical_bytes for check in checks.values()),
+        canonical_readback_hash_bytes=sum(check.canonical_bytes for check in stored.values()),
+        root_bytes=len(cut.root_body.encode('utf-8')))
     return image_metadata(Cut(cut.pk, cut.initialization_id, cut.run_id, cut.position, cut.root_digest, body))
 
 
+@stage('rationing_delta_write')
 def _write_delta(cut, parent, rows, *, today, capture_enabled, horizon):
     """Private storage operation, called only inside the owner/savepoint below."""
     observed = _Shape(rows)

@@ -247,6 +247,7 @@ class RationingCutGuardTests(TestCase):
 
     def test_writer_first_successor_expiry_and_historical_reads_exact(self):
         from copy import deepcopy
+        from unittest.mock import patch
         from tests.test_rationing_delta import row
         from mta.domain.btr_rationing_history import collect, SOURCE_FIELDS
         from mta.runtime.rationing_writer import write_day
@@ -265,7 +266,18 @@ class RationingCutGuardTests(TestCase):
             if not accepted:
                 self.assertEqual([r['Dispatch'] for r in after[:2]], [7, 7])
             run = self.new_run(predecessor=parent, business_date=date.fromisoformat(day))
-            item = write_day(run, after)
+            with patch('mta.runtime.rationing_writer.summary') as observation:
+                item = write_day(run, after)
+            observation.assert_called_once()
+            name = observation.call_args.args[0]
+            work = observation.call_args.kwargs
+            self.assertEqual(name, 'rationing_delta_work')
+            self.assertEqual(work['logical_prior_rows'], len(before))
+            self.assertEqual(work['logical_closing_rows'], len(after))
+            self.assertEqual(work['inserted_facts'], 1)
+            self.assertEqual(work['canonical_delta_hash_bytes'], work['canonical_readback_hash_bytes'])
+            self.assertGreater(work['canonical_delta_hash_bytes'], 6)
+            self.assertLess(work['root_bytes'], 32768)
             self.accept_storage_fixture(run, item)
             self.assertEqual(load_image(run, item), after)
             accepted.append((run, item, deepcopy(after)))
@@ -303,6 +315,7 @@ class RationingCutGuardTests(TestCase):
         self.assertEqual(load_image(run, item), after)
 
     def test_disabled_capture_writes_only_bounded_cut_metadata(self):
+        from unittest.mock import patch
         from tests.test_rationing_delta import row
         from mta.runtime.rationing_writer import write_day
         from mta.runtime.rationing_reader import read_cut, load_image
@@ -312,7 +325,12 @@ class RationingCutGuardTests(TestCase):
         before = [row('2026-07-09', Dispatch=-4), row(None)]
         self.initialized_writer(before)
         run = self.new_run()
-        item = write_day(run, before)
+        with patch('mta.runtime.rationing_writer.summary') as observation:
+            item = write_day(run, before)
+        work = observation.call_args.kwargs
+        self.assertEqual(work['canonical_delta_hash_bytes'], 6)  # three empty arrays
+        self.assertEqual(work['canonical_readback_hash_bytes'], 6)
+        self.assertEqual([work[k] for k in ('inserted_facts', 'dispatch_revisions', 'expired_occurrences')], [0, 0, 0])
         self.accept_storage_fixture(run, item)
         cut = read_cut(item['cut_id'])
         self.assertEqual([cut.body[k] for k in ('inserted', 'revised', 'expired')], [0, 0, 0])
