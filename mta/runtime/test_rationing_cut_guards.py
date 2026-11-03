@@ -245,6 +245,54 @@ class RationingCutGuardTests(TestCase):
         with connection.cursor() as cursor:
             cursor.execute('SET CONSTRAINTS state_cut_complete DEFERRED')
 
+    def test_report_sources_preserve_phase_values_and_rollback_on_actual_storage(self):
+        from copy import deepcopy
+        from unittest.mock import patch
+        from mta.runtime import relational_state as typed, accepted_state_read, receipt_integrity
+        from mta.presentation.report_verification import _consumer_graph
+        from mta.serialization import storage
+        self.initialized_writer([])
+        run=self.new_run()
+        closing=[{'Id':1,'Reason':'after'},{'Id':2,'Reason':None}]
+        earlier=[{'Id':1,'Reason':'before'},{'Id':2,'Reason':None}]*300
+        reports=[dict(stage=name,tables={},deferred={'kind':'storage-fixture'},
+                      sources={'ReasonCodes':deepcopy(earlier)})
+                 for name in ('norm-change-export','norm-change-history')]
+        output=dict(ClosingState=[{'dbm':{'ReasonCodes':closing}}],Reports=reports,Lineage=[])
+        original=typed.save_image
+        def late_failure(*args,**kwargs):
+            item=original(*args,**kwargs)
+            if args[1].startswith('report-facts/'):
+                raise RuntimeError('late report input failure')
+            return item
+        with self.assertRaisesRegex(RuntimeError,'late report input failure'):
+            with transaction.atomic(),patch.object(typed,'save_image',side_effect=late_failure):
+                typed.save_daily(run,output)
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT count(*) FROM mta_state.dbm_reasoncodes WHERE vf_run_id=%s',[run.pk])
+            self.assertEqual(cursor.fetchone(),(0,))
+        manifest=typed.save_daily(run,output)
+        self.assertEqual(manifest['reports'][0]['sources'],manifest['reports'][1]['sources'])
+        self.assertNotEqual(manifest['reports'][0]['sources']['ReasonCodes'],
+                            manifest['closing']['dbm']['tables']['ReasonCodes'])
+        self.accept_storage_fixture(run,{},manifest=manifest)
+        expected=storage(typed.production_projection(output))
+        for reader in (typed.read_daily,accepted_state_read.read_accepted_daily,_consumer_graph):
+            self.assertEqual(storage(reader(run)),expected)
+        receipt_integrity.audit_output(run)
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT vf_image,count(*) FROM mta_state.dbm_reasoncodes '
+                           'WHERE vf_run_id=%s GROUP BY vf_image ORDER BY vf_image',[run.pk])
+            self.assertEqual(cursor.fetchall(),[('closing/dbm/ReasonCodes',2),
+                ('report-facts/norm-change-export/ReasonCodes',600)])
+        # An equal next run still owns a distinct payload; the local reuse map
+        # cannot smuggle a cross-run or mutable phase reference into its graph.
+        successor=self.new_run(predecessor=run,business_date=date(2026,7,11))
+        next_manifest=typed.save_daily(successor,output)
+        self.accept_storage_fixture(successor,{},manifest=next_manifest)
+        self.assertEqual(storage(typed.read_daily(run)),expected)
+        self.assertEqual(storage(accepted_state_read.read_accepted_daily(successor)),expected)
+
     def test_btr_import_commit_requires_exact_retained_sources_and_amounts(self):
         from copy import deepcopy
         from mta.runtime import btr_import_image, btr_import_relation as bpr

@@ -421,6 +421,28 @@ def save_daily(run,output, *, frozen=None,profile_digest=None):
                     tables[name]={'image':path}
                 else:tables[name]=image(path,path,rows)
             template[section]={'tables':tables}
+    # A deferred report retains its own phase node. Its input payload can share
+    # an already-written SAME-run image only after full typed/order equality.
+    # Cut digests commit storage roots, not row content, so are not candidates.
+    def source_key(item):
+        return (item['table'],item['count'],item['digest'],
+                tuple(tuple(field) for field in item['fields']))
+    report_sources={source_key(item):path for path,item in images.items()
+        if path.startswith('closing/dbm/') and 'storage_format' not in item and 'cut_id' not in item}
+    def report_source(path,name,rows):
+        binding='closing/dbm/'+name
+        table='/'.join(CATALOG['bindings'][binding])
+        columns={n.casefold():(n,kind) for n,kind in STORAGE_TABLES[table]}
+        meta,_,_=describe_rows(rows,columns,path)
+        meta['table']=table
+        key=source_key(meta)
+        if key in report_sources:
+            target=report_sources[key]
+            summary('typed_report_source_reuse',image=path,source=target,rows=meta['count'])
+            return {'image':target}
+        node=image(path,binding,rows)
+        report_sources[key]=path
+        return node
     reports=[]
     seen_reports=set()
     for stage in output.get('Reports',[]):
@@ -440,7 +462,7 @@ def save_daily(run,output, *, frozen=None,profile_digest=None):
         report=dict(stage=stage['stage'],tables=tables)
         if 'deferred' in stage:
             report['deferred']=stage['deferred']
-            report['sources']={name:image('report-facts/'+stage['stage']+'/'+name,'closing/dbm/'+name,rows)
+            report['sources']={name:report_source('report-facts/'+stage['stage']+'/'+name,name,rows)
                 for name,rows in stage['sources'].items()}
         reports.append(report)
     bpr={name:image('reports/bpr/'+name,'reports/bpr/'+name,output['BPRFinal'][0][name])
