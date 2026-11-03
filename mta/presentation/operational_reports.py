@@ -19,6 +19,9 @@ from mta.runtime.accepted_state_read import read_accepted_daily as read_daily
 SCHEMA='fresh-derived-report-generation-v1'
 DATED_SCHEMA='fresh-derived-report-generation-v2'
 COMPACT_SCHEMA='fresh-derived-report-generation-v3'
+# First compact producer rendered all XML from the full window. Its sealed
+# receipts and incomplete attempts keep that exact producer identity.
+FULL_WINDOW_COMPACT_RECIPE='065c4222e2dc78189e100e3ad077f7711b794e9df03be642fc3884c230481927'
 CONSUMERS=('ExcessProjection','FulfillmentProjection','ExpediteProjection','PickPostProjection')
 
 
@@ -38,9 +41,14 @@ def recipe_identity(version=1):
         storage=[inspect.getsource(module) for module in (btr_calendar_images_v2, btr_calendar_sources, btr_calendar)]))
     if version == 2:
         return dated
-    from mta.presentation import btr_snapshot_storage
+    from mta.presentation import btr_snapshot_storage, btr_incremental_xml
     return digest(dict(schema=COMPACT_SCHEMA, base=dated, builder=inspect.getsource(_build_compact),
-                       snapshot=inspect.getsource(btr_snapshot_storage)))
+                       snapshot=inspect.getsource(btr_snapshot_storage), advance=inspect.getsource(btr_incremental_xml)))
+
+
+def _supported_recipe(row):
+    return ((row.version == 3 and row.recipe_digest == FULL_WINDOW_COMPACT_RECIPE)
+            or row.recipe_digest == recipe_identity(row.version))
 
 
 def consumer_metadata(run):
@@ -59,7 +67,7 @@ def consumer_metadata(run):
 def generation(run):
     row=DailyReportGeneration.objects.filter(run=run,status='READY').first()
     if (row is None or row.version not in (1,2,3) or row.source_digest!=run.production_digest
-            or row.recipe_digest!=recipe_identity(row.version) or row.digest!=digest(row.metadata)
+            or not _supported_recipe(row) or row.digest!=digest(row.metadata)
             or row.metadata.get('schema')!={1:SCHEMA, 2:DATED_SCHEMA, 3:COMPACT_SCHEMA}[row.version]):
         raise ValueError('Derived report generation is not ready or its identity differs')
     if row.version in (2,3):
@@ -208,14 +216,16 @@ def _build_dated(run):
     return metadata
 
 
-def _build_compact(run):
+def _build_compact(run, *, incremental):
     from mta.presentation import btr_snapshot_storage as snapshot
     from mta.presentation import btr_calendar_images as calendar
     from mta.presentation.btr_calendar_sources import TRENDS, advance
     predecessor = run.predecessor if run.predecessor_id else None
+    previous = None
     prior_directory = None
     if predecessor is not None and DailyReportGeneration.objects.filter(run=predecessor,version__in=(2,3)).exists():
-        prior_directory = generation(predecessor).metadata['btr_calendar']
+        previous = generation(predecessor)
+        prior_directory = previous.metadata['btr_calendar']
     directory = advance(run, predecessor=predecessor if prior_directory is not None else None,
                         directory=prior_directory)
     from mta.runtime.input_reader import read_execution_input as read_input
@@ -233,8 +243,16 @@ def _build_compact(run):
         'vf_RationedReqReport':output['BPRReports'][0]['vf_RationedReqReport']}
     profile=read_input(run,components=('profile',))['profile']
     delivery=profile['delivery']
-    derived=reporting_btr(run.business_date,closing['btr'],facts,delivery['btr_settings'],
-        importer_vf_settings=delivery.get('btr_history',{}).get('importer_vf_settings'))
+    from mta.runtime import btr_import_image
+    importer = delivery.get('btr_history',{}).get('importer_vf_settings')
+    if (incremental and previous is not None and previous.version == 3
+            and btr_import_image.owns(run.production_manifest['images']['closing/btr/BPR'])):
+        from mta.presentation import btr_incremental_xml
+        derived = btr_incremental_xml.reporting(run, predecessor, previous.metadata['images'][snapshot.PATH],
+            closing['btr'], facts, delivery['btr_settings'], importer)
+    else:
+        derived = reporting_btr(run.business_date, closing['btr'], facts, delivery['btr_settings'],
+                                importer_vf_settings=importer)
     images={}
     for name in sorted(DERIVED_TABLES):
         path='closing/btr/'+name
@@ -282,7 +300,7 @@ def prepare(run_id,*,expected_output_digest):
             source_digest=run.production_digest,recipe_digest=lambda: recipe_identity(candidate_version())))
         if row.status=='READY':
             return generation(run)
-        if row.source_digest!=run.production_digest or row.recipe_digest!=recipe_identity(row.version):
+        if row.source_digest!=run.production_digest or not _supported_recipe(row):
             raise ValueError('Report source/recipe generation changed')
         with transaction.atomic():
             row=DailyReportGeneration.objects.select_for_update().get(run=run)
@@ -290,8 +308,10 @@ def prepare(run_id,*,expected_output_digest):
             with connection.cursor() as cursor:
                 cursor.execute("SELECT set_config('fresh.report_generation',%s,true)",[str(run.pk)])
             with stage('derived_report_build'):
-                builder = {1: _build, 2: _build_dated, 3: _build_compact}[row.version]
-                row.metadata=builder(run)
+                if row.version == 3:
+                    row.metadata = _build_compact(run, incremental=row.recipe_digest != FULL_WINDOW_COMPACT_RECIPE)
+                else:
+                    row.metadata = _build_dated(run) if row.version == 2 else _build(run)
             summary('derived_report_consumers',families=len(row.metadata['consumers']))
             row.digest=digest(row.metadata);row.status='READY';row.sealed_at=timezone.now()
             row.save(update_fields=['metadata','digest','status','sealed_at'])
