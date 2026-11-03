@@ -137,6 +137,8 @@ def finish_btr_boundary(boundary):
         qualification=daily_finalization.qualification(finalization['policy']),
         flag_digest=digest(closing['complete']['ScriptExecutedFlag']))
     result['_ReportBoundary']='fresh-operational-report-boundary-v3'
+    if context.history_changes is not None:
+        result['_HistoryTransitions'] = context.history_changes
     from mta.application.persistent_master import qualify,CONTRACT
     result['_MasterPreparation']=dict(contract=CONTRACT,
         qualified=(True if context.master_reused else qualify(context.master,
