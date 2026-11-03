@@ -4,7 +4,10 @@ Normal admitted consumers use accepted_state_read. Explicit receipt audits use
 this adapter to validate physical storage before returning a logical image.
 No existing consumer is silently switched from audited to accepted reads.
 """
-from mta.runtime import relational_state, rationing_reader, btr_import_image, dated_history_reader, inherited_history_image
+from mta.runtime import (
+    relational_state, rationing_reader, btr_import_image, dated_history_reader,
+    inherited_history_image, transition_history_image,
+)
 from mta.runtime.rationing_audit import audit_cut
 
 
@@ -25,6 +28,9 @@ def _new_cut(run, item, table_registry):
 
 
 def iter_image(run, item, *, table_registry=None):
+    if transition_history_image.owns(item):
+        yield from relational_state.iter_image(run,item,table_registry=table_registry)
+        return
     if inherited_history_image.owns(item):
         registry=relational_state.STORAGE_TABLES if table_registry is None else table_registry
         if item['table'] not in registry:raise ValueError('Unknown operational table')
@@ -45,6 +51,8 @@ def iter_image(run, item, *, table_registry=None):
 
 
 def load_image(run, item, *, table_registry=None):
+    if transition_history_image.owns(item):
+        return relational_state.load_image(run,item,table_registry=table_registry)
     if inherited_history_image.owns(item):
         registry=relational_state.STORAGE_TABLES if table_registry is None else table_registry
         if item['table'] not in registry:raise ValueError('Unknown operational table')
