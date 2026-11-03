@@ -103,27 +103,42 @@ def _action_reader(run,receipt):
 
 def _state_after(run,receipt,state,initial_revision,*,expected_revision):
     from mta.runtime.models import RunCommand
-    from mta.runtime.relational_state import load_image
-    from mta.temporal.actions import apply_command
     current=initial_revision
     for event in RunCommand.objects.filter(run=run,phase_acceptance=receipt).order_by('id'):
-        if (not event.state_sealed or digest(event.payload)!=event.digest
-                or event.scope_parent_revision!=current or digest(state)!=event.before_digest
-                or not event.state_manifest or set(event.state_manifest)-set(TABLES[1:])):
-            raise ValueError('Scoped action chain or typed owner differs')
-        command=event.payload
-        expected=storage(apply_command(state,command['operation'],
-            [tuple(key) for key in command['selected']],command['timestamp']))
-        for name,image in event.state_manifest.items():
-            if image['image']!='action/'+str(event.pk)+'/'+name or image['table']!='DBM/'+name:
-                raise ValueError('Scoped action image identity differs')
-            state[name]=load_image(run,image)
-        if state!=expected or digest(state)!=event.after_digest:
-            raise ValueError('Scoped action canonical typed result differs')
+        _checked_event(run,receipt,state,current,event)
         current=event.pk
+    _require_revision(run,current,expected_revision)
+    return state
+
+
+def _require_revision(run,current,expected_revision):
     if type(expected_revision) is not int or current!=expected_revision or revision(run)!=expected_revision:
         raise ValueError('Scoped action consumer revision changed')
-    return state
+
+
+def _checked_event(run,receipt,state,current,event):
+    """Verify one persisted transition from an already-verified before-state.
+
+    This is shared by complete historical replay and record's new-tail check.
+    The latter is valid only inside record's unchanged source/run lock lifetime;
+    it is not a cached state, an unverified event image or a new read authority.
+    """
+    from mta.runtime.relational_state import load_image
+    from mta.temporal.actions import apply_command
+    if (event.run_id!=run.pk or event.phase_acceptance_id!=receipt.pk
+            or not event.state_sealed or digest(event.payload)!=event.digest
+            or event.scope_parent_revision!=current or digest(state)!=event.before_digest
+            or not event.state_manifest or set(event.state_manifest)-set(TABLES[1:])):
+        raise ValueError('Scoped action chain or typed owner differs')
+    command=event.payload
+    expected=storage(apply_command(state,command['operation'],
+        [tuple(key) for key in command['selected']],command['timestamp']))
+    for name,image in event.state_manifest.items():
+        if image['image']!='action/'+str(event.pk)+'/'+name or image['table']!='DBM/'+name:
+            raise ValueError('Scoped action image identity differs')
+        state[name]=load_image(run,image)
+    if state!=expected or digest(state)!=event.after_digest:
+        raise ValueError('Scoped action canonical typed result differs')
 
 
 @transaction.atomic
@@ -178,7 +193,11 @@ def record(run_id,*,phase_id,phase_digest,expected_revision,operation,selected,
     scope_revisions.verify_write(run,event.scope_revision_after)
     event.refresh_from_db()
     # A writer/type conversion failure rolls the command and every image back.
-    current_state(event.pk)
+    # The prefix was fully validated above and stays immutable under these
+    # same source/run locks. Read/verify the actual appended typed transition;
+    # replaying all earlier commands here would repeat that work needlessly.
+    _checked_event(run,receipt,state,expected_revision,event)
+    _require_revision(run,event.pk,event.pk)
     return event
 
 

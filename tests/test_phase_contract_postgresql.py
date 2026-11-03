@@ -49,9 +49,20 @@ class PhaseContractPostgresTests(PhaseStatePostgresTests):
         new = dict(old, phase_contract=contract.describe(), storage_format=FORMAT)
         cases = [(contract.LEGACY_RECIPE, old, contract.LEGACY_LOGICAL),
                  ('a'*64, new, contract.LEGACY_LOGICAL),
+                 ('a'*64, dict(new,storage_format='fresh-phase-image-references-v2'),contract.LEGACY_LOGICAL),
                  ('a'*64, old, None), (contract.LEGACY_RECIPE, new, None),
                  ('a'*64, dict(new, storage_format='unqualified'), None),
                  ('a'*64, dict(new, phase_contract=dict(schema=contract.SCHEMA, digest='b'*64)), None)]
+        path='phase/BPR/controls/suggestions_log'
+        inherited=dict(new,phase='BPR',metadata={'identity':'child'},images={path:dict(
+            image='phase/PRE_BPR/controls/suggestions_log',
+            storage_format='inherited-control-history-v1',run_id='child')})
+        old_inherited=dict(inherited);old_inherited.pop('phase_contract');old_inherited.pop('storage_format')
+        cases += [('a'*64,inherited,contract.LEGACY_LOGICAL),
+                  ('a'*64,dict(inherited,storage_format='fresh-phase-image-references-v2'),None),
+                  (contract.LEGACY_RECIPE,old_inherited,None),
+                  ('a'*64,dict(inherited,images={'phase/BPR/dbm/SuggestionsLog':inherited['images'][path]}),None),
+                  ('a'*64,dict(inherited,metadata={'identity':'another-child'}),None)]
         with connection.cursor() as cursor:
             for recipe, manifest, expected in cases:
                 cursor.execute('SELECT mta.phase_logical_contract(%s,%s::jsonb)',

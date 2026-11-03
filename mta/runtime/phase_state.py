@@ -15,10 +15,11 @@ from mta.runtime.phase_state_layout import SCHEMA, REGISTRY, TABLES, PRIOR_REFS,
 
 def recipe_digest():
     from mta.temporal import chain, day_phases
-    from mta.runtime import phase_image_storage
+    from mta.runtime import phase_image_storage, inherited_history_image
     return digest(dict(codec=inspect.getsource(inspect.getmodule(recipe_digest)),
         logical=inspect.getsource(layout), contract=inspect.getsource(contract),
         physical=inspect.getsource(phase_image_storage),
+        inherited_history=inspect.getsource(inherited_history_image),
         chain=inspect.getsource(chain), phases=inspect.getsource(day_phases), registry=REGISTRY))
 
 
@@ -51,11 +52,12 @@ def _write_rows(run, path, table, rows, *, description=None):
 
 
 def encode(phase, sources, *, row_writer, export_writer, parent_manifest=None,
-           _described_writer=None):
+           _described_writer=None, _prior_writer=None):
     from mta.runtime.phase_image_storage import ImageWriter, FORMAT
     writer = ImageWriter(lambda path, table, rows, description:
         row_writer(path, table, rows) if _described_writer is None else
-        _described_writer(path, table, rows, description), parent_manifest=parent_manifest)
+        _described_writer(path, table, rows, description), parent_manifest=parent_manifest,
+        prior_writer=_prior_writer)
     manifest = layout.encode(phase, sources, image_writer=writer, export_writer=export_writer)
     manifest.update(phase_contract=contract.describe(), storage_format=FORMAT)
     return manifest
@@ -103,12 +105,14 @@ def _save(run, phase, sources, *, parent, acceptance):
             or phase.context.today != owner.business_date.isoformat()
             or not valid_parent):
         raise ValueError('Phase snapshot run/date/parent differs')
+    from mta.runtime.inherited_history_image import ReferenceWriter
     manifest = encode(phase, sources,
         row_writer=lambda path, table, values: _write_rows(owner, path, table, values),
         _described_writer=lambda path, table, values, description:
             _write_rows(owner, path, table, values, description=description),
         export_writer=lambda path, values: typed.save_export(owner, path, values),
-        parent_manifest=parent.manifest if parent else None)
+        parent_manifest=parent.manifest if parent else None,
+        _prior_writer=ReferenceWriter(owner))
     if parent is not None:
         if manifest['references'] != parent.manifest['references']:
             raise ValueError('Continuation parent dependency revision differs')

@@ -7,7 +7,8 @@ projection with a specific logical owner, including empty populations.
 from mta.runtime import relational_state as typed
 from mta.runtime.phase_state_layout import REGISTRY
 
-FORMAT = 'fresh-phase-image-references-v2'
+FORMAT = 'fresh-phase-image-references-v3'
+READABLE_FORMATS = ('fresh-phase-image-references-v2', FORMAT)
 IDENTITY_FIELDS = ('table', 'count', 'digest', 'fields')
 CONTROL_PROJECTIONS = {
     'SuggestionsLog': 'suggestions_log',
@@ -34,9 +35,10 @@ class ImageWriter:
     Every input still receives the complete typed ordered description. Reuse
     reduces physical writes only; it does not claim incremental hashing/reads.
     """
-    def __init__(self, writer, *, parent_manifest=None):
+    def __init__(self, writer, *, parent_manifest=None, prior_writer=None):
         self.writer = writer
         self.parent = parent_manifest
+        self.prior_writer = prior_writer
         self.images = {}
 
     def __call__(self, path, table, rows):
@@ -49,7 +51,15 @@ class ImageWriter:
         # Corresponding-path ancestry stays preferred. Both candidate kinds
         # require the actual producer's complete ordered typed equality.
         for candidate in (inherited, same_phase):
+            from mta.runtime.inherited_history_image import owns, PATHS
+            if candidate is not None and owns(candidate) and path not in PATHS:
+                continue
             if candidate is not None and all(meta[k] == candidate[k] for k in IDENTITY_FIELDS):
+                self.images[path] = candidate
+                return candidate
+        if self.prior_writer is not None:
+            candidate = self.prior_writer(path, table, description)
+            if candidate is not None:
                 self.images[path] = candidate
                 return candidate
         result = self.writer(path, table, rows, description)
@@ -64,6 +74,9 @@ def owns_physical_image(manifests, logical_image, metadata):
     checks. This function adds no admission authority and never loads rows.
     """
     current = manifests[0]
+    from mta.runtime.inherited_history_image import owns, PATHS
+    if owns(metadata) and logical_image not in PATHS:
+        return False
     if current['images'].get(logical_image) != metadata:
         return False
     if not logical_image.startswith('phase/'+current['phase']+'/'):
@@ -72,8 +85,8 @@ def owns_physical_image(manifests, logical_image, metadata):
     for owner in manifests:
         candidate = 'phase/'+owner['phase']+'/'+suffix
         if metadata.get('image') == candidate and owner['images'].get(candidate) == metadata:
-            return True
-    if current.get('storage_format') != FORMAT:
+            return not owns(metadata) or owner.get('storage_format') == FORMAT
+    if current.get('storage_format') not in READABLE_FORMATS:
         return False
     source = source_path(logical_image)
     if source is None or current['images'].get(source) != metadata:
@@ -88,3 +101,21 @@ def owns_physical_image(manifests, logical_image, metadata):
     # The declared graph has at most report -> DBM -> control -> ancestor;
     # source_path cannot create a cycle or cross to an unrelated population.
     return owns_physical_image(manifests, source, metadata)
+
+
+def supports_inherited_images(manifest):
+    """Old formats cannot smuggle a new physical capability into phase reads."""
+    from mta.runtime.inherited_history_image import owns, PATHS
+    images=manifest.get('images',{})
+    if type(images) is not dict:return False
+    for path,item in images.items():
+        if type(item) is not dict or not owns(item):continue
+        phase=manifest.get('phase')
+        metadata=manifest.get('metadata',{})
+        if (manifest.get('storage_format')!=FORMAT or phase not in ('PRE_BPR','BPR','DBM')
+                or path!='phase/'+phase+'/controls/suggestions_log'
+                or item.get('image') not in PATHS-{'closing/controls/suggestions_log'}
+                or item.get('run_id') is None
+                or type(metadata) is not dict or item['run_id']!=metadata.get('identity')):
+            return False
+    return True

@@ -21,6 +21,28 @@ def encode(phase, sources, memory, parent=None):
 
 
 class PhaseImageStorageTests(TestCase):
+    def test_current_dbm_cannot_indirectly_inherit_prior_control_cut(self):
+        rows=[dict(SKUCode='S',WhCode='W',Type=5,OldNorm=123,NewNorm=82,SuggestionDate=None)]
+        from mta.runtime.inherited_history_image import FORMAT as HISTORY_FORMAT
+        control='phase/DBM/controls/suggestions_log'
+        current='phase/DBM/dbm/SuggestionsLog'
+        memory=MemoryImages()
+        def prior(path,table,description):
+            if path==control:
+                return dict(description[0],table=table,storage_format=HISTORY_FORMAT,
+                            run_id='child',cut_id='prior-cut',cut_digest='a'*64)
+            return None
+        writer=ImageWriter(lambda p,t,r,d:memory.rows(p,t,r),prior_writer=prior)
+        carried=writer(control,'DBM/SuggestionsLog',rows)
+        produced=writer(current,'DBM/SuggestionsLog',rows)
+        self.assertEqual(carried['storage_format'],HISTORY_FORMAT)
+        self.assertNotIn('storage_format',produced)
+        self.assertEqual(produced['image'],current)
+        self.assertEqual(memory.writes,[current])
+        forged=dict(phase='DBM',storage_format=FORMAT,images={current:carried,control:carried},
+                    state={'control_final':{'suggestions_log':{'image':control}}})
+        self.assertFalse(owns_physical_image((forged,),current,carried))
+
     def test_unchanged_history_reuses_pre_bpr_owner_through_dbm_and_restarts(self):
         self._assert_history_restart(legacy_parent=False)
 

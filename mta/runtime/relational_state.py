@@ -198,6 +198,10 @@ def save_image(run,image,binding,rows, *, table=None):
 def iter_image(run,item, *, table_registry=None):
     if item['table'] not in (STORAGE_TABLES if table_registry is None else table_registry):
         raise ValueError('Unknown operational table')
+    from mta.runtime import inherited_history_image
+    if inherited_history_image.owns(item):
+        yield from inherited_history_image.iter_image(run,item,audit=True)
+        return
     fields=item['fields']
     checksum=hashlib.sha256(b'[');count=0
     with connection.chunked_cursor() as cursor:
@@ -391,10 +395,20 @@ def save_daily(run,output, *, frozen=None,profile_digest=None):
     closing=output['ClosingState'][0]
     images={};template={}
     from mta.runtime import btr_import_image
+    from mta.runtime.inherited_history_image import ReferenceWriter, PATHS as INHERITED_PATHS
+    inherited=ReferenceWriter(run,frozen=frozen)
     defer_bpr = (frozen is not None and output.get('_ReportBoundary') and run.evidence_mode=='production' and output.get('BPRFinal')
                  and btr_import_image.compatible_parent(run))
     def image(path,binding,rows):
         from mta.runtime import dated_history_writer
+        if path in INHERITED_PATHS and frozen is not None:
+            key='/'.join(CATALOG['bindings'][binding])
+            columns={name.casefold():(name,kind) for name,kind in STORAGE_TABLES[key]}
+            description=describe_rows(rows,columns,path)
+            reference=inherited(path,key,description)
+            if reference is not None:
+                images[path]=reference
+                return {'image':path}
         if path=='closing/btr/RationingHistory' and frozen is not None:
             from mta.runtime.rationing_writer import write_frozen_day
             images[path]=write_frozen_day(run,rows,frozen=frozen,profile_digest=profile_digest)

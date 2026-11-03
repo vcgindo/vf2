@@ -51,3 +51,26 @@ class PhaseContractTests(TestCase):
             self.assertTrue(contract.compatible(snapshot))
             contract.require(snapshot)
             self.assertEqual(snapshot.recipe_digest, actual)
+
+    def test_prior_v2_storage_remains_readable_without_relabeling(self):
+        manifest=dict(schema='fresh-native-phase-state-v1',
+                      phase_contract=contract.describe(),storage_format='fresh-phase-image-references-v2')
+        before=deepcopy(manifest)
+        snapshot=SimpleNamespace(recipe_digest='2'*64,manifest=manifest)
+        self.assertTrue(contract.compatible(snapshot))
+        self.assertEqual(manifest,before)
+        self.assertEqual(FORMAT,'fresh-phase-image-references-v3')
+
+    def test_inherited_reference_requires_v3_and_its_control_owner(self):
+        path='phase/BPR/controls/suggestions_log'
+        item=dict(image='phase/PRE_BPR/controls/suggestions_log',
+                  storage_format='inherited-control-history-v1',run_id='child')
+        manifest=dict(schema='fresh-native-phase-state-v1',phase='BPR',metadata={'identity':'child'},
+                      phase_contract=contract.describe(),storage_format=FORMAT,images={path:item})
+        accepted=lambda value:contract.compatible(SimpleNamespace(recipe_digest='3'*64,manifest=value))
+        self.assertTrue(accepted(manifest))
+        self.assertFalse(accepted(dict(manifest,storage_format='fresh-phase-image-references-v2')))
+        legacy=dict(manifest);legacy.pop('phase_contract');legacy.pop('storage_format')
+        self.assertFalse(contract.compatible(SimpleNamespace(recipe_digest=contract.LEGACY_RECIPE,manifest=legacy)))
+        self.assertFalse(accepted(dict(manifest,images={'phase/BPR/dbm/SuggestionsLog':item})))
+        self.assertFalse(accepted(dict(manifest,metadata={'identity':'different-child'})))

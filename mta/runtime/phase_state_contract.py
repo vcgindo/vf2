@@ -35,10 +35,11 @@ def describe():
 
 def effective(recipe, manifest):
     """Interpret a sealed descriptor; caller retains all owner/integrity checks."""
-    from mta.runtime.phase_image_storage import FORMAT
+    from mta.runtime.phase_image_storage import READABLE_FORMATS, supports_inherited_images
     if (type(recipe) is not str or re.fullmatch('[0-9a-f]{64}', recipe) is None
             or type(manifest) is not dict
-            or manifest.get('schema') != 'fresh-native-phase-state-v1'):
+            or manifest.get('schema') != 'fresh-native-phase-state-v1'
+            or not supports_inherited_images(manifest)):
         raise ValueError('Phase contract descriptor differs')
     if 'phase_contract' not in manifest:
         if recipe != LEGACY_RECIPE or 'storage_format' in manifest:
@@ -49,7 +50,7 @@ def effective(recipe, manifest):
             or set(contract) != {'schema', 'digest'} or contract.get('schema') != SCHEMA
             or type(contract.get('digest')) is not str
             or re.fullmatch('[0-9a-f]{64}', contract['digest']) is None
-            or manifest.get('storage_format') != FORMAT):
+            or manifest.get('storage_format') not in READABLE_FORMATS):
         raise ValueError('Unknown phase logical or storage contract')
     return contract['digest']
 

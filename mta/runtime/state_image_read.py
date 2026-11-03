@@ -4,7 +4,7 @@ Normal admitted consumers use accepted_state_read. Explicit receipt audits use
 this adapter to validate physical storage before returning a logical image.
 No existing consumer is silently switched from audited to accepted reads.
 """
-from mta.runtime import relational_state, rationing_reader, btr_import_image, dated_history_reader
+from mta.runtime import relational_state, rationing_reader, btr_import_image, dated_history_reader, inherited_history_image
 from mta.runtime.rationing_audit import audit_cut
 
 
@@ -25,6 +25,11 @@ def _new_cut(run, item, table_registry):
 
 
 def iter_image(run, item, *, table_registry=None):
+    if inherited_history_image.owns(item):
+        registry=relational_state.STORAGE_TABLES if table_registry is None else table_registry
+        if item['table'] not in registry:raise ValueError('Unknown operational table')
+        yield from inherited_history_image.iter_image(run,item,audit=True)
+        return
     if btr_import_image.owns(item):
         if table_registry is not None and item['table'] not in table_registry:
             raise ValueError('Unknown operational table')
@@ -40,6 +45,10 @@ def iter_image(run, item, *, table_registry=None):
 
 
 def load_image(run, item, *, table_registry=None):
+    if inherited_history_image.owns(item):
+        registry=relational_state.STORAGE_TABLES if table_registry is None else table_registry
+        if item['table'] not in registry:raise ValueError('Unknown operational table')
+        return inherited_history_image.load_image(run,item,audit=True)
     if btr_import_image.owns(item):
         if table_registry is not None and item['table'] not in table_registry:
             raise ValueError('Unknown operational table')
