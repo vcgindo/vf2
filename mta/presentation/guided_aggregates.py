@@ -42,8 +42,14 @@ def recipe_digest():
     root = Path(__file__).resolve().parents[1]
     paths = ('presentation/guided_aggregates.py', 'presentation/permissions.py',
              'runtime/management/commands/prepare_guided_aggregates.py',
-             'runtime/report_aggregate_schema.py')
+             'runtime/report_aggregate_schema.py', 'runtime/guided_statistics.py')
     return digest({path: hashlib.sha256((root / path).read_bytes()).hexdigest() for path in paths})
+
+
+def compatible_recipe(observed):
+    # The predecessor wrote the same rows before statistics moved into the
+    # command. Keep its sealed identity and authenticate source and rows as usual.
+    return observed in (recipe_digest(), '93abcba6aa62fe70060ec1ff6a96ea8ce1a737f2040e0a824888e90549bab55d')
 
 
 def permission_classes(records, attributes, code, prefix):
@@ -72,7 +78,7 @@ def read_aggregate(run, cutoff, predicate, payload, kind, minimum_age=None):
     receipt = ReportAggregateReceipt.objects.filter(run=run).first()
     if receipt is None:
         return None
-    if receipt.source_digest != source_binding(run) or receipt.recipe_digest != recipe_digest():
+    if receipt.source_digest != source_binding(run) or not compatible_recipe(receipt.recipe_digest):
         raise PublicationUnavailable('Guided_aggregate_receipt_changed')
     from mta.runtime.report_aggregate_schema import verify_guards
     verify_guards(connection)

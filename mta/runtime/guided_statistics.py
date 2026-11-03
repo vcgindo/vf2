@@ -7,9 +7,6 @@ never rows, report recipes, database settings or accepted receipts.
 """
 from django.db import connection
 
-from mta.runtime.models import ReportAggregateReceipt
-
-
 SOURCE_TABLES = (
     'mta.fresh_mta_guidedavailabilityhistoryrow',
     'mta.fresh_mta_guidedavailabilitysnapshotreference',
@@ -17,14 +14,12 @@ SOURCE_TABLES = (
 )
 
 
-def refresh_pending(run):
-    """Use current source statistics; leave sealed aggregate reuse untouched."""
+def refresh_sources(run):
+    """Refresh sources for the command's locked, unsealed build."""
     if connection.vendor != 'postgresql':
         raise ValueError('Guided aggregate statistics require PostgreSQL')
     if run.kind != 'DAILY_CHAIN' or run.status != 'SUCCEEDED':
         raise ValueError('Guided aggregate statistics require a committed daily run')
-    if ReportAggregateReceipt.objects.filter(run=run).exists():
-        return False
     with connection.cursor() as cursor:
         # PostgreSQL can skip ANALYZE with a warning and still return success.
         # Capture only notices from these statements on this connection.
@@ -43,4 +38,3 @@ def refresh_pending(run):
                     raise ValueError(f'Guided statistics refresh failed for {table}: {warnings[0]}')
         finally:
             physical.remove_notice_handler(record_warning)
-    return True

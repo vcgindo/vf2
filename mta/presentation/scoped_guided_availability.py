@@ -52,13 +52,13 @@ def bind(view):
     receipt=require_owner(btr.predecessor)
     # The optional rollup is a separate owner. Validate it before response
     # cache hits too; absent rollups keep the original occurrence-reader path.
-    from mta.presentation.guided_aggregates import source_binding, recipe_digest
+    from mta.presentation.guided_aggregates import source_binding, compatible_recipe
     from mta.runtime.models import ReportAggregateReceipt
     from mta.runtime.report_aggregate_schema import verify_guards
     row=ReportAggregateReceipt.objects.filter(run=btr.predecessor).first()
     aggregate=None
     if row is not None:
-        if row.source_digest!=source_binding(btr.predecessor) or row.recipe_digest!=recipe_digest():
+        if row.source_digest!=source_binding(btr.predecessor) or not compatible_recipe(row.recipe_digest):
             raise PublicationUnavailable('Guided_aggregate_receipt_changed')
         verify_guards(connection)
         aggregate=dict(source=row.source_digest,recipe=row.recipe_digest,

@@ -9,7 +9,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import connection, transaction
 
 from mta.presentation.context import permission_catalogue
-from mta.presentation.guided_aggregates import (permission_classes, recipe_digest,
+from mta.presentation.guided_aggregates import (permission_classes, recipe_digest, compatible_recipe,
     source_binding, AGGREGATE_TABLE, MEMBER_TABLE)
 from mta.presentation.selective import image_rows
 from mta.runtime.models import ReportAggregateReceipt, ReportScopeMember
@@ -78,7 +78,9 @@ class Command(BaseCommand):
             receipt = ReportAggregateReceipt.objects.filter(run=run).first()
             if receipt:
                 counts = readback(run)
-                if (receipt.source_digest, receipt.recipe_digest, receipt.row_count, receipt.rows_digest, receipt.member_count, receipt.members_digest) != (source, recipe_digest(), *counts[0], *counts[1]):
+                if (not compatible_recipe(receipt.recipe_digest)
+                        or (receipt.source_digest, receipt.row_count, receipt.rows_digest,
+                            receipt.member_count, receipt.members_digest) != (source, *counts[0], *counts[1])):
                     raise CommandError('Aggregate readback differs; no replacement permitted')
                 self.stdout.write(json.dumps(dict(status='PASS', created=False, rows=receipt.row_count, members=receipt.member_count, seconds=time.monotonic() - started)))
                 return
@@ -88,6 +90,8 @@ class Command(BaseCommand):
                 cursor.execute('SELECT EXISTS(SELECT 1 FROM ' + AGGREGATE_TABLE + ' WHERE run_id=%s),EXISTS(SELECT 1 FROM ' + MEMBER_TABLE + ' WHERE run_id=%s)', [run.pk, run.pk])
                 if any(cursor.fetchone()):
                     raise CommandError('Unsealed aggregate rows exist; refuse replacement')
+                from mta.runtime.guided_statistics import refresh_sources
+                refresh_sources(run)
                 cursor.execute("SELECT set_config('fresh.report_aggregate_build',%s,true)", [str(run.pk)])
                 catalogue = permission_catalogue()
                 for family, owner in (('availability', 'closing/btr/'), ('excess', 'closing/importer/')):

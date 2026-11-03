@@ -26,13 +26,11 @@ class DailySummaryTests(unittest.TestCase):
         with patch('django.db.backends.base.base.BaseDatabaseWrapper.ensure_connection',side_effect=AssertionError('no DB authority')), \
              patch('mta.runtime.models.CalculationRun.objects.get',return_value=run), \
              patch('mta.presentation.native_publication.identity') as identity, \
-             patch('mta.runtime.guided_statistics.refresh_pending') as statistics, \
              patch('django.core.management.call_command') as aggregate, \
              patch('mta.runtime.management.commands.prepare_daily_ui.prepare_reporting_generation',return_value=(publication,summary)) as prepare:
             Command(stdout=MagicMock()).handle(run_id='run',output_digest='output')
         prepare.assert_called_once_with('run',expected_output_digest='output')
         identity.assert_called_once_with(run,verify_rows=True)
-        statistics.assert_called_once_with(run)
         aggregate.assert_called_once_with('prepare_guided_aggregates',run_id='run',output_digest='output')
 
     def test_coordinator_prepares_summary_only_after_base_ready(self):

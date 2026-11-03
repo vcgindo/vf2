@@ -754,8 +754,6 @@ def execute(attempt_id, binding_file, *, pick_root, resume=False):
                 raise ValueError('Full report generation is not ready')
             from django.core.management import call_command
             with operation(str(run.pk)), stage('guided_aggregates'):
-                from mta.runtime.guided_statistics import refresh_pending
-                refresh_pending(run)
                 call_command('prepare_guided_aggregates', run_id=str(run.pk), output_digest=run.output_digest,
                              stdout=io.StringIO())
             from mta.application.native_input_archive import prepare_accepted as prepare

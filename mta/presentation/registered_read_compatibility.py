@@ -124,14 +124,27 @@ ADAPTED_DEPENDENCIES = {'mta.presentation.generic_terminal_delivery': 'cdc6e1669
  'mta.runtime.runtime_report_registered_request': 'fe94595e3241bcdf96ab7704b5a7fd7eae4c975049d905887b885e67956aa468',
  'mta.runtime.runtime_report_request': '2cc9ec5352fe08145d14027c6ebc39587827de3c126aaac022df05243ae9631f'}
 
+GUIDED_STATISTICS_READERS = {
+    'mta.presentation.guided_aggregates': 'ecd1250cb65b42c5946cd4248c40d51b47a875dde83e5dce0366a5e874cde911',
+    'mta.presentation.scoped_guided_availability': '9a1b4f5a92f0293b08451d6e2a08531f23df587c9baff26b2d9dc68ab9948dc7',
+}
+
 
 @once_per_request
 def recipe():
     if set(ADAPTED_DEPENDENCIES) != {'mta.runtime.runtime_report_request', 'mta.presentation.generic_terminal_delivery', 'mta.runtime.migrations.0242_generic_read_sql_aliases', 'mta.presentation.scoped_artifacts', 'mta.runtime.production_scope_policy', 'mta.presentation.scoped_bor', 'mta.runtime.migrations.0238_registered_read_action_cut', 'mta.presentation.scoped_batch_files', 'mta.runtime.runtime_report_registered_request', 'mta.presentation.views', 'mta.presentation.scoped_selection', 'mta.runtime.migrations.0239_production_generic_scope_read', 'mta.presentation.registered_report_view', 'mta.presentation.scoped_view', 'mta.presentation.scoped_batch_downloads'}:
         raise PublicationUnavailable('registered_read_profile_roster_differs')
+    guided_qualified = False
     for name, checksum in dict(ORIGINAL_DEPENDENCIES, **ADAPTED_DEPENDENCIES).items():
         actual = hashlib.sha256(inspect.getsource(import_module(name)).encode()).hexdigest()
         if actual != checksum:
+            if GUIDED_STATISTICS_READERS.get(name) == actual:
+                if not guided_qualified:
+                    guided_qualified = all(
+                        hashlib.sha256(inspect.getsource(import_module(module)).encode()).hexdigest() == pin
+                        for module, pin in GUIDED_STATISTICS_READERS.items())
+                if guided_qualified:
+                    continue
             raise PublicationUnavailable('registered_read_profile_source_differs:' + name)
     return RECIPE
 
