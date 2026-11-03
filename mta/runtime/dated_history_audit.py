@@ -14,6 +14,27 @@ from mta.runtime.relational_state import quote,wire_value
 from mta.runtime.state_cut_models import OperationalStateCut
 
 
+def _audit_adopted_transition(cut):
+    from mta.runtime.models import CalculationRun
+    from mta.runtime.relational_state import iter_image
+    from mta.runtime.dated_history_reader import iter_occurrences
+    from mta.serialization import digest
+
+    run=CalculationRun.objects.get(pk=cut.run,status='SUCCEEDED')
+    manifest=run.production_manifest
+    family=cut.body['family']
+    item=manifest['images'][family]
+    expected=dict(owner_kind='RUN',owner_id=str(run.pk),manifest_digest=run.production_digest,
+                  image=family,digest=item['digest'],count=item['count'])
+    if (digest(manifest)!=run.production_digest or item.get('image')!=family
+            or 'storage_format' in item or cut.body['anchor']!=expected):
+        raise ValueError('History audit adopted transition source differs')
+    with closing(iter_occurrences(cut)) as actual, closing(iter_image(run,item)) as source:
+        for (_,row),expected_row in zip(actual,source,strict=True):
+            if digest(row)!=digest(expected_row):
+                raise ValueError('History audit adopted transition content differs')
+
+
 def _records(sql,cut):
     with connection.chunked_cursor() as cursor:
         cursor.execute(sql,[cut.initialization,cut.body['family'],cut.position])
@@ -94,7 +115,7 @@ def audit_cut(cut):
                         or source.get('digest')!=anchor.finish() or body['removed']!=0):
                     raise ValueError('History audit anchor source values/type/order differ')
             elif body['anchor'] is not None:
-                raise ValueError('History audit successor has unexpected anchor')
+                _audit_adopted_transition(current)
             previous=current;totals['cuts']+=1
         if previous!=cut or any(s.next is not None for s in streams.values()):
             raise ValueError('History audit did not reach the exact selected cut')

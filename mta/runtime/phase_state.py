@@ -114,6 +114,9 @@ def _save(run, phase, sources, *, parent, acceptance):
         raise ValueError('Phase snapshot run/date/parent differs')
     from mta.runtime.inherited_history_image import ReferenceWriter
     from mta.runtime.transition_history_image import ReferenceWriter as TransitionWriter
+    history_writer = TransitionWriter(owner,phase.context.history_changes)
+    if type(phase) is DbmDay:
+        phase = history_writer.prepare_dbm(phase)
     manifest = encode(phase, sources,
         row_writer=lambda path, table, values: _write_rows(owner, path, table, values),
         _described_writer=lambda path, table, values, description:
@@ -121,7 +124,7 @@ def _save(run, phase, sources, *, parent, acceptance):
         export_writer=lambda path, values: typed.save_export(owner, path, values),
         parent_manifest=parent.manifest if parent else None,
         _prior_writer=ReferenceWriter(owner),
-        _history_writer=TransitionWriter(owner,phase.context.history_changes))
+        _history_writer=history_writer)
     if parent is not None:
         if manifest['references'] != parent.manifest['references']:
             raise ValueError('Continuation parent dependency revision differs')

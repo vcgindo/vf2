@@ -166,7 +166,7 @@ def _committed_fact(ordinal,row,family):
 
 
 @stage('dated_history_delta_write')
-def write_transition(cut,parent,rows,*,today,transition):
+def write_transition(cut,parent,rows,*,today,transition,anchor=None):
     """Verify the producer transition against the complete reconstructed cut."""
     if not connection.in_atomic_block or cut.parent_id != parent.identity or cut.family != parent.body['family']:
         raise ValueError('History transition requires its owning day transaction and parent')
@@ -210,7 +210,7 @@ def write_transition(cut,parent,rows,*,today,transition):
                 expected = storage(expected)
                 if any(not _same(stored[name],expected[name]) for name in stored):
                     raise ValueError('History reconstructed successor values/type/order differ')
-        return _seal(cut,parent,descriptor,counts,checks,sorted_prefix=prefix)
+        return _seal(cut,parent,descriptor,counts,checks,anchor,sorted_prefix=prefix)
 
 
 def seal_anchor_rows(cut,item,rows,anchor):

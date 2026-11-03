@@ -4,16 +4,21 @@ Only current additions and actual removed opening ordinals are staged. The
 sealed phase owns those typed rows; terminal history cuts retain their existing
 successful-run transaction. Full typed ordered comparison remains at writing.
 """
+from contextlib import closing
 from copy import deepcopy
 from itertools import islice
 from django.db import connection
 from mta.row_sequences import RecordRows
 from mta.runtime import relational_state as typed
+from mta.runtime.dated_history_delta import SORTED_IMPORTER
 
 FORMAT = 'phase-history-transition-v1'
 PROJECTION = 'terminal-history-projection-v1'
 FAMILIES = ('closing/importer/RejectedMaster','closing/importer/RetiredNormsTbl',
             'closing/dbm/NormChangeLogTbl')
+DBM_CARRIES = ('DailyConsumption', 'OrderData', 'SuspendHistory', 'SpikeReport')
+DBM_CARRY_FAMILIES = frozenset('closing/dbm/'+name for name in DBM_CARRIES)
+PHASE_FAMILIES = frozenset(FAMILIES) | DBM_CARRY_FAMILIES
 BASE = frozenset(('image','table','count','digest','fields','storage_format',
                   'run_id','family','cut_id','cut_digest'))
 KEYS = BASE | {'sorted_prefix','additions','changes'}
@@ -29,8 +34,11 @@ def family(path):
     if suffix.startswith('report-facts/'):
         from mta.runtime.relational_state import REPORT_STAGES
         pieces=suffix.split('/')
-        return FAMILIES[2] if len(pieces)==3 and pieces[1] in REPORT_STAGES and pieces[2]=='NormChangeLogTbl' else None
+        if len(pieces)!=3 or pieces[1] not in REPORT_STAGES:return None
+        suffix='dbm/'+pieces[2]
     result='closing/'+suffix
+    if parts[:2]==['phase','DBM'] and result in DBM_CARRY_FAMILIES:
+        return result
     return result if result in FAMILIES else None
 
 
@@ -43,15 +51,18 @@ def _projection(rows,description):
         yield {name:row[column] for name,column,_ in description['fields']}
 
 
-def _opening(run,name):
+def _opening(run,name,frozen=None):
     from mta.runtime.input_reader import read_input
     from mta.runtime.state_cut_models import OperationalStateCut
     from mta.runtime.dated_history_reader import read_cut
-    frozen=read_input(run,components=('initialization_binding','lineage'))
+    if frozen is None:
+        frozen=read_input(run,components=('initialization_binding','lineage'))
     binding=frozen.get('initialization_binding')
     if binding is None:return None
     cut=OperationalStateCut.objects.filter(initialization_id=binding['id'],family=name,run_id=run.predecessor_id).first()
-    if cut is None:raise ValueError('History transition requires its adopted opening cut')
+    if cut is None:
+        if name not in FAMILIES:return None  # An unqualified legacy source keeps its original image.
+        raise ValueError('History transition requires its adopted opening cut')
     accepted=read_cut(cut.pk)
     _owner(run,accepted,frozen)
     return accepted
@@ -62,7 +73,7 @@ def _owner(run,cut,frozen=None,terminal=False):
     frozen=read_input(run,components=('initialization_binding','lineage')) if frozen is None else frozen
     binding=frozen.get('initialization_binding')
     if (not isinstance(binding,dict) or str(cut.initialization)!=binding.get('id')
-            or cut.body['family'] not in FAMILIES
+            or cut.body['family'] not in (FAMILIES if terminal else PHASE_FAMILIES)
             or cut.run!=(run.pk if terminal else run.predecessor_id)):
         raise ValueError('History transition opening ownership differs')
     if not terminal and run.predecessor_id:
@@ -79,9 +90,52 @@ class ReferenceWriter:
         self.run,self.transitions=run,transitions
         self.openings={}
 
+    def prepare_dbm(self,phase):
+        from dataclasses import replace
+        from mta.runtime.input_reader import read_input
+        from mta.runtime.dated_history_delta import Counts, Fact, changes
+        from mta.runtime.dated_history_reader import iter_occurrences
+
+        if self.transitions is None:return phase
+        frozen=read_input(self.run,components=('initialization_binding','lineage'))
+        batch=phase.context.profile['delivery']['batch']
+        transitions=dict(self.transitions)
+        for name in DBM_CARRIES:
+            if name not in phase.final_dbm:continue
+            family='closing/dbm/'+name
+            cut=self.openings[family]=_opening(self.run,family,frozen)
+            if cut is None:continue
+            ordinal=-1
+            def opening_rows():
+                nonlocal ordinal
+                with closing(iter_occurrences(cut)) as rows:
+                    for ordinal, occurrence in enumerate(rows):
+                        yield occurrence
+            additions,removed=[],[]
+            horizon=batch['DailyConsumptionHorizonDBM'] if name=='DailyConsumption' else None
+            unchanged=False
+            if name=='SuspendHistory':
+                flag=batch['GatherSuspensionHistory']
+                if type(flag) is not int:
+                    raise ValueError('Frozen suspension gathering control must be an integer')
+                unchanged=flag!=1
+            with closing(opening_rows()) as rows:
+                for event in changes(rows,phase.final_dbm[name],family=family,
+                                     today=self.run.business_date,position=cut.position+1,
+                                     horizon=horizon,unchanged=unchanged):
+                    if isinstance(event,Fact):additions.append(event.values)
+                    elif isinstance(event,Counts):
+                        if event.prior!=cut.body['count']:
+                            raise ValueError('History transition opening count differs')
+                    else:removed.append(ordinal)
+            transitions[family]=dict(opening_count=cut.body['count'],additions=additions,
+                                     removed=removed,sorted_prefix=None)
+        self.transitions=transitions
+        return replace(phase,context=replace(phase.context,history_changes=transitions))
+
     def __call__(self,path,table,description,images):
         name=family(path)
-        if name is None or self.transitions is None:return None
+        if name is None or self.transitions is None or name not in self.transitions:return None
         from mta.runtime.dated_history_reader import load_cut
         from mta.runtime.dated_history_delta import transition_rows,source_table
         if table!=source_table(name):raise ValueError('History transition table differs')
@@ -94,8 +148,16 @@ class ReferenceWriter:
         additions=images[prefix+'/history-additions/'+suffix]
         changes=images[prefix+'/history-changes/'+suffix]
         columns={n.casefold():(n,k) for n,k in typed.STORAGE_TABLES[table]}
+        def reconstructed():
+            prior=load_cut(cut)
+            if name in FAMILIES:
+                yield from transition_rows(prior,change,name)
+            else:
+                removed=set(change['removed'])
+                yield from (row for ordinal,row in enumerate(prior) if ordinal not in removed)
+                yield from change['additions']
         rows=RecordRows(cut.body['count']-len(change['removed'])+len(change['additions']),
-            lambda:_projection(transition_rows(load_cut(cut),change,name),description[0]))
+            lambda:_projection(reconstructed(),description[0]))
         actual=typed.describe_rows(rows,columns,path)[0]
         if actual!=description[0]:raise ValueError('History transition differs from complete produced image')
         return dict(deepcopy(description[0]),table=table,storage_format=FORMAT,
@@ -126,7 +188,7 @@ def require_image(run,item):
                 or part['image']!='phase/'+part['image'].split('/')[1]+'/'+namespace+'/'+suffix):
             raise ValueError('History transition typed staging owner differs')
     n=item['sorted_prefix']
-    if (item['family']==FAMILIES[2] and n is not None or item['family']!=FAMILIES[2]
+    if (item['family'] not in SORTED_IMPORTER and n is not None or item['family'] in SORTED_IMPORTER
             and (type(n) is not int or not 0<=n<=item['additions']['count'])):
         raise ValueError('History transition sort boundary differs')
     return cut
@@ -152,14 +214,15 @@ def image_relation(run,item,*,required_fields=None):
     column_names=[column for _,column,_ in canonical]
     names=','.join(typed.quote(n) for n in column_names)
     order=history.occurrence_order(cut)
-    prior='SELECT row_number() OVER (ORDER BY '+order+')-1 AS opening_ordinal,'+names+        (',history_sort_key' if item['family']!=FAMILIES[2] else '')+' FROM ('+prior+') opening'
+    sorted_importer=item['family'] in SORTED_IMPORTER
+    prior='SELECT row_number() OVER (ORDER BY '+order+')-1 AS opening_ordinal,'+names+        (',history_sort_key' if sorted_importer else '')+' FROM ('+prior+') opening'
     projection=','.join(typed.quote(column) for _,column,_ in fields)
     # Empty predecessor descriptors have no scalar columns. Typed NULLs use
     # the existing physical table's columns even when the image is empty.
     if not column_names:
         columns=typed.STORAGE_TABLES[item['table']]
         names=','.join(typed.quote(n) for n,_ in columns)
-        prior='SELECT vf_ordinal AS opening_ordinal,'+names+            (',NULL::text AS history_sort_key' if item['family']!=FAMILIES[2] else '')+            ' FROM '+typed.table_sql(item['table'])+' WHERE false'
+        prior='SELECT vf_ordinal AS opening_ordinal,'+names+            (',NULL::text AS history_sort_key' if sorted_importer else '')+            ' FROM '+typed.table_sql(item['table'])+' WHERE false'
         params=[]
     if item['storage_format']==PROJECTION:
         return 'SELECT opening_ordinal AS vf_ordinal'+(','+projection if projection else '')+' FROM ('+prior+') projected',params
@@ -168,7 +231,7 @@ def image_relation(run,item,*,required_fields=None):
         additions='SELECT vf_ordinal,'+names+' FROM '+typed.table_sql(item['table'])+' WHERE false';ap=[]
     if item['changes']['count']==0:
         changes='SELECT vf_ordinal,"OpeningOrdinal","AdditionOrdinal","SortKey" FROM mta_state.phase_historychange WHERE false';cp=[]
-    if item['family']==FAMILIES[2]:
+    if not sorted_importer:
         body=('SELECT 0 AS part,P.opening_ordinal AS ord,'+','.join('P.'+typed.quote(n) for n in (column_names or [n for n,_ in typed.STORAGE_TABLES[item['table']]]))+
             ' FROM prior P WHERE NOT EXISTS (SELECT 1 FROM changes C WHERE C."OpeningOrdinal"=P.opening_ordinal) UNION ALL SELECT 1,A.vf_ordinal,'+names+' FROM additions A')
         ordering='part,ord'
@@ -179,7 +242,7 @@ def image_relation(run,item,*,required_fields=None):
             ' FROM additions A JOIN changes C ON C."AdditionOrdinal"=A.vf_ordinal')
         ordering='part,CASE WHEN part=0 THEN sort_key END COLLATE "C",origin,ord'
     sql='WITH prior AS ('+prior+'), additions AS ('+additions+'), changes AS ('+changes+') SELECT row_number() OVER (ORDER BY '+ordering+')-1 AS vf_ordinal'+(','+projection if projection else '')+' FROM ('+body+') history'
-    return sql,params+ap+cp+([] if item['family']==FAMILIES[2] else [item['sorted_prefix']])
+    return sql,params+ap+cp+([item['sorted_prefix']] if sorted_importer else [])
 
 
 def iter_image(run,item,*,audit=False):
