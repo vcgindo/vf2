@@ -22,6 +22,7 @@ COMPACT_SCHEMA='fresh-derived-report-generation-v3'
 # First compact producer rendered all XML from the full window. Its sealed
 # receipts and incomplete attempts keep that exact producer identity.
 FULL_WINDOW_COMPACT_RECIPE='065c4222e2dc78189e100e3ad077f7711b794e9df03be642fc3884c230481927'
+SHIFTED_SNAPSHOT_RECIPE='0ef6485d069dcc79d2152f7432528562356245dec15b93016b310f29d988cdd0'
 CONSUMERS=('ExcessProjection','FulfillmentProjection','ExpediteProjection','PickPostProjection')
 
 
@@ -41,13 +42,14 @@ def recipe_identity(version=1):
         storage=[inspect.getsource(module) for module in (btr_calendar_images_v2, btr_calendar_sources, btr_calendar)]))
     if version == 2:
         return dated
-    from mta.presentation import btr_snapshot_storage, btr_incremental_xml
+    from mta.presentation import btr_snapshot_storage, btr_incremental_xml, btr_successor_trends
     return digest(dict(schema=COMPACT_SCHEMA, base=dated, builder=inspect.getsource(_build_compact),
-                       snapshot=inspect.getsource(btr_snapshot_storage), advance=inspect.getsource(btr_incremental_xml)))
+                       snapshot=inspect.getsource(btr_snapshot_storage), advance=inspect.getsource(btr_incremental_xml),
+                       trends=inspect.getsource(btr_successor_trends)))
 
 
 def _supported_recipe(row):
-    return ((row.version == 3 and row.recipe_digest == FULL_WINDOW_COMPACT_RECIPE)
+    return ((row.version == 3 and row.recipe_digest in (FULL_WINDOW_COMPACT_RECIPE, SHIFTED_SNAPSHOT_RECIPE))
             or row.recipe_digest == recipe_identity(row.version))
 
 
@@ -216,7 +218,7 @@ def _build_dated(run):
     return metadata
 
 
-def _build_compact(run, *, incremental):
+def _build_compact(run, *, recipe):
     from mta.presentation import btr_snapshot_storage as snapshot
     from mta.presentation import btr_calendar_images as calendar
     from mta.presentation.btr_calendar_sources import TRENDS, advance
@@ -245,11 +247,12 @@ def _build_compact(run, *, incremental):
     delivery=profile['delivery']
     from mta.runtime import btr_import_image
     importer = delivery.get('btr_history',{}).get('importer_vf_settings')
-    if (incremental and previous is not None and previous.version == 3
+    if (recipe != FULL_WINDOW_COMPACT_RECIPE and previous is not None and previous.version == 3
             and btr_import_image.owns(run.production_manifest['images']['closing/btr/BPR'])):
         from mta.presentation import btr_incremental_xml
         derived = btr_incremental_xml.reporting(run, predecessor, previous.metadata['images'][snapshot.PATH],
-            closing['btr'], facts, delivery['btr_settings'], importer)
+            closing['btr'], facts, delivery['btr_settings'], importer,
+            advance_trends=recipe != SHIFTED_SNAPSHOT_RECIPE)
     else:
         derived = reporting_btr(run.business_date, closing['btr'], facts, delivery['btr_settings'],
                                 importer_vf_settings=importer)
@@ -309,7 +312,7 @@ def prepare(run_id,*,expected_output_digest):
                 cursor.execute("SELECT set_config('fresh.report_generation',%s,true)",[str(run.pk)])
             with stage('derived_report_build'):
                 if row.version == 3:
-                    row.metadata = _build_compact(run, incremental=row.recipe_digest != FULL_WINDOW_COMPACT_RECIPE)
+                    row.metadata = _build_compact(run, recipe=row.recipe_digest)
                 else:
                     row.metadata = _build_dated(run) if row.version == 2 else _build(run)
             summary('derived_report_consumers',families=len(row.metadata['consumers']))

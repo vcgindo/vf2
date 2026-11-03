@@ -115,13 +115,17 @@ def _advance_snapshot(state, prior, distance):
     return result
 
 
-def reporting(run, predecessor, prior_image, state, facts, settings, importer):
+def reporting(run, predecessor, prior_image, state, facts, settings, importer, *, advance_trends=False):
     distance = (run.business_date - predecessor.business_date).days
     if predecessor.pk != run.predecessor_id or distance <= 0:
         raise ValueError('BTR snapshot advancement requires its own earlier day')
     selected = btr._selected_settings(settings, importer)
     day = run.business_date
-    current = btr._generate_trends(day, state, facts, _owned=True)
+    if advance_trends:
+        from mta.presentation import btr_successor_trends
+        current = btr_successor_trends.generate(run, predecessor, prior_image, state, facts)
+    else:
+        current = btr._generate_trends(day, state, facts, _owned=True)
     current = btr._update_br_age(current, facts, 'BufferTrendDispatch', selected['br_tolerance'], _owned=True)
     current = btr._update_br_age(current, facts, 'BufferTrendPhysicalInv', selected['br_tolerance'], _owned=True)
     current = btr._availability(current, _owned=True)
