@@ -66,7 +66,7 @@ def image_field(run, path, field):
     if btr_import_image.owns(item):
         relation, params = btr_import_image.relation(run,item)
     elif snapshot.owns(item):
-        relation, params = snapshot.relation(run,item)
+        relation, params = image_query(run, path, metadata=item, required_fields=(column,))
     elif calendar.owns(item):
         relation, params = calendar.published_query(run, item)
     else:
@@ -80,7 +80,7 @@ def image_field(run, path, field):
     return [wire_value(value,kind) for _,value in rows]
 
 
-def image_query(run, path, *, metadata=None):
+def image_query(run, path, *, metadata=None, required_fields=None):
     """Trusted manifest/schema-bound relation; values are always parameters."""
     item = metadata if metadata is not None else image_metadata(run, path)
     from mta.runtime import btr_import_image
@@ -88,6 +88,13 @@ def image_query(run, path, *, metadata=None):
         return btr_import_image.relation(run,item)
     from mta.presentation import btr_calendar_images as calendar
     if snapshot.owns(item):
+        if required_fields and set(required_fields).isdisjoint(snapshot.XML):
+            snapshot.require(item)
+            fields = sorted(set(required_fields))
+            if not set(fields).issubset(dict(CATALOG['tables'][snapshot.TABLE])):
+                raise PublicationUnavailable('selected_report_image_column_mismatch')
+            return ('SELECT vf_ordinal,'+','.join(map(quote, fields))+' FROM '+table_sql(snapshot.TABLE)+
+                    ' WHERE vf_run_id=%s AND vf_image=%s', [run.pk, snapshot.PATH])
         return snapshot.relation(run,item)
     if calendar.owns(item):
         return calendar.published_query(run, item)

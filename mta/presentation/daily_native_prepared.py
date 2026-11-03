@@ -376,7 +376,8 @@ def _history_availability(cursor, run):
                         ('l', 'closing/btr/LocationAttributeData'),
                         ('p', 'closing/btr/SkuLocAttributeData'),
                         ('n', 'closing/btr/BTRSnapshotForUI')):
-        query, values = image_query(run, path)
+        query, values = (image_query(run, path, required_fields=('SKUCode','WhCode','AgePhysicalInv'))
+                         if alias == 'n' else image_query(run, path))
         relations[alias] = query
         params.extend(values)
     cursor.execute(

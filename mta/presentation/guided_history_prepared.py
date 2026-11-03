@@ -159,7 +159,9 @@ def read_prepared(run, cutoff, predicate, products, locations, kind, minimum_age
         params.append(run.pk)
         if '_snapshot' in aliases:
             item = metadata('closing/btr/BTRSnapshotForUI')
-            query, values = relation('closing/btr/BTRSnapshotForUI')
+            snapshot_fields = set().union(*(fields_for(node, '_snapshot') for node in predicate.sql_terms))
+            query, values = (image_query(run, 'closing/btr/BTRSnapshotForUI', metadata=item, required_fields=snapshot_fields)
+                             if read_binding is None else relation('closing/btr/BTRSnapshotForUI'))
             ctes.append('_snapshot AS (' + query + ')')
             params.extend(values)
             wires['_snapshot'] = {field: wire for field, _, wire in item['fields']}
