@@ -11,6 +11,18 @@ from mta.runtime import btr_import_relation as history
 
 
 class BtrImportRelationTests(TestCase):
+    def test_import_trigger_is_installed_and_has_no_public_execute_grant(self):
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT t.tgenabled, has_function_privilege(p.proowner,p.oid,'EXECUTE'),
+                       EXISTS(SELECT FROM aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a
+                              WHERE a.grantee=0 AND a.privilege_type='EXECUTE')
+                FROM pg_trigger t JOIN pg_proc p ON p.oid=t.tgfoid
+                WHERE t.tgrelid='mta.fresh_mta_calculationrun'::regclass AND t.tgname='btr_import_sources'
+                 AND p.oid='mta.check_btr_import_sources()'::regprocedure
+            """)
+            self.assertEqual(cursor.fetchall(), [('O',True,False)])
+
     def test_expiry_replaced_date_future_rows_and_duplicates(self):
         today = date(2026, 7, 10)
         run = SimpleNamespace(pk=uuid4(), business_date=today)
