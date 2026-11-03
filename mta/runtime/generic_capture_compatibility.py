@@ -123,13 +123,37 @@ def require_captured_fields(value, expected):
     """Compare behavior, preserving the opaque ORIGINAL execution identity.
 
 This pure check grants no execution authority. validate() must join the value
-to its immutable capture and released accepted phase before it can be reused.
+to its immutable capture and accepted phase before it can be reused.
 """
     from mta.runtime.ingestion_context import sha
     if (not applicable(value) or type(expected) is not dict or set(value) != set(expected)
             or any(value[key] != expected[key] for key in expected if key != 'compatibility_digest')):
         raise ValueError('Generic continuation changed the captured factory contract')
     sha(value['compatibility_digest'])
+
+
+def _recovery_owner(run, phase):
+    """Follow the existing failed-attempt ancestry, without granting a claim."""
+    producer = phase.attempt
+    latest = run.scope_attempts.filter(command_key=producer.command_key).order_by('-attempt_no').first()
+    fields = ('run_id','scope','command_key','compatibility_digest','input_digest',
+              'input_manifest_digest','action_revision')
+    if latest is None or latest.status not in ('ACTIVE','FAILED','RELEASED'):
+        raise ValueError('Generic recovery has no supported current attempt')
+    if latest.pk != producer.pk and (latest.expected_phase, latest.expected_receipt_digest) != (phase.phase, phase.digest):
+        raise ValueError('Generic recovery child is not bound to its accepted prefix')
+    current = latest; seen = set()
+    while True:
+        if current.pk in seen or any(getattr(current,k) != getattr(producer,k) for k in fields):
+            raise ValueError('Generic recovery attempt ancestry differs')
+        seen.add(current.pk)
+        if current.pk == producer.pk:
+            return latest
+        parent = current.recovery_of
+        if (parent is None or parent.status != 'FAILED' or parent.attempt_no != current.attempt_no-1
+                or (parent.created_at,parent.pk) >= (current.created_at,current.pk)):
+            raise ValueError('Generic recovery requires its exact failed predecessor')
+        current = parent
 
 
 def validate(run, value, expected):
@@ -146,7 +170,7 @@ def validate(run, value, expected):
     from mta.runtime.ingestion_admission import registration,_admit
     from mta.runtime.ingestion_upgrade import _origin
     from mta.runtime.models import ProductionInitialization,RunPhaseAcceptance
-    from mta.runtime.scope_execution import receipt_digest
+    from mta.runtime.scope_execution import receipt_digest, head
     from mta.runtime.runtime_report_placement_publication import read as publication
     from mta.runtime.scoped_pick_files import read as pick_files
     if (run.kind != 'DAILY_CHAIN' or run.evidence_mode != 'production'
@@ -179,25 +203,62 @@ def validate(run, value, expected):
         _origin(owner.source)
         if outer['registration']['certificate_digest'] != admitted.certification_digest:
             raise ValueError('Generic continuation original certificate differs')
-        phase = RunPhaseAcceptance.objects.select_related('snapshot','attempt').get(
-            run=run,phase={'UptoBPR':'BPR','UptoDBM':'DBM'}[value['scope']],state_sealed=True)
+        phase = RunPhaseAcceptance.objects.select_related('snapshot','attempt').filter(
+            run=run,phase={'UptoBPR':'BPR','UptoDBM':'DBM'}[value['scope']],state_sealed=True).first()
+        partial = phase is None or phase.attempt.status != 'RELEASED'
+        if partial:
+            # A code correction can recover a failed initial scope before its
+            # terminal phase exists. Authenticate the actual accepted prefix;
+            # claiming/releasing the worker remains scope_execution's job.
+            if value['scope'] != 'UptoDBM':
+                raise ValueError('Generic recovery requires an accepted initial UptoDBM prefix')
+            from mta.runtime.production_scope import _phase
+            if phase is None:
+                phase_name, phase_digest = head(run.pk)
+                if phase_name not in ('PRE_BPR','BPR','DBM'):
+                    raise ValueError('Generic recovery requires a sealed phase')
+                phase = _phase(run,phase_name,phase_digest)
+            else:
+                phase = _phase(run,phase.phase,phase.digest)
+            recovered = _recovery_owner(run,phase)
+            partial = recovered.status != 'RELEASED'
+            if partial and (run.status != 'RUNNING' or run.output_digest
+                    or run.mdm_input_capture.status != 'CAPTURED'
+                    or head(run.pk) != (phase.phase,phase.digest)
+                    or run.scope_attempts.order_by('-created_at','-id').first().pk != recovered.pk):
+                raise ValueError('Generic recovery requires its current unfinished prefix')
+            if not partial and phase.phase != 'DBM':
+                raise ValueError('Generic recovered release requires its terminal DBM phase')
         if (phase.source_id != owner.source_id or phase.input_digest != run.input_digest
                 or phase.digest != receipt_digest(phase)
                 or not phase_state.contract.compatible(phase.snapshot)
                 or phase.snapshot.state_digest != digest(phase.snapshot.manifest)
                 or phase.snapshot.run_id != run.pk or phase.snapshot.acceptance_id != phase.pk
-                or phase.attempt.run_id != run.pk or phase.attempt.status != 'RELEASED'
+                or phase.attempt.run_id != run.pk
+                or phase.attempt.status not in (('ACTIVE','FAILED') if partial else ('RELEASED','FAILED'))
                 or phase.attempt.scope != value['scope']
                 or phase.attempt.command_key != value['command_key']
                 or phase.attempt.compatibility_digest != value['compatibility_digest']
                 or phase.attempt.input_digest != run.input_digest
                 or phase.attempt.input_manifest_digest != run.input_manifest_digest):
             raise ValueError('Generic continuation accepted phase/attempt custody differs')
-        for placement in ('PostImporter','PostBPR'):
+        if partial:
+            # An accepted phase can precede its publication after interruption.
+            # Validate existing artifacts; normal publish/release still demands
+            # every required artifact before claiming a completed scope.
+            from mta.runtime.models import RuntimeReportPublication
+            placements = tuple(RuntimeReportPublication.objects.filter(run=run).values_list('placement',flat=True))
+            allowed = ('PostImporter','PostBPR','PostDBM')[:('PRE_BPR','BPR','DBM').index(phase.phase)+1]
+            if set(placements) != set(allowed[:len(placements)]):
+                raise ValueError('Generic recovery publications exceed or skip the accepted prefix')
+        else:
+            placements = ('PostImporter','PostBPR')
+        for placement in placements:
             row = publication(run.pk,placement=placement,verify_bytes=True)
             if row.run_id != run.pk:
                 raise ValueError('Generic continuation original publication owner differs')
-        pick_files(phase.pk,expected_digest=phase.digest)
+        if not partial:
+            pick_files(phase.pk,expected_digest=phase.digest)
     return dict(run_id=str(run.pk),source_release=capability['release_identity']['manifest_sha256'],
         actual_release=actual['manifest_sha256'],compatibility_digest=value['compatibility_digest'],
         phase_id=str(phase.pk),phase_digest=phase.digest)
