@@ -125,6 +125,7 @@ def read_prepared(run, cutoff, predicate, products, locations, kind, minimum_age
             relations[alias] = True
     core = {'SKUCode', 'WHCode', 'WhCode', 'ParentWhCode', 'ReportDate', 'PhysicalInventoryColor', 'Amount'}
     fact_fields = set()
+    dated_fact = None
     for node in predicate.sql_terms:
         fact_fields.update(fields_for(node, '_a'))
     if any((field not in core for field in fact_fields)):
@@ -143,9 +144,13 @@ def read_prepared(run, cutoff, predicate, products, locations, kind, minimum_age
                 wires['_a'] = {field.name: 'str' if field.get_internal_type() in ('CharField', 'TextField', 'DateField') else 'decimal' if field.get_internal_type() == 'DecimalField' else 'int' for field in ExcessInventoryRow._meta.fields if field.name not in ('id', 'run')}
         else:
             item = metadata('closing/btr/BPR')
-            query, values = relation('closing/btr/BPR')
-            ctes.append('_fact AS (' + query + ')')
-            params.extend(values)
+            from mta.runtime import btr_import_image
+            if btr_import_image.owns(item):
+                dated_fact = item
+            else:
+                query, values = relation('closing/btr/BPR')
+                ctes.append('_fact AS (' + query + ')')
+                params.extend(values)
             wires['_a'] = {field: wire for field, _, wire in item['fields']}
         relations['_fact'] = True
     if kind == 'availability-ageing':
@@ -190,6 +195,14 @@ def read_prepared(run, cutoff, predicate, products, locations, kind, minimum_age
             params.extend(node[2])
         query = 'SELECT * FROM (' + values + ') allowed(code,weight) WHERE ' + ' AND '.join(scope_where) if scope_where else values
         ctes.append(alias + '(code,weight) AS (' + query + ')')
+    if dated_fact is not None:
+        # Only deduplicate fact retrieval. H and the original permission
+        # weights below still determine every contributing occurrence.
+        requested = ('SELECT DISTINCT H.fact_ordinal AS pos FROM H '
+                     'JOIN P ON H.sku_code=P.code JOIN L ON H.location_code=L.code')
+        query, values = btr_import_image.ordinal_relation(run,dated_fact,requested,[])
+        ctes.append('_fact AS MATERIALIZED ('+query+')')
+        params.extend(values)
     core_select = 'H.sku_code "SKUCode",H.location_code "WHCode",H.location_code "WhCode",H.parent_location_code "ParentWhCode",H.report_date "ReportDate",H.physical_inventory_color "PhysicalInventoryColor"' + (',H.amount "Amount"' if family == 'excess' else '')
     joins = ' FROM H '
     if '_fact' in relations:

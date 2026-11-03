@@ -66,27 +66,38 @@ def relation(run, item):
     return imports.source_query(run,item['sources'])
 
 
+def ordinal_relation(run,item,requested_sql,bindings):
+    _require(run,item)
+    anchor,blocks = imports.source_blocks(item['sources'])
+    return imports.lookup(run,anchor,blocks,requested_sql,bindings,complete_anchor=imports.complete_anchor(anchor))
+
+
 def _records(run, item, *, audit):
-    sql, params = imports.source_query(run,item['sources'])
     fields = item['fields']
-    columns = ['vf_ordinal', *(typed.quote(column) for _,column,_ in fields)]
+    columns = [column for _,column,_ in fields]
     count = 0
     checksum = hashlib.sha256(b'[') if audit else None
-    with connection.chunked_cursor() as cursor:
-        cursor.execute('SELECT '+','.join(columns)+' FROM ('+sql+') history ORDER BY vf_ordinal', params)
-        while batch := cursor.fetchmany(500):
-            for ordinal,*values in batch:
-                if ordinal != count:
-                    raise ValueError('BTR import ordinal differs')
-                row = {key:typed.wire_value(value,kind)
-                       for (key,_,kind),value in zip(fields,values,strict=True)}
-                if checksum is not None:
-                    if count:
-                        checksum.update(b',')
-                    for part in canonical_parts(row):
-                        checksum.update(part)
-                count += 1
-                yield row
+    for sql,params,expected,dense in imports.ordered_sources(run,item['sources'],columns):
+        seen, previous = 0,-1
+        with connection.chunked_cursor() as cursor:
+            cursor.execute(sql,params)
+            while batch := cursor.fetchmany(500):
+                for ordinal,*values in batch:
+                    if ordinal <= previous or (dense and ordinal != seen):
+                        raise ValueError('BTR import ordinal differs')
+                    previous = ordinal
+                    seen += 1
+                    row = {key:typed.wire_value(value,kind)
+                           for (key,_,kind),value in zip(fields,values,strict=True)}
+                    if checksum is not None:
+                        if count:
+                            checksum.update(b',')
+                        for part in canonical_parts(row):
+                            checksum.update(part)
+                    count += 1
+                    yield row
+        if seen != expected:
+            raise ValueError('BTR import block population differs')
     if count != item['count']:
         raise ValueError('BTR import population differs')
     if checksum is not None:

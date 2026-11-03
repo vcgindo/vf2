@@ -39,6 +39,13 @@ class BtrImportRelationTests(TestCase):
             pairs=[(2,5),(4,-1),(6,89),(2,5),(9,1),(1,0),(1,0)]
             self.assertEqual(cursor.fetchall(), [(i,stock,today-timedelta(days=age))
                                                  for i,(stock,age) in enumerate(pairs)])
+            positions = [6,3,4,0,1,6,2,5,-1,7]
+            wanted = 'SELECT pos FROM unnest(%s::bigint[]) WITH ORDINALITY k(pos,request_order)'
+            with patch.object(history,'table_sql',side_effect=tables.__getitem__):
+                sql,args = history.lookup(run,anchor,days,wanted,[positions],complete_anchor=False)
+            cursor.execute('SELECT vf_ordinal,"Stock","ReportDate" FROM ('+sql+') f ORDER BY vf_ordinal',args)
+            self.assertEqual(cursor.fetchall(),[(pos,pairs[pos][0],today-timedelta(days=pairs[pos][1]))
+                             for pos in sorted(positions) if 0<=pos<len(pairs)])
 
     def test_foreign_terminal_duplicate_owner_and_gap_beyond_horizon(self):
         run = SimpleNamespace(pk=uuid4(),business_date=date(2026,7,10))

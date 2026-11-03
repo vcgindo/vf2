@@ -80,7 +80,7 @@ def read_history(run, payload, kind, *, read_binding=None):
     else:
         item = image_metadata(run, 'closing/btr/BPR')
         query, values = image_query(run, 'closing/btr/BPR')
-        add('_a', query + ' AND "ReportDate">%s', values + [cutoff], item['fields'])
+        add('_a', 'SELECT * FROM ('+query+') source WHERE "ReportDate">%s', values + [cutoff], item['fields'])
     for alias, name, prefix in (('_sku', 'SkuAttributeData', 'SL'), ('_location', 'LocationAttributeData', 'LL'), ('_pair', 'SkuLocAttributeData', None)):
         if manifest and prefix:
             image(alias + '_native', owner + name)

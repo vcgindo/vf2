@@ -65,20 +65,14 @@ def advance(run, parent, current_image):
     return dict(anchor=anchor,daily=[*retained,_source(run,current_image,DAILY)])
 
 
-def source_query(run, sources):
+def source_blocks(sources):
     def block(value):
         return ImportBlock(UUID(value['owner']), date.fromisoformat(value['day']),value['count'])
     anchor = sources['anchor']
-    return query(run,anchor=block(anchor) if anchor else None,blocks=[block(b) for b in sources['daily']])
+    return block(anchor) if anchor else None,[block(b) for b in sources['daily']]
 
 
-def query(run, *, anchor, blocks):
-    """Anchor rows retain their relative order. New rows retain native ordinals.
-
-    A date supplied again displaces that date in the physical anchor. The
-    original import retains future-dated anchor rows until supplied or expired.
-    Only the optional anchor requires renumbering after its exclusions.
-    """
+def _offsets(run,anchor,blocks):
     earlier = run.business_date - timedelta(days=90)
     if len(blocks)>90 or anchor is None and not blocks:
         raise ValueError('Missing or oversized BTR import window')
@@ -103,13 +97,67 @@ def query(run, *, anchor, blocks):
     current = blocks[-1] if blocks else anchor
     if current.day != run.business_date or current.owner != run.pk:
         raise ValueError('BTR import window must end with its owning day')
+    return offsets
+
+
+def complete_anchor(anchor):
+    if not anchor or not anchor.count:
+        return False
+    from mta.runtime.models import CalculationRun
+    count = CalculationRun.objects.filter(pk=anchor.owner,status='SUCCEEDED').values_list(
+        'production_manifest__images__closing/btr/BPR__count',flat=True).get()
+    return type(count) is int and count==anchor.count
+
+
+def source_query(run, sources):
+    anchor,blocks = source_blocks(sources)
+    return query(run,anchor=anchor,blocks=blocks,complete_anchor=complete_anchor(anchor))
+
+
+def ordered_sources(run,sources,columns):
+    """Yield each ordered block separately, so a full read can start without sorting all dates."""
+    anchor,blocks = source_blocks(sources)
+    _offsets(run,anchor,blocks)
+    if anchor and anchor.count:
+        complete = complete_anchor(anchor)
+        fields = ','.join(['vf_ordinal',*[quote(col) for col in columns]])
+        sql = 'SELECT '+fields+' FROM '+table_sql('BTR/BPR')+' WHERE vf_run_id=%s AND vf_image=%s'
+        args = [anchor.owner,HISTORY]
+        if not complete:
+            sql += ' AND "ReportDate">%s AND NOT ("ReportDate"=ANY(%s::date[]))'
+            args += [run.business_date-timedelta(days=90),[b.day for b in blocks]]
+        yield sql+' ORDER BY vf_ordinal',args,anchor.count,complete
+    for block in blocks:
+        fields = ['vf_ordinal']
+        args = []
+        for col in columns:
+            if col=='ReportDate':
+                fields.append('%s::date')
+                args.append(block.day)
+            else:
+                fields.append(quote('WhCode' if col=='WHCode' else col))
+        sql = ('SELECT '+','.join(fields)+' FROM '+table_sql('BPR/vf_RationedReqReport')+
+               ' WHERE vf_run_id=%s AND vf_image=%s ORDER BY vf_ordinal')
+        yield sql,[*args,block.owner,DAILY],block.count,True
+
+
+def query(run, *, anchor, blocks, complete_anchor=False):
+    """Anchor rows retain their relative order. New rows retain native ordinals.
+
+    A date supplied again displaces that date in the physical anchor. The
+    original import retains future-dated anchor rows until supplied or expired.
+    Only a partially retained anchor requires renumbering after its exclusions.
+    """
+    offsets = _offsets(run,anchor,blocks)
+    earlier = run.business_date-timedelta(days=90)
 
     pieces, params = [], []
     days = [block.day for block in blocks]
     projected = [field if field != 'WhCode' else 'WHCode' for field in BPR_SOURCE_FIELDS]
     if anchor is not None and anchor.count:
         fields = ','.join('a.'+quote(field) for field in (*projected,'ReportDate'))
-        pieces.append('SELECT row_number() OVER (ORDER BY a.vf_ordinal)-1 AS vf_ordinal,'+fields+
+        rank = 'a.vf_ordinal' if complete_anchor else 'row_number() OVER (ORDER BY a.vf_ordinal)-1'
+        pieces.append('SELECT '+rank+' AS vf_ordinal,'+fields+
                       ' FROM '+table_sql('BTR/BPR')+' a WHERE a.vf_run_id=%s AND a.vf_image=%s'+
                       ' AND a."ReportDate">%s AND NOT (a."ReportDate"=ANY(%s::date[]))')
         params.extend((anchor.owner,HISTORY,earlier,days))
@@ -126,3 +174,45 @@ def query(run, *, anchor, blocks):
         pieces.append('SELECT vf_ordinal,'+fields+' FROM '+table_sql('BTR/BPR')+' WHERE FALSE')
     return ('SELECT %s::uuid AS vf_run_id,%s::text AS vf_image,b.* FROM ('+
             ' UNION ALL '.join(pieces)+') b', [run.pk,HISTORY,*params])
+
+
+def lookup(run, anchor, blocks, requested_sql, bindings, *, complete_anchor):
+    """Resolve a batch of logical ordinals to exact physical primary keys.
+
+    Each input position yields its original occurrence. The caller supplies a
+    trusted relation with a bigint pos column. A partially expired anchor
+    ranks its surviving ordinal keys once; the wide facts stay in place.
+    """
+    offsets = _offsets(run,anchor,blocks)
+    dates = [b.day for b in blocks]
+    ctes = ['wanted AS MATERIALIZED ('+requested_sql+')']
+    params = list(bindings)
+    pieces, joins = [], []
+    native = [f if f!='WhCode' else 'WHCode' for f in BPR_SOURCE_FIELDS]
+    if anchor and anchor.count:
+        table = table_sql('BTR/BPR')
+        if complete_anchor:
+            source, ordinal, logical = 'wanted w','w.pos','f.vf_ordinal'
+        else:
+            ctes.append('ranked AS MATERIALIZED (SELECT vf_ordinal physical,'
+                'row_number() OVER (ORDER BY vf_ordinal)-1 logical FROM '+table+
+                ' WHERE vf_run_id=%s AND vf_image=%s AND "ReportDate">%s AND NOT ("ReportDate"=ANY(%s::date[]))'
+                ' AND EXISTS(SELECT FROM wanted WHERE pos>=0 AND pos<%s))')
+            params.extend([anchor.owner,HISTORY,run.business_date-timedelta(days=90),dates,anchor.count])
+            source, ordinal, logical = 'wanted w JOIN ranked r ON r.logical=w.pos','r.physical','r.logical'
+        fields = ','.join('f.'+quote(col) for col in (*native,'ReportDate'))
+        pieces.append('SELECT '+logical+' AS vf_ordinal,'+fields+' FROM '+source+' JOIN '+table+
+            ' f ON f.vf_run_id=%s AND f.vf_image=%s AND f.vf_ordinal='+ordinal+' WHERE w.pos>=0 AND w.pos<%s')
+        joins.extend([anchor.owner,HISTORY,anchor.count])
+    if blocks:
+        ctes.append('days(owner,day,base,n) AS (SELECT * FROM unnest(%s::uuid[],%s::date[],%s::bigint[],%s::bigint[]))')
+        params.extend([[b.owner for b in blocks],dates,offsets,[b.count for b in blocks]])
+        fields = ','.join('f.'+quote(col)+' AS '+quote(dest) for col,dest in zip(BPR_SOURCE_FIELDS,native,strict=True))
+        pieces.append('SELECT d.base+f.vf_ordinal AS vf_ordinal,'+fields+',d.day AS "ReportDate" FROM wanted w JOIN days d '
+            'ON w.pos>=d.base AND w.pos<d.base+d.n JOIN '+table_sql('BPR/vf_RationedReqReport')+
+            ' f ON f.vf_run_id=d.owner AND f.vf_image=%s AND f.vf_ordinal=w.pos-d.base')
+        joins.append(DAILY)
+    if not pieces:
+        pieces.append('SELECT vf_ordinal,'+','.join(quote(col) for col in (*native,'ReportDate'))+
+                      ' FROM '+table_sql('BTR/BPR')+' WHERE FALSE')
+    return 'WITH '+','.join(ctes)+' '+' UNION ALL '.join(pieces), params+joins
