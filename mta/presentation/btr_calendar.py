@@ -7,10 +7,10 @@ An absent date has no cell. An observed row can contain SQL NULLs throughout.
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
+from collections.abc import Iterable, Mapping
 
 from mta.domain.btr_finalization import _day
 from mta.domain.sql_identity_keys import group_key
-from mta.row_sequences import is_record_rows
 
 
 @dataclass(frozen=True, slots=True)
@@ -36,8 +36,8 @@ def daily_cells(business_date, rows):
     numeric-looking wire string must not be coerced to float before MAX.
     Iteration and scratch storage are bounded by the newly supplied date.
     """
-    if type(business_date) is not date or not is_record_rows(rows):
-        raise ValueError('Explicit BTR date and reiterable BPR population required')
+    if type(business_date) is not date or not isinstance(rows, Iterable) or isinstance(rows, (str, bytes, Mapping)):
+        raise ValueError('Explicit BTR date and BPR rows required')
     fields = ('PhysicalInventoryPen', 'PhysicalInventoryColor', 'DispatchPen', 'DispatchColor',
               'TechPen', 'TechColor', 'EcoPen', 'EcoColor')
     groups = {}
