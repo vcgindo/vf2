@@ -33,7 +33,14 @@ def snapshot(owner):
     from django.db import connection
     init = str(owner.pk)
     source = owner.source_id
-    run_sql='SELECT run_id FROM mta.fresh_mta_dailyfeedattempt WHERE initialization_id=%s AND run_id IS NOT NULL'
+    # Scoped operator runs are owned through their immutable MDM capture rather
+    # than a DailyFeedAttempt. Include both existing execution paths in the
+    # preservation boundary; source has one ProductionInitialization owner.
+    run_sql=('SELECT R.id FROM mta.fresh_mta_calculationrun R '
+        'LEFT JOIN mta.fresh_mta_dailyfeedattempt A ON A.run_id=R.id '
+        'LEFT JOIN mta.fresh_mta_mdmdailyinputcapture C ON C.run_id=R.id '
+        'WHERE A.initialization_id=%s OR C.source_id=%s')
+    run_args=[init,source]
     publication_sql='SELECT run_id FROM mta.fresh_mta_dailyuipublication WHERE run_id IN ('+run_sql+')'
     tables=[
         ('mta.fresh_mta_productioninitialization','id=%s',[init]),
@@ -44,16 +51,20 @@ def snapshot(owner):
         ('mta.fresh_mta_ingestionrevisionstate','initialization_id=%s',[init]),
         ('mta.fresh_mta_masterinputrevision','initialization_id=%s',[init]),
         ('mta.fresh_mta_dailyfeedattempt','initialization_id=%s',[init]),
-        ('mta.fresh_mta_calculationrun','id IN ('+run_sql+')',[init]),
+        ('mta.fresh_mta_calculationrun','id IN ('+run_sql+')',run_args),
         ('mta.fresh_mta_mdmdailyinputcapture','source_id=%s',[source]),
-        ('mta.fresh_mta_dailyuipublication','run_id IN ('+run_sql+')',[init]),
-        ('mta.fresh_mta_dailyuipublicationattempt','publication_id IN ('+publication_sql+')',[init]),
-        ('mta.fresh_mta_dailyreportgeneration','run_id IN ('+run_sql+')',[init]),
-        ('mta.fresh_mta_btrreportinggeneration','run_id IN ('+run_sql+')',[init]),
+        ('mta.fresh_mta_dailyuipublication','run_id IN ('+run_sql+')',run_args),
+        ('mta.fresh_mta_dailyuipublicationattempt','publication_id IN ('+publication_sql+')',run_args),
+        ('mta.fresh_mta_dailyreportgeneration','run_id IN ('+run_sql+')',run_args),
+        ('mta.fresh_mta_btrreportinggeneration','run_id IN ('+run_sql+')',run_args),
         ('mta.fresh_mta_ingestionreleasecompatibility','initialization_id=%s',[init]),
         ('fresh_control.ingestion_release_authority','initialization_id=%s',[init]),
     ]
     with connection.cursor() as cursor:
+        for table in ('mta.fresh_mta_runscopeattempt','mta.fresh_mta_runphaseacceptance'):
+            cursor.execute('SELECT to_regclass(%s)',[table])
+            if cursor.fetchone()[0] is not None:
+                tables.append((table,'run_id IN ('+run_sql+')',run_args))
         # Absent before the settings feature, then ordinary immutable metadata
         # on subsequent upgrades. Never rewrite its earlier version rows.
         for table in ('mta.fresh_mta_executionsettingsversion', 'mta.fresh_mta_executionsetting'):
@@ -96,14 +107,24 @@ def selected(owner):
         return None
     value=read(path)
     with connection.cursor() as cursor:
-        cursor.execute('SELECT R.business_date,R.output_digest,R.status,P.status '
+        cursor.execute('SELECT R.business_date,R.output_digest,R.status,P.status,A.initialization_id '
             'FROM mta.fresh_mta_calculationrun R '
-            'JOIN mta.fresh_mta_dailyfeedattempt A ON A.run_id=R.id '
+            'LEFT JOIN mta.fresh_mta_dailyfeedattempt A ON A.run_id=R.id '
+            'LEFT JOIN mta.fresh_mta_mdmdailyinputcapture C ON C.run_id=R.id '
             'JOIN mta.fresh_mta_dailyuipublication P ON P.run_id=R.id '
-            'WHERE R.id=%s AND A.initialization_id=%s',[value['run_id'],owner.pk])
+            'WHERE R.id=%s AND (A.initialization_id=%s OR '
+            '(A.id IS NULL AND C.source_id=%s))',
+            [value['run_id'],owner.pk,owner.source_id])
         row=cursor.fetchone()
-    if row is None or row[1:] != (value['output_digest'],'SUCCEEDED','READY'):
+    if row is None or row[1:4] != (value['output_digest'],'SUCCEEDED','READY'):
         raise ValueError('Selected publication does not belong to the accepted installation')
+    if row[4] is None:
+        from mta.runtime.models import CalculationRun
+        from mta.runtime.input_reader import read_input
+        binding=read_input(CalculationRun.objects.get(pk=value['run_id']),
+            components=('initialization_binding',))['initialization_binding']
+        if (binding['id'] != str(owner.pk) or binding['source_digest'] != owner.source.digest):
+            raise ValueError('Selected scoped publication initialization binding differs')
     return dict(run_id=value['run_id'],output_digest=value['output_digest'],
         business_date=row[0].isoformat(),selection_digest=value['selection_digest'])
 
