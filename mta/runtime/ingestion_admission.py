@@ -14,6 +14,7 @@ from mta.runtime import ingestion_authority as authority
 from mta.runtime.ingestion_ownership import require_guard_coverage
 from mta.presentation.request_scope import once_per_request
 from mta.presentation.identity_reuse import certified_readiness
+from mta.presentation.schema_reuse import schema_read, verification
 from mta.application.stage_observation import stage
 
 BASELINE_MANIFEST = '2b7346f3382d78e3ea2d8c352f9854b6f59b5e13cf53d27aa9fa68216f478818'
@@ -29,11 +30,17 @@ def receipt(values):
     return digest({k: str(v) if isinstance(v, UUID) else v for k, v in values.items()})
 
 
-@stage('admission_security_catalogue')
 def security_digest(cursor, roles):
     """Catalogue cost depends on schema size, never on business row count."""
     if type(roles) is not list or len(roles) != 3 or len(set(roles)) != 3:
         raise ValueError('Exact owner, installer and runtime roles required')
+    return _security_digest(cursor, tuple(roles))
+
+
+@schema_read
+@stage('admission_security_catalogue')
+def _security_digest(cursor, roles):
+    roles = list(roles)
     owner, installer, runtime = roles
     cursor.execute('SELECT rolname,oid::bigint,rolcanlogin,rolsuper,rolcreatedb,rolcreaterole,'
         'rolreplication,rolbypassrls,rolinherit FROM pg_roles WHERE rolname=ANY(%s) ORDER BY rolname',
@@ -133,7 +140,7 @@ def _origin_transition(body,cert):
         raise ValueError('Same-commit manifest substitution prohibited')
 
 
-def _activation_metadata(cursor, body):
+def _activation_metadata(cursor, body, *, certificate=None, registered=None):
     """Authenticate immutable certificate/registrar joins, not a live catalogue.
 
     Historical activations describe their original catalogue. A separately
@@ -141,12 +148,13 @@ def _activation_metadata(cursor, body):
     never the original certificate or its chain of custody.
     """
     authority.validate(body)
-    cert = _certificate(body['initialization_id'])
-    from release.native_schema import schema_digest
+    cert = _certificate(body['initialization_id']) if certificate is None else certificate
+    if str(cert['initialization_id']) != body['initialization_id']:
+        raise ValueError('Activation certificate belongs to another initialization')
     cursor.execute('SELECT current_database(),oid::bigint FROM pg_database WHERE datname=current_database()')
     if cursor.fetchone() != (body['database_name'], body['database_oid']):
         raise ValueError('Foreign database authority')
-    original, capability = registration(cursor)
+    original, capability = registration(cursor) if registered is None else registered
     original_release = capability['release_identity']
     if (body['original_commit'] != original_release['source_commit']
             or body['original_release'] != original_release['manifest_sha256']
@@ -432,7 +440,7 @@ def preparation_readiness(initialization_id):
     if connection.in_atomic_block:
         raise ValueError('Preparation readiness owns its read-only snapshot')
     release = _process_release(os.environ.get('VF_NATIVE_RELEASE_COMMIT'),os.environ.get('VF_NATIVE_RELEASE_SHA256'))
-    with transaction.atomic(),connection.cursor() as cursor:
+    with verification(preparation=True), transaction.atomic(), connection.cursor() as cursor:
         cursor.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY')
         return _admit(cursor,initialization_id,release,pending=True)
 

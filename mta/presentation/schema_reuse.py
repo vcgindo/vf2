@@ -97,13 +97,13 @@ def _ticket(database):
 
 
 @contextmanager
-def verification():
-    """Only the existing serving readiness wrapper may lend this short ticket."""
+def verification(*, preparation=False):
+    """Lend catalogue evidence to one owned read-only admission snapshot."""
     from mta.presentation import admission
     from mta.presentation.request_scope import in_read_request, in_admission_preflight
     database = connections[DEFAULT_DB_ALIAS]
-    if (_active.get() is not None or admission._admitted is None
-            or not (in_read_request() or in_admission_preflight())
+    serving = admission._admitted is not None and (in_read_request() or in_admission_preflight())
+    if (_active.get() is not None or not (preparation or serving)
             or database.vendor != 'postgresql' or database.in_atomic_block
             or database.connection is None or database.connection.closed
             or not database.get_autocommit()):
@@ -138,21 +138,21 @@ def _valid(cursor, ticket):
 
 def schema_read(function):
     @wraps(function)
-    def read(cursor):
+    def read(cursor, *identity):
         ticket = _active.get()
         if ticket is None:
-            return function(cursor)
+            return function(cursor, *identity)
         try:
             if not _valid(cursor, ticket):
-                return function(cursor)
+                return function(cursor, *identity)
             entries = _local.entries
-            key = (function, ticket['key'])
+            key = (function, ticket['key'], identity)
             if key in entries:
                 value = entries[key]
                 if _valid(cursor, ticket):
                     return value
-                return function(cursor)
-            value = function(cursor)
+                return function(cursor, *identity)
+            value = function(cursor, *identity)
             if _valid(cursor, ticket):
                 if len(entries) >= 4:
                     entries.clear()

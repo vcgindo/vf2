@@ -46,6 +46,13 @@ class SchemaReuseTests(unittest.TestCase):
         self.assertEqual(self.function.call_count, 1)
         self.assertEqual(self.session.call_count, 4)
 
+    def test_security_digest_keeps_distinct_role_rosters(self):
+        self.activate()
+        for roles in (('owner', 'installer', 'runtime'), ('owner', 'installer', 'another')):
+            self.read(self.cursor, roles)
+            self.read(self.cursor, roles)
+        self.assertEqual(self.function.call_count, 2)
+
     def test_changed_catalogue_settings_or_migrations_get_full_digest(self):
         self.activate()
         self.read(self.cursor)

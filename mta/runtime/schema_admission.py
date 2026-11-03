@@ -51,9 +51,8 @@ def original_activation(cursor, initialization_id):
     from mta.runtime.ingestion_admission import _certificate, _activation_metadata, registration
     cert = _certificate(initialization_id)
     body = authority.read(cursor, initialization_id, cert['release_digest'])
-    if _activation_metadata(cursor, body) != cert:
-        raise ValueError('Original certified activation differs')
     original, capability = registration(cursor)
+    _activation_metadata(cursor, body, certificate=cert, registered=(original, capability))
     return cert, original, capability, body
 
 
