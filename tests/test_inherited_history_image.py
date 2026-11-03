@@ -40,6 +40,12 @@ class InheritedHistoryOwnerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'opening owner'):
             image._owner(self.run,self.cut,self.frozen)
 
+    def test_partial_persistence_metadata_cannot_stand_in_for_captured_lineage(self):
+        partial={'initialization_binding':self.frozen['initialization_binding'],'profile':{}}
+        with self.assertRaisesRegex(ValueError,'accepted predecessor'):
+            image._owner(self.run,self.cut,partial)
+        image._owner(self.run,self.cut,dict(partial,lineage=self.frozen['lineage']))
+
 
 @unittest.skipUnless(os.environ.get('VF_PHASE_POSTGRES_PROOF')=='1','Configured isolated Django/PG proof required')
 class InheritedHistoryReferenceTests(unittest.TestCase):

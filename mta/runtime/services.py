@@ -79,7 +79,7 @@ def finish_run(run, output, *, expected_digest, publication_opening=None, _scope
     with stage('persistence_profile_reconstruction'):
         from mta.runtime.input_reader import read_execution_input
         frozen=(read_execution_input(run,components=('profile','scope_request','execution_settings',
-            'initialization_binding')) if run.kind=='DAILY_CHAIN' else {})
+            'initialization_binding','lineage')) if run.kind=='DAILY_CHAIN' else {})
         frozen_profile=frozen.get('profile')
         frozen_profile_digest=digest(frozen_profile)
     from mta.runtime.runtime_report_request import SCHEMA as PLACEMENT_SCHEMA
