@@ -29,6 +29,7 @@ class DayContext:
     action_revision: int = 0
     accepted_inputs: Any = None
     master_qualified: Any = None
+    history_changes: Any = None
 
 
 @dataclass(slots=True)

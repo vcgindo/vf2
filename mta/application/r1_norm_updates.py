@@ -11,6 +11,8 @@ or MTO changes. Any future exception requires explicit human authorization.
 from collections import Counter
 from copy import deepcopy
 
+from mta.application.history_removals import retain_norm_log
+
 
 def key(row):
     return (row['SKUCode'].rstrip().casefold(), row['WhCode'].rstrip().casefold())
@@ -66,7 +68,7 @@ def clear_force_requests(state, *, from_ui, ignore_master_norm, nms_active):
     return out
 
 
-def apply_norm_updates(state, day):
+def apply_norm_updates(state, day, *, norm_log_removals=None):
     out = deepcopy(state)
     masters = {key(r): r for r in out['dbm_master']}
     if len(masters) != len(out['dbm_master']):
@@ -96,8 +98,8 @@ def apply_norm_updates(state, day):
     validate_produced_rows([{('WHCode' if name=='WhCode' else name):value for name,value in row.items()}
                    for row in changes], 'DBM/NormChangeLogTbl', stage='controls/accepted-log')
     changed = {key(r) for r in changes}
-    out['log'] = [r for r in out['log'] if not (key(r) in changed and r['NormChangeDate'] == day
-                  and r['NormChangeReason'] is not None and r['NormChangeReason'] < 100)] + changes
+    out['log'] = retain_norm_log(out['log'], lambda r: key(r) in changed and r['NormChangeDate'] == day
+        and r['NormChangeReason'] is not None and r['NormChangeReason'] < 100, norm_log_removals) + changes
     for row in accepted:
         if key(row) in masters:
             masters[key(row)]['Norm'] = row['NewNorm']
@@ -116,8 +118,8 @@ def apply_norm_updates(state, day):
     validate_produced_rows([{('WHCode' if name=='WhCode' else name):value for name,value in row.items()}
                    for row in forced_changes], 'DBM/NormChangeLogTbl', stage='controls/forced-log')
     changed = {key(r) for r in forced}
-    out['log'] = [r for r in out['log'] if not (key(r) in changed and r['NormChangeDate'] == day
-                  and r['NormChangeReason'] == 101)] + forced_changes
+    out['log'] = retain_norm_log(out['log'], lambda r: key(r) in changed
+        and r['NormChangeDate'] == day and r['NormChangeReason'] == 101, norm_log_removals) + forced_changes
     for row in out['upload_log']:
         if key(row) in masters:
             row['OldNorm'] = masters[key(row)]['Norm']

@@ -4,6 +4,7 @@ from datetime import date, timedelta
 from decimal import Decimal, ROUND_CEILING
 import json
 
+from mta.application.history_removals import retain_norm_log
 from mta.application.r1_norm_updates import key
 
 REQUEST_FIELDS = ('SKUCode','WhCode','StartDate','EndDate','TargetNorm',
@@ -167,7 +168,7 @@ def process_seasons(state, day):
     return out
 
 
-def apply_seasons(state, day):
+def apply_seasons(state, day, *, norm_log_removals=None):
     out = deepcopy(state)
     masters = {key(r):r for r in out['dbm_master']}
     changes = []
@@ -181,7 +182,8 @@ def apply_seasons(state, day):
         changes.append(dict(SKUCode=row['SKUCode'],WhCode=row['WhCode'],OldNorm=old,
                             NewNorm=row['NewNorm'],NormChangeDate=day,NormChangeReason=104))
     changed = {key(r) for r in changes}
-    out['log'] = [r for r in out['log'] if not (key(r) in changed and r['NormChangeDate'] == day and r['NormChangeReason'] == 104)] + changes
+    out['log'] = retain_norm_log(out['log'], lambda r: key(r) in changed
+        and r['NormChangeDate'] == day and r['NormChangeReason'] == 104, norm_log_removals) + changes
     out['triggers'] = [r for r in out['triggers'] if key(r) not in changed] + [
         dict(SKUCode=r['SKUCode'],WhCode=r['WhCode'],NewNorm=r['NewNorm'],Reason=104) for r in changes]
     return out

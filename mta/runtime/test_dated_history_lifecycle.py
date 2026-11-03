@@ -10,12 +10,15 @@ from mta.serialization import digest
 from mta.runtime.test_rationing_adoption import RationingAdoptionTests as AdoptionFixture
 from mta.runtime.test_rationing_cut_guards import RationingCutGuardTests as Fixture
 from mta.runtime.test_dated_history_storage import DatedHistoryStorageTests,row
-from mta.runtime.dated_history_delta import FAMILIES,COMPLETE_REMARKS
+from mta.runtime.dated_history_delta import FAMILIES as ALL_FAMILIES,COMPLETE_REMARKS,TRANSITION_FAMILIES
 from mta.runtime.dated_history_reader import read_cut,iter_occurrences,iter_image
 from mta.runtime.dated_history_adoption import adopt
 from mta.runtime.dated_history_writer import begin_initial_anchors,seal_initial_anchors,write_day
 from mta.runtime.state_cut_models import OperationalStateCut
 from mta.runtime.ingestion_models import IngestionRevisionState
+
+# These fixtures exercise the date-retention codec; producer transitions have their own cases.
+FAMILIES = {family: rule for family, rule in ALL_FAMILIES.items() if family not in TRANSITION_FAMILIES}
 
 
 class DatedHistoryLifecycleTests(TestCase):

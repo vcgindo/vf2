@@ -12,6 +12,7 @@ from mta.serialization import digest
 
 SCHEMA = 'fresh-native-phase-logical-contract-v1'
 LEGACY_RECIPE = '2b307bcb0cad7f75cf0f2273938cd072fb4b25fe1191252691cb6e113873fc7c'
+TRANSITION_LOGICAL = '3fc77ea744eaeaeeb6c01da3141fbd8926c85ecb832fc60b12b2f854e13fcb1e'
 LEGACY_LOGICAL = '938547791982517980a4febf79022f299645040f0e41a364b49db70c1d73b774'
 
 
@@ -57,7 +58,15 @@ def effective(recipe, manifest):
 
 def compatible(snapshot):
     try:
-        return effective(snapshot.recipe_digest, snapshot.manifest) == logical_digest()
+        observed=effective(snapshot.recipe_digest, snapshot.manifest)
+        # Exact previous logical layout decodes with history_changes absent.
+        # It keeps its original full-image codec; no missing delta is inferred.
+        current = logical_digest()
+        return (observed==current or current==TRANSITION_LOGICAL and observed==LEGACY_LOGICAL
+            and snapshot.manifest.get('storage_format') in (None,
+                'fresh-phase-image-references-v2','fresh-phase-image-references-v3',
+                'fresh-phase-image-references-v4')
+            and 'history_changes' not in snapshot.manifest.get('state',{}))
     except (TypeError, ValueError):
         return False
 

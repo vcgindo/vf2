@@ -5,6 +5,7 @@ are source facts/prior state; collection generates today's phase state itself.
 """
 from collections import Counter
 from copy import deepcopy
+from mta.application.history_removals import retain_norm_log
 from mta.application.r1_norm_updates import key
 
 
@@ -126,7 +127,7 @@ def collect_phase_out(state, day, timestamp, *, from_ui):
     return out
 
 
-def process_phase_out(state, day):
+def process_phase_out(state, day, *, norm_log_removals=None):
     out = deepcopy(state)
     phases = out['phase_out']
     counts = Counter(key(r) for r in phases)
@@ -136,8 +137,8 @@ def process_phase_out(state, day):
         for row in phases:
             if key(master) == key(row) and row['NewNorm'] is not None:
                 master['Norm'] = row['NewNorm']
-    out['log'] = [r for r in out['log'] if not (key(r) in counts
-                  and r['NormChangeDate'] == day and r['NormChangeReason'] == 102)]
+    out['log'] = retain_norm_log(out['log'], lambda r: key(r) in counts
+        and r['NormChangeDate'] == day and r['NormChangeReason'] == 102, norm_log_removals)
     changed = [r for r in phases if r['OldNorm'] is not None and r['NewNorm'] is not None and r['OldNorm'] != r['NewNorm']]
     out['log'].extend(dict(SKUCode=r['SKUCode'], WhCode=r['WhCode'], OldNorm=r['OldNorm'],
                           NewNorm=r['NewNorm'], NormChangeDate=day, NormChangeReason=102) for r in changed)

@@ -20,7 +20,7 @@ FORCE_CAPTURE_POLICY = 'cohort2-pre-clear-force-v1'
 
 
 def timeline_control_stages(today, opening_date, state, extra, day, profile, daily, attributes,
-                            *, force_alert_capture=None):
+                            *, force_alert_capture=None, norm_log_removals=None):
     if force_alert_capture is not None and (not isinstance(force_alert_capture, dict)
                                             or force_alert_capture):
         raise ValueError('A new empty force-alert capture sink is required')
@@ -35,14 +35,15 @@ def timeline_control_stages(today, opening_date, state, extra, day, profile, dai
     for name in REQUEST_TABLES:
         s[name].extend(deepcopy(commands[name]))
     timestamp = today + 'T00:00:00'
+    removal_kwargs = {} if norm_log_removals is None else dict(norm_log_removals=norm_log_removals)
     stages = (
         ('CollectPhaseOutData.sql', lambda v: collect_phase_out(v, today, timestamp, from_ui=profile['from_ui'])),
-        ('ProcessPhaseOut.sql', lambda v: process_phase_out(v, today)),
+        ('ProcessPhaseOut.sql', lambda v: process_phase_out(v, today, **removal_kwargs)),
         ('CollectPhaseInData.sql', lambda v: collect_phase_in(v, today, from_ui=profile['from_ui'], start_percent=profile['start_percent'])),
-        ('ProcessPhaseIn.sql', lambda v: process_phase_in(v, today)),
+        ('ProcessPhaseIn.sql', lambda v: process_phase_in(v, today, **removal_kwargs)),
         ('CollectSeasonalityData.sql', lambda v: collect_seasons(v, today)),
         ('ProcessSeasonality.sql', lambda v: process_seasons(v, today)),
-        ('ApplySeasonalityNormChanges.sql', lambda v: apply_seasons(v, today)),
+        ('ApplySeasonalityNormChanges.sql', lambda v: apply_seasons(v, today, **removal_kwargs)),
     )
     diagnostics = {}
     for name, calculate in stages:
@@ -52,7 +53,7 @@ def timeline_control_stages(today, opening_date, state, extra, day, profile, dai
         yield name, s, diagnostics
     extras = {n: deepcopy(s[n]) for n in EXTRA_TABLES}
     for name, current in control_stages(today, opening_date, {n: s[n] for n in TABLES},
-            profile['force_flags'], day['accepted_feed'], day['new_force_requests']):
+            profile['force_flags'], day['accepted_feed'], day['new_force_requests'], **removal_kwargs):
         s = {**current, **deepcopy(extras)}
         if name == 'UpdateNormChanges.sql':
             diagnostics['failed_force'] = failed_force_rows(s, today)

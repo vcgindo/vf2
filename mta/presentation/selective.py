@@ -43,6 +43,11 @@ def image_rows(run, path, *, metadata=None):
         from mta.presentation.daily_sources import image_rows as daily_rows
         return daily_rows(run, path)
     item = metadata if metadata is not None else image_metadata(run, path)
+    from mta.runtime import transition_history_image
+    if transition_history_image.owns(item):
+        if item['image']!=path:
+            raise PublicationUnavailable('selected_report_image_table_mismatch:'+path)
+        return transition_history_image.image_relation(run,item,required_fields=required_fields)
     from mta.presentation import btr_calendar_images as calendar
     if snapshot.owns(item):
         return snapshot.load(run,item)
@@ -68,7 +73,10 @@ def image_field(run, path, field):
     _, column, kind = selected[0]
     from mta.presentation import btr_calendar_images as calendar
     from mta.runtime import btr_import_image
-    if btr_import_image.owns(item):
+    from mta.runtime import transition_history_image
+    if transition_history_image.owns(item):
+        relation,params=image_query(run,path,metadata=item,required_fields=(column,))
+    elif btr_import_image.owns(item):
         relation, params = btr_import_image.relation(run,item)
     elif snapshot.owns(item):
         relation, params = image_query(run, path, metadata=item, required_fields=(column,))

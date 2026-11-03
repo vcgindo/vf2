@@ -67,6 +67,21 @@ def encode(phase, sources, *, image_writer, export_writer):
                            if binding_prefix == 'closing/importer' else None))
         return result
 
+    history_changes = None
+    if phase.context.history_changes is not None:
+        from mta.runtime.dated_history_delta import source_table, producer_sort_key
+        history_changes = {}
+        for family, change in phase.context.history_changes.items():
+            suffix = family.removeprefix('closing/')
+            additions = rows('history-additions/'+suffix, change['additions'], table=source_table(family))
+            changes = [{'OpeningOrdinal':n,'AdditionOrdinal':None,'SortKey':None} for n in change['removed']]
+            changes.extend({'OpeningOrdinal':None,'AdditionOrdinal':i,
+                'SortKey':None if change['sorted_prefix'] is None else producer_sort_key(row,family)}
+                for i,row in enumerate(change['additions']))
+            removals = rows('history-changes/'+suffix, changes, table='phase/HistoryChange')
+            history_changes[family] = dict(opening_count=change['opening_count'],
+                sorted_prefix=change['sorted_prefix'], additions=additions, changes=removals)
+
     state = dict(
         importer=tables(phase.importer, 'importer', 'closing/importer'),
         control_final=tables(phase.control_final, 'controls', 'closing/controls'),
@@ -80,6 +95,8 @@ def encode(phase, sources, *, image_writer, export_writer):
         complete=tables(phase.complete, 'complete', 'closing/complete'),
         master_raw=rows('master_raw', phase.context.master['tables']['MasterDataRaw'],
                         table='Importer/MasterDataRaw'))
+    if history_changes is not None:
+        state['history_changes'] = history_changes
     if name == 'PRE_BPR':
         from mta.application.r1_daily_entry import generated_bpr_daily_state
         consumption = (generated_bpr_daily_state(dict(
@@ -203,6 +220,11 @@ def _decode_accepted(manifest, *, prior, day, profile, master_snapshot,
         return {key: unpack(value) for key, value in node.items()}
 
     state = unpack(manifest['state'])
+    history_changes = state.pop('history_changes',None)
+    if history_changes is not None:
+        for change in history_changes.values():
+            change['removed'] = [r['OpeningOrdinal'] for r in change.pop('changes')
+                if r['OpeningOrdinal'] is not None]
     metadata = manifest['metadata']
     sources = (None if manifest['consumers'] is None else
                CalculationSources(metadata['calculation_digest'], **unpack(manifest['consumers'])))
@@ -214,7 +236,7 @@ def _decode_accepted(manifest, *, prior, day, profile, master_snapshot,
         finalization=configuration(profile), completion=None,
         master=dict(outcome=metadata['master_outcome'], tables={'MasterDataRaw': state.pop('master_raw')}),
         master_reused=metadata['master_reused'], master_work=metadata['master_work'],
-        action_revision=metadata.get('action_revision',0))
+        action_revision=metadata.get('action_revision',0),history_changes=history_changes)
     from mta.application.accepted_inputs import _restore
     _restore(context, metadata)
     context.master_qualified = metadata.get('master_qualified')

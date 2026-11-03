@@ -166,7 +166,9 @@ def _winner(rows, fields):
     return rows[0] if rows else None
 
 
-def process_daily_validation(entry, master_validation, business_date, now):
+def process_daily_validation(entry, master_validation, business_date, now, *, rejection_additions=None):
+    if rejection_additions is not None and (type(rejection_additions) is not list or rejection_additions):
+        raise ValueError("Daily rejection capture requires an empty owned list")
     entry = validate_daily_entry(entry, business_date)
     prior = entry["prior_bpr"]
     master = master_validation["tables"]
@@ -348,4 +350,6 @@ def process_daily_validation(entry, master_validation, business_date, now):
                 outcome = "SQL_ERROR"
             stages[stage] = {"outcome": outcome, "tables":
                 {k: sorted_rows(v) for k, v in tables.items()} if stage==STAGES[-1] else {}}
+    if rejection_additions is not None:
+        rejection_additions.extend(deepcopy(tables["RejectedMaster"][len(master["RejectedMaster"]):]))
     return stages

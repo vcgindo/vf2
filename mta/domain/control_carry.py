@@ -12,7 +12,7 @@ TABLES = ('dbm_master', 'suggestions', 'reason_codes', 'acceptance', 'phase_out'
           'importer_settings', 'IntermediateTables')
 
 
-def control_stages(today, opening_date, state, flags, accepted_feed, new_force_requests):
+def control_stages(today, opening_date, state, flags, accepted_feed, new_force_requests, *, norm_log_removals=None):
     if set(state) != set(TABLES):
         raise ValueError('Complete prior control tables required')
     if date.fromisoformat(opening_date) >= date.fromisoformat(today):
@@ -42,7 +42,7 @@ def control_stages(today, opening_date, state, flags, accepted_feed, new_force_r
     dates = {key(r): r['ChangeDate'] for r in s['forced']}
     working = deepcopy(s)
     working['forced'] = [{k: v for k, v in r.items() if k != 'ChangeDate'} for r in working['forced']]
-    updated = apply_norm_updates(working, today)
+    updated = apply_norm_updates(working, today, norm_log_removals=norm_log_removals)
     accepted = deepcopy(s)
     accepted.update(dbm_master=updated['accepted_checkpoint']['master'],
                     log=updated['accepted_checkpoint']['log'],

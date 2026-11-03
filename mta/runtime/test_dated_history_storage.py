@@ -7,10 +7,13 @@ from django.test import TestCase
 
 from mta.serialization import digest
 from mta.runtime.test_rationing_cut_guards import RationingCutGuardTests as Fixture
-from mta.runtime.dated_history_delta import FAMILIES,fields,COMPLETE_REMARKS
+from mta.runtime.dated_history_delta import FAMILIES as ALL_FAMILIES,fields,COMPLETE_REMARKS,TRANSITION_FAMILIES
 from mta.runtime.dated_history_reader import read_cut,iter_occurrences,iter_image,table
 from mta.runtime.dated_history_writer import seal_anchor_rows,write_delta,opening_path
 from mta.runtime.state_cut_models import OperationalStateCut
+
+# These fixtures exercise the date-retention codec; producer transitions have their own cases.
+FAMILIES = {family: rule for family, rule in ALL_FAMILIES.items() if family not in TRANSITION_FAMILIES}
 
 
 def row(family,stamp):

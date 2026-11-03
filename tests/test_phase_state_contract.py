@@ -13,8 +13,8 @@ from mta.application.native_output_contracts import native_assignments
 
 class PhaseContractTests(TestCase):
     def test_exact_legacy_bootstrap_and_new_recipe_keep_separate_provenance(self):
-        self.assertEqual(legacy.recipe_digest(), contract.LEGACY_RECIPE)
-        self.assertEqual(contract.logical_digest(), contract.LEGACY_LOGICAL)
+        self.assertEqual(contract.logical_digest(), contract.TRANSITION_LOGICAL)
+        self.assertNotEqual(contract.logical_digest(), contract.LEGACY_LOGICAL)
         self.assertNotEqual(phase_state.recipe_digest(), contract.LEGACY_RECIPE)
         with native_assignments(True):
             prepared, _opening, _refs = native_prepared()
@@ -22,8 +22,13 @@ class PhaseContractTests(TestCase):
         original = legacy.encode(prepared, None, row_writer=memory.rows, export_writer=memory.export)
         accepted = deepcopy(original)
         current = phase_state.encode(prepared, None, row_writer=memory.rows, export_writer=memory.export)
-        self.assertEqual(contract.effective(legacy.recipe_digest(), original),
-                         contract.effective(phase_state.recipe_digest(), current))
+        historical = SimpleNamespace(recipe_digest=contract.LEGACY_RECIPE, manifest=original)
+        self.assertEqual(contract.effective(historical.recipe_digest, original), contract.LEGACY_LOGICAL)
+        self.assertTrue(contract.compatible(historical))
+        self.assertEqual(contract.effective(phase_state.recipe_digest(), current), contract.TRANSITION_LOGICAL)
+        restored, _ = phase_state.decode(original, **_refs, row_reader=memory.read,
+            export_reader=memory.read, execute_calculation=prepared.context.execute_calculation)
+        self.assertIsNone(restored.context.history_changes)
         self.assertEqual(original, accepted)
         self.assertEqual(current['phase_contract'], contract.describe())
         self.assertEqual(current['storage_format'], FORMAT)
@@ -54,12 +59,13 @@ class PhaseContractTests(TestCase):
 
     def test_prior_v2_storage_remains_readable_without_relabeling(self):
         manifest=dict(schema='fresh-native-phase-state-v1',
-                      phase_contract=contract.describe(),storage_format='fresh-phase-image-references-v2')
+                      phase_contract=dict(schema=contract.SCHEMA,digest=contract.LEGACY_LOGICAL),
+                      storage_format='fresh-phase-image-references-v2')
         before=deepcopy(manifest)
         snapshot=SimpleNamespace(recipe_digest='2'*64,manifest=manifest)
         self.assertTrue(contract.compatible(snapshot))
         self.assertEqual(manifest,before)
-        self.assertEqual(FORMAT,'fresh-phase-image-references-v4')
+        self.assertEqual(FORMAT,'fresh-phase-image-references-v5')
 
     def test_inherited_reference_requires_v3_and_its_control_owner(self):
         path='phase/BPR/controls/suggestions_log'

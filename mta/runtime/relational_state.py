@@ -198,7 +198,10 @@ def save_image(run,image,binding,rows, *, table=None):
 def iter_image(run,item, *, table_registry=None):
     if item['table'] not in (STORAGE_TABLES if table_registry is None else table_registry):
         raise ValueError('Unknown operational table')
-    from mta.runtime import inherited_history_image
+    from mta.runtime import inherited_history_image, transition_history_image
+    if transition_history_image.owns(item):
+        yield from transition_history_image.iter_image(run,item,audit=True)
+        return
     if inherited_history_image.owns(item):
         yield from inherited_history_image.iter_image(run,item,audit=True)
         return
@@ -397,10 +400,30 @@ def save_daily(run,output, *, frozen=None,profile_digest=None):
     from mta.runtime import btr_import_image
     from mta.runtime.inherited_history_image import ReferenceWriter, PATHS as INHERITED_PATHS
     inherited=ReferenceWriter(run,frozen=frozen)
+    from mta.runtime import transition_history_image as transition_images
+    history_changes=output.get('_HistoryTransitions')
+    terminal_cuts={}
+    if frozen is not None and history_changes is not None:
+        from mta.runtime.dated_history_writer import write_frozen_day
+        from mta.runtime.state_cut_models import OperationalStateCut
+        from mta.runtime.dated_history_reader import Cut
+        for family in transition_images.FAMILIES:
+            _,section,name=family.split('/')
+            images[family]=write_frozen_day(run,family,closing[section][name],frozen=frozen,
+                profile_digest=profile_digest,transition=history_changes[family])
+            row=OperationalStateCut.objects.get(pk=images[family]['cut_id'])
+            terminal_cuts[family]=Cut(row.pk,row.initialization_id,row.run_id,row.position,
+                row.root_digest,json.loads(row.root_body))
     defer_bpr = (frozen is not None and output.get('_ReportBoundary') and run.evidence_mode=='production' and output.get('BPRFinal')
                  and btr_import_image.compatible_parent(run))
     def image(path,binding,rows):
         from mta.runtime import dated_history_writer
+        if path in images:return {'image':path}
+        projected=transition_images.family(path)
+        if projected in terminal_cuts:
+            key='/'.join(CATALOG['bindings'][binding])
+            images[path]=transition_images.terminal_projection(run,path,key,rows,terminal_cuts[projected])
+            return {'image':path}
         if path in INHERITED_PATHS and frozen is not None:
             key='/'.join(CATALOG['bindings'][binding])
             columns={name.casefold():(name,kind) for name,kind in STORAGE_TABLES[key]}
@@ -412,7 +435,8 @@ def save_daily(run,output, *, frozen=None,profile_digest=None):
         if path=='closing/btr/RationingHistory' and frozen is not None:
             from mta.runtime.rationing_writer import write_frozen_day
             images[path]=write_frozen_day(run,rows,frozen=frozen,profile_digest=profile_digest)
-        elif path in dated_history_writer.FAMILIES and frozen is not None:
+        elif (path in dated_history_writer.FAMILIES and frozen is not None
+                and (path not in transition_images.FAMILIES or history_changes is not None)):
             item=dated_history_writer.write_frozen_day(run,path,rows,frozen=frozen,profile_digest=profile_digest)
             images[path]=item if item is not None else save_image(run,path,binding,rows)
         else:

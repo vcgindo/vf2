@@ -7,8 +7,8 @@ projection with a specific logical owner, including empty populations.
 from mta.runtime import relational_state as typed
 from mta.runtime.phase_state_layout import REGISTRY
 
-FORMAT = 'fresh-phase-image-references-v4'
-READABLE_FORMATS = ('fresh-phase-image-references-v2', 'fresh-phase-image-references-v3', FORMAT)
+FORMAT = 'fresh-phase-image-references-v5'
+READABLE_FORMATS = ('fresh-phase-image-references-v2', 'fresh-phase-image-references-v3', 'fresh-phase-image-references-v4', FORMAT)
 IDENTITY_FIELDS = ('table', 'count', 'digest', 'fields')
 CONTROL_PROJECTIONS = {
     'SuggestionsLog': 'suggestions_log',
@@ -42,11 +42,12 @@ class ImageWriter:
     Every input still receives the complete typed ordered description. Reuse
     reduces physical writes only; it does not claim incremental hashing/reads.
     """
-    def __init__(self, writer, *, parent_manifest=None, prior_writer=None):
+    def __init__(self, writer, *, parent_manifest=None, prior_writer=None, history_writer=None):
         self.writer = writer
         self.parent = parent_manifest
         self.prior_writer = prior_writer
         self.images = {}
+        self.history_writer = history_writer
 
     def __call__(self, path, table, rows):
         columns = {name.casefold(): (name, kind) for name, kind in REGISTRY[table]}
@@ -63,6 +64,11 @@ class ImageWriter:
                     and inherited_projection(path) is None):
                 continue
             if candidate is not None and all(meta[k] == candidate[k] for k in IDENTITY_FIELDS):
+                self.images[path] = candidate
+                return candidate
+        if self.history_writer is not None:
+            candidate = self.history_writer(path,table,description,self.images)
+            if candidate is not None:
                 self.images[path] = candidate
                 return candidate
         if self.prior_writer is not None:
@@ -86,7 +92,7 @@ def owns_physical_image(manifests, logical_image, metadata):
     if owns(metadata):
         if metadata.get('image') not in PATHS or metadata.get('table') != 'DBM/SuggestionsLog':
             return False
-        if logical_image not in PATHS and (current.get('storage_format') != FORMAT
+        if logical_image not in PATHS and (current.get('storage_format') not in READABLE_FORMATS[2:]
                 or inherited_projection(logical_image) is None):
             return False
     if current['images'].get(logical_image) != metadata:
@@ -125,9 +131,23 @@ def _projection_source(current, logical_image, metadata):
 def supports_inherited_images(manifest):
     """Old formats cannot smuggle a new physical capability into phase reads."""
     from mta.runtime.inherited_history_image import owns, PATHS
+    from mta.runtime import transition_history_image as changes
     images=manifest.get('images',{})
     if type(images) is not dict:return False
     for path,item in images.items():
+        if type(item) is dict and changes.owns(item):
+            if (manifest.get('storage_format')!=FORMAT or item.get('storage_format')!=changes.FORMAT
+                    or changes.family(path)!=item.get('family')
+                    or item.get('run_id')!=manifest.get('metadata',{}).get('identity')
+                    or not str(item.get('image','')).startswith('phase/')):
+                return False
+            change=manifest.get('state',{}).get('history_changes',{}).get(item['family'])
+            if (type(change) is not dict or change.get('sorted_prefix')!=item.get('sorted_prefix')
+                    or change.get('opening_count') is None):return False
+            for label in ('additions','changes'):
+                node=change.get(label)
+                if (type(node) is not dict or set(node)!={'image'}
+                        or images.get(node['image'])!=item.get(label)):return False
         if type(item) is not dict or not owns(item):continue
         phase=manifest.get('phase')
         metadata=manifest.get('metadata',{})
@@ -139,7 +159,7 @@ def supports_inherited_images(manifest):
             return False
         source = path
         while source != 'phase/'+phase+'/controls/suggestions_log':
-            if (manifest.get('storage_format') != FORMAT or phase != 'DBM'
+            if (manifest.get('storage_format') not in READABLE_FORMATS[2:] or phase != 'DBM'
                     or inherited_projection(source) is None):
                 return False
             source = _projection_source(manifest, source, item)

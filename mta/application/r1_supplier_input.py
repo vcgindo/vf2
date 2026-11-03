@@ -71,7 +71,9 @@ def sorted_rows(rows):
     return sorted(deepcopy(rows), key=lambda r: json.dumps(r, sort_keys=True))
 
 
-def process_supplier_validation(raw, master_validation, settings, now):
+def process_supplier_validation(raw, master_validation, settings, now, *, rejection_additions=None):
+    if rejection_additions is not None and (type(rejection_additions) is not list or rejection_additions):
+        raise ValueError("Supplier rejection capture requires an empty owned list")
     tables = typed_supplier_tables(raw)
     master = master_validation["tables"]
     tables.update(SiteDescriptionTbl=deepcopy(master["SiteDescriptionTbl"]),
@@ -183,6 +185,8 @@ def process_supplier_validation(raw, master_validation, settings, now):
             if row["Parameter"] == "UpdatePWh_RLT_RCP_GCP":
                 row["Value"] = 0
     stages[STAGES[3]] = {"outcome": "APPLIED", "tables": {t: sorted_rows(rows) for t, rows in tables.items()}}
+    if rejection_additions is not None:
+        rejection_additions.extend(deepcopy(tables["RejectedMaster"][len(master["RejectedMaster"]):]))
     return stages
 
 

@@ -90,7 +90,10 @@ def image_rows(run, metadata, *, expected_table, fields, registry=None):
         raise ValueError('Required report source image columns missing')
     from mta.runtime.rationing_reader import uses_occurrences
     from mta.runtime import btr_import_image, dated_history_reader, inherited_history_image
-    if inherited_history_image.owns(metadata):
+    from mta.runtime import transition_history_image
+    if transition_history_image.owns(metadata):
+        original=transition_history_image.load_image(run,metadata)
+    elif inherited_history_image.owns(metadata):
         # The exact predecessor/anchor cut and this sealed phase still own it.
         original = inherited_history_image.load_image(run,metadata)
     elif dated_history_reader.owns(metadata):

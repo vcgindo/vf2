@@ -5,12 +5,17 @@ owns initialization/capture and the normal day transaction; SQL independently
 enforces those owners and requires a run-bound seal before commit.
 """
 from contextlib import closing
+from itertools import islice
 
 from django.db import connection, transaction
 
-from mta.serialization import canonical_parts,digest
-from mta.runtime.dated_history_delta import changes,Fact,Removal,Counts,Occurrence,fields,supports_descriptor,_tables,FAMILIES,source_table,COMPLETE_REMARKS,family_enabled
-from mta.runtime.dated_history_reader import FORMAT,Cut,table,read_cut,iter_occurrences,image_metadata
+from mta.serialization import canonical_parts,digest,storage
+from mta.runtime.dated_history_delta import (
+    changes, Fact, Removal, Counts, Occurrence, fields, supports_descriptor, _tables,
+    FAMILIES, source_table, COMPLETE_REMARKS, family_enabled, TRANSITION_FAMILIES,
+    SORTED_IMPORTER, RETIREMENT, producer_sort_key, transition_facts, _same,
+)
+from mta.runtime.dated_history_reader import Cut, table, read_cut, iter_occurrences, image_metadata, cut_format
 from mta.runtime.rationing_writer import _Digest
 from mta.runtime.relational_state import copy_rows,db_value,quote,wire_type,wire_value
 from mta.runtime.state_cut_models import OperationalStateCut
@@ -50,9 +55,12 @@ def _flush(cut,events):
     columns = _tables()[source_table(cut.family)]
     facts = [e for e in events if type(e) is Fact]
     if facts:
-        copy_rows(relation,['cut_id','vf_ordinal','initialization_id','born_position',*[n for n,_ in columns]],
+        sorted_importer = cut.family in SORTED_IMPORTER
+        sort_columns = ['history_sort_key'] if sorted_importer else []
+        copy_rows(relation,['cut_id','vf_ordinal','initialization_id','born_position',*[n for n,_ in columns],*sort_columns],
             ((cut.pk,e.occurrence.ordinal,cut.initialization_id,cut.position,
-              *[db_value(e.values[n],kind) for n,kind in columns]) for e in facts))
+              *[db_value(e.values[n],kind) for n,kind in columns],
+              *([producer_sort_key(e.values,cut.family)] if sorted_importer else [])) for e in facts))
     removed = [e.occurrence for e in events if type(e) is Removal]
     if removed:
         with connection.cursor() as cursor:
@@ -67,14 +75,19 @@ def _flush(cut,events):
 
 def stored_digests(cut,descriptor):
     checks = {k:_Digest() for k in ('facts','removals')}
+    sorted_importer = cut.family in SORTED_IMPORTER
     with connection.chunked_cursor() as cursor:
         cursor.execute('SELECT vf_ordinal'+(' ,'+','.join(quote(n) for _,n,_ in descriptor) if descriptor else '')+
+                       (',history_sort_key' if sorted_importer else '')+
                        ' FROM '+table(cut.family)+' WHERE cut_id=%s ORDER BY vf_ordinal',[cut.pk])
         while batch := cursor.fetchmany(BATCH):
             for record in batch:
                 if record[0] != checks['facts'].count:
                     raise ValueError('History fact ordinal differs')
-                checks['facts'].add([record[0],{n:wire_value(v,kind) for (n,_,kind),v in zip(descriptor,record[1:])}])
+                fact = [record[0],{n:wire_value(v,kind) for (n,_,kind),v in zip(descriptor,record[1:])}]
+                if sorted_importer:
+                    fact.append(record[-1])
+                checks['facts'].add(fact)
     with connection.chunked_cursor() as cursor:
         cursor.execute('SELECT born_position,vf_ordinal FROM '+table(cut.family)+
             ' WHERE closing_cut_id=%s ORDER BY born_position,vf_ordinal',[cut.pk])
@@ -84,17 +97,19 @@ def stored_digests(cut,descriptor):
     return checks
 
 
-def _seal(cut,parent,descriptor,counts,checks,anchor=None):
+def _seal(cut,parent,descriptor,counts,checks,anchor=None,*,sorted_prefix=None):
     if not supports_descriptor(cut.family,descriptor,counts.closing):
         raise ValueError('Unqualified history descriptor')
     stored = stored_digests(cut,descriptor)
     if any((stored[k].count,stored[k].value()) != (v.count,v.value()) for k,v in checks.items()):
         raise ValueError('History persisted delta values/type/order differ')
-    body = dict(format=FORMAT,cut=str(cut.pk),initialization=str(cut.initialization_id),family=cut.family,
+    body = dict(format=cut_format(cut.family),cut=str(cut.pk),initialization=str(cut.initialization_id),family=cut.family,
         position=cut.position,run=str(cut.run_id) if cut.run_id else None,parent=str(cut.parent_id) if cut.parent_id else None,
         parent_root=parent.root_digest if parent else '0'*64,input_digest=cut.input_digest,settings_digest=cut.settings_digest,
         fields=descriptor,count=counts.closing,inserted=counts.inserted,removed=counts.removed,
         facts_digest=checks['facts'].value(),removals_digest=checks['removals'].value(),anchor=anchor)
+    if cut.family in TRANSITION_FAMILIES:
+        body['sorted_prefix'] = sorted_prefix
     cut.root_body = b''.join(canonical_parts(body)).decode('utf8')
     cut.root_digest = digest(body)
     cut.save(update_fields=['root_body','root_digest'])
@@ -143,6 +158,61 @@ def write_delta(cut,parent,rows,*,today,horizon=None,unchanged=False):
         return _seal(cut,parent,observed.descriptor(),counts,checks)
 
 
+def _committed_fact(ordinal,row,family):
+    value = [ordinal,row]
+    if family in SORTED_IMPORTER:
+        value.append(producer_sort_key(row,family))
+    return value
+
+
+@stage('dated_history_delta_write')
+def write_transition(cut,parent,rows,*,today,transition):
+    """Verify the producer transition against the complete reconstructed cut."""
+    if not connection.in_atomic_block or cut.parent_id != parent.identity or cut.family != parent.body['family']:
+        raise ValueError('History transition requires its owning day transaction and parent')
+    with transaction.atomic():
+        prior_count = parent.body['count']
+        removed, facts, prefix = transition_facts(cut.family,transition,
+            opening_count=prior_count,today=today,position=cut.position)
+        observed = _Shape(rows,cut.family)
+        for _ in observed:
+            pass
+        inserted = len(transition['additions'])
+        counts = Counts(prior_count,prior_count-len(removed),inserted,len(removed),
+            prior_count-len(removed)+inserted)
+        if observed.count != counts.closing or observed.count != len(rows):
+            raise ValueError('History producer transition closing count differs')
+        if cut.family == RETIREMENT and counts.closing and observed.kinds['Event_Type'] != {'int'}:
+            raise ValueError('Retirement successor requires the producer integer event type')
+        checks = {k:_Digest() for k in ('facts','removals')}
+        if removed:
+            with closing(iter_occurrences(parent,names=())) as prior:
+                removals = (Removal(occurrence) for ordinal,(occurrence,_) in enumerate(prior)
+                            if ordinal in removed)
+                while batch := list(islice(removals,BATCH)):
+                    for event in batch:
+                        checks['removals'].add([event.occurrence.position,event.occurrence.ordinal])
+                    _flush(cut,batch)
+            if checks['removals'].count != len(removed):
+                raise ValueError('History producer removal did not resolve to its opening occurrence')
+        with closing(facts):
+            while batch := list(islice(facts,BATCH)):
+                for fact in batch:
+                    checks['facts'].add(_committed_fact(fact.occurrence.ordinal,fact.values,cut.family))
+                _flush(cut,batch)
+        if checks['facts'].count != inserted:
+            raise ValueError('History producer addition count differs')
+        descriptor = observed.descriptor()
+        pending = Cut(cut.pk,cut.initialization_id,cut.run_id,cut.position,'',
+            dict(family=cut.family,count=counts.closing,fields=descriptor,sorted_prefix=prefix))
+        with closing(iter_occurrences(pending)) as actual:
+            for (_,stored),expected in zip(actual,rows,strict=True):
+                expected = storage(expected)
+                if any(not _same(stored[name],expected[name]) for name in stored):
+                    raise ValueError('History reconstructed successor values/type/order differ')
+        return _seal(cut,parent,descriptor,counts,checks,sorted_prefix=prefix)
+
+
 def seal_anchor_rows(cut,item,rows,anchor):
     """One-time exact old-image transport, inside existing initialization/upgrade."""
     if not connection.in_atomic_block or cut.position != 0 or not supports_descriptor(cut.family,item['fields'],item['count']):
@@ -153,7 +223,7 @@ def seal_anchor_rows(cut,item,rows,anchor):
         batch=[]
         for ordinal,row in enumerate(rows):
             source.add(row)
-            checks['facts'].add([ordinal,row])
+            checks['facts'].add(_committed_fact(ordinal,row,cut.family))
             batch.append(Fact(Occurrence(0,ordinal),row))
             if len(batch)==BATCH:
                 _flush(cut,batch)
@@ -205,7 +275,7 @@ def write_day(run,family,rows):
     return write_frozen_day(run,family,rows,frozen=frozen,profile_digest=digest(frozen['profile']))
 
 
-def write_frozen_day(run,family,rows,*,frozen,profile_digest):
+def write_frozen_day(run,family,rows,*,frozen,profile_digest,transition=None):
     """Transport unchanged output using only this run's authenticated controls.
 
     Like the rationing adapter, finish_run supplies its once-decoded input and
@@ -247,4 +317,8 @@ def write_frozen_day(run,family,rows,*,frozen,profile_digest):
             unchanged=flag!=1  # Exact existing producer predicate, not a new flag domain.
         cut=OperationalStateCut.objects.create(initialization=owner,family=family,position=parent.position+1,
             run=run,parent=parent_row,input_digest=run.input_digest,settings_digest=profile_digest)
+        if family in TRANSITION_FAMILIES:
+            return write_transition(cut,parent,rows,today=run.business_date,transition=transition)
+        if transition is not None:
+            raise ValueError('Unexpected producer transition for dated history')
         return write_delta(cut,parent,rows,today=run.business_date,horizon=horizon,unchanged=unchanged)

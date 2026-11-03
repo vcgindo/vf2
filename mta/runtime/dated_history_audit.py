@@ -7,7 +7,7 @@ from contextlib import ExitStack,closing
 
 from django.db import connection
 
-from mta.runtime.dated_history_delta import fields
+from mta.runtime.dated_history_delta import SORTED_IMPORTER, fields, producer_sort_key
 from mta.runtime.dated_history_reader import table,authenticate_cut,require_image,CUT_FIELDS
 from mta.runtime.rationing_audit import _Hash,_Groups
 from mta.runtime.relational_state import quote,wire_value
@@ -40,8 +40,10 @@ def _lifetimes(cut):
 
 def audit_cut(cut):
     family=cut.body['family'];columns=fields(family);relation=table(family)
+    sorted_importer=family in SORTED_IMPORTER
     where=' WHERE C.initialization_id=%s AND C.family=%s AND C.position<=%s'
     facts=('SELECT C.position,F.vf_ordinal,'+','.join('F.'+quote(n) for n in columns)+
+        (',F.history_sort_key' if sorted_importer else '')+
         ' FROM '+relation+' F JOIN mta.fresh_mta_operationalstatecut C ON C.id=F.cut_id'+where+
         ' ORDER BY C.position,F.vf_ordinal')
     removed=('SELECT C.position,F.born_position,F.vf_ordinal,F.initialization_id,F.end_position'
@@ -65,7 +67,12 @@ def audit_cut(cut):
                 if record[1]!=checks['facts'].count:
                     raise ValueError('History audit fact order differs')
                 row={n:wire_value(record[index],kind) for n,kind,index in projection}
-                checks['facts'].add([record[1],row])
+                fact=[record[1],row]
+                if sorted_importer:
+                    if record[-1]!=producer_sort_key(row,family):
+                        raise ValueError('History audit producer sort key differs')
+                    fact.append(record[-1])
+                checks['facts'].add(fact)
                 if anchor is not None:anchor.add(row)
             last=None
             for record in streams['removals'].at(position):

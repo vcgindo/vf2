@@ -29,7 +29,9 @@ class OperationalStateCut(models.Model):
                 'closing/dbm/SpikeReport', 'closing/dbm/SuspendHistory',
                 'closing/bpr/DailyConsumption','closing/orders/SpikeOrderClosureHistory',
                 'closing/complete/BPRReport_RemarkDetails','closing/complete/OpenExpeditRequestRemarksHistory',
-                'closing/complete/InTransitWhereAboutsRemarks')),
+                'closing/complete/InTransitWhereAboutsRemarks',
+                'closing/importer/RejectedMaster','closing/importer/RetiredNormsTbl',
+                'closing/dbm/NormChangeLogTbl')),
                                    name='state_cut_qualified_family'),
             models.CheckConstraint(condition=(models.Q(position=0, parent__isnull=True) |
                 models.Q(position__gt=0, parent__isnull=False, run__isnull=False)),

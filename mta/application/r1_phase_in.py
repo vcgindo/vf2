@@ -3,6 +3,7 @@ from collections import defaultdict, Counter
 from copy import deepcopy
 from math import floor
 from decimal import Decimal, InvalidOperation
+from mta.application.history_removals import retain_norm_log
 
 
 def phase_start_percent(value):
@@ -76,7 +77,7 @@ def collect_phase_in(state, day, *, from_ui, start_percent):
     return out
 
 
-def process_phase_in(state, day):
+def process_phase_in(state, day, *, norm_log_removals=None):
     out = deepcopy(state)
     phases = out['phase_in']
     keys = {key(r) for r in phases}
@@ -87,8 +88,8 @@ def process_phase_in(state, day):
                     master['Norm'] = row['NewNorm']
                     if row['TargetNorm'] <= row['NewNorm']:
                         master['SKUIntroDate'] = day
-    out['log'] = [r for r in out['log'] if not (key(r) in keys
-                  and r['NormChangeDate'] == day and r['NormChangeReason'] == 103)]
+    out['log'] = retain_norm_log(out['log'], lambda r: key(r) in keys
+        and r['NormChangeDate'] == day and r['NormChangeReason'] == 103, norm_log_removals)
     changed = [r for r in phases if r['OldNorm'] is not None and r['NewNorm'] is not None and r['OldNorm'] != r['NewNorm']]
     out['log'].extend(dict(SKUCode=r['SKUCode'], WhCode=r['WhCode'], OldNorm=r['OldNorm'],
                           NewNorm=r['NewNorm'], NormChangeDate=day, NormChangeReason=103) for r in changed)

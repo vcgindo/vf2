@@ -433,7 +433,9 @@ def prepare_day(prior, opening_date, day, profile, identity, execute_calculation
     from mta.application import daily_finalization
     from mta.temporal.entry_preparation import prepare
     with stage('entry_preparation'):
-        entry=prepare(prior,opening_date,day,profile,identity,prepared_master=prepared_master)
+        history_changes={} if native_daily else None
+        entry=prepare(prior,opening_date,day,profile,identity,prepared_master=prepared_master,
+            history_changes=history_changes)
     prior,day=entry['prior'],entry['day']
     finalization,completion=entry['finalization'],entry['completion']
     master,daily_input=entry['master'],entry['daily_input']
@@ -441,6 +443,7 @@ def prepare_day(prior, opening_date, day, profile, identity, execute_calculation
     importer=deepcopy(master['tables'])
     importer['SiteDescriptionTbl']=deepcopy(supplier_final['SiteDescriptionTbl'])
     importer['RejectedMaster']=deepcopy(daily_final['RejectedMaster'])
+    sorted_rejection_count=len(importer['RejectedMaster'])
     with stage('control_processing'):
         supplier_state,old_sourcing,new_sourcing=supplier_calculation_state(prior['supplier'],supplier_final,importer['MasterData'],vendor_codes=profile['daily']['vendor_codes'])
         source=_calculation_source_values(today,opening_date,profile,importer,prior['dbm']['DBMMaster'],daily_final['DailyDataProcessed'],new_sourcing,old_sourcing,identity)
@@ -448,6 +451,8 @@ def prepare_day(prior, opening_date, day, profile, identity, execute_calculation
         controls=deepcopy(prior['controls'])
         controls['IntermediateTables']=scratch_tables(controls['IntermediateTables'])
         controls=carry_dbm_controls(controls, prior['dbm'])
+        from mta.application.history_removals import NormLogRemovals
+        norm_removals=NormLogRemovals(len(controls['log'])) if history_changes is not None else None
         controls['dbm_master']=[{s:r[f] for f,s in MASTER_SOURCE_MAP.items()} for r in refreshed['dbm_master']]
         controls.update(importer_master=deepcopy(importer['MasterData']),raw_master=deepcopy(importer['MasterDataRaw']),
             force_requests=deepcopy(importer['ForceNormChange']),importer_settings=[{'Parameter':r['Parameter'],'Value':str(r['Value'])} for r in supplier_final['ImporterSettingsTbl']])
@@ -488,7 +493,7 @@ def prepare_day(prior, opening_date, day, profile, identity, execute_calculation
             for _, complete, diagnostics in timeline_control_stages(today, opening_date, controls,
                     prior['control_aux'], day, {**delivery['controls'], 'force_flags': profile['force_flags']},
                     daily_final['DailyDataProcessed'], importer['SkuLocAttributeData'],
-                    force_alert_capture=force_alert_capture):
+                    force_alert_capture=force_alert_capture, norm_log_removals=norm_removals):
                 pass
             delivery_control_types(complete)
             if completion is not None:
@@ -497,9 +502,17 @@ def prepare_day(prior, opening_date, day, profile, identity, execute_calculation
             control_final = {n: deepcopy(complete[n]) for n in CONTROL_TABLES}
             control_aux = {n: deepcopy(complete[n]) for n in EXTRA_TABLES}
         else:
-            for _, control_state in control_stages(today,opening_date,controls,profile['force_flags'],day['accepted_feed'],day['new_force_requests']):
+            for _, control_state in control_stages(today,opening_date,controls,profile['force_flags'],day['accepted_feed'],day['new_force_requests'],norm_log_removals=norm_removals):
                 pass
             control_final=deepcopy(control_state)
+    if history_changes is not None:
+        from itertools import islice
+        history_changes['closing/importer/RejectedMaster']['additions'].extend(
+            deepcopy(importer['RejectedMaster'][sorted_rejection_count:]))
+        history_changes['closing/dbm/NormChangeLogTbl']=dict(
+            opening_count=norm_removals.opening_count,removed=list(norm_removals.removed_ordinals),
+            additions=[{('WHCode' if k=='WhCode' else k):v for k,v in row.items()}
+                for row in islice(control_final['log'],norm_removals.remaining_prefix,None)],sorted_prefix=None)
     completed_boundaries=['controls']
     importer['MasterData']=deepcopy(control_final['importer_master'])
     importer['ForceNormChange']=deepcopy(control_final['force_requests'])
@@ -533,7 +546,7 @@ def prepare_day(prior, opening_date, day, profile, identity, execute_calculation
         finalization=finalization,
         completion=completion,
         master=master,
-        master_reused=entry['reused'], master_work=entry['master_work'])
+        master_reused=entry['reused'], master_work=entry['master_work'],history_changes=history_changes)
     return PreparedDay(
         context=context,
         importer=importer,
@@ -1038,6 +1051,8 @@ def _produce_btr(phase: DbmDay, *, sources=None, pick_source_digests=None):
             full_master_producer_calls=(0 if context.master_reused else
                 context.master_work['producer_calls'] if context.master_work else 1),
             changed_work=context.master_work)
+    if context.history_changes is not None:
+        result['_HistoryTransitions']=context.history_changes
     if operational_input_tables is not None:
         result['_OperationalInputTables'] = operational_input_tables
     if force_alert_capture is not None:

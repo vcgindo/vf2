@@ -9,11 +9,13 @@ atomically: only the final Counts event certifies complete correspondence.
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
 from functools import cache
+from itertools import islice
 import json
 import math
 from pathlib import Path
 
 from mta.domain.dbm_report_dates import horizon_cutoff
+from mta.row_sequences import is_record_rows
 from mta.serialization import storage, digest
 
 
@@ -35,9 +37,15 @@ FAMILIES = {
     'closing/complete/BPRReport_RemarkDetails': ('RemarkDate', 'bpr-remarks-prune-only', True),
     'closing/complete/OpenExpeditRequestRemarksHistory': ('RemarkDate', 'bpr-remarks-prune-only', True),
     'closing/complete/InTransitWhereAboutsRemarks': ('RemarksDate', 'bpr-remarks-prune-only', True),
+    'closing/importer/RejectedMaster': ('RejectionDate', 'producer-transition', False),
+    'closing/importer/RetiredNormsTbl': ('Event_Date', 'producer-transition', False),
+    'closing/dbm/NormChangeLogTbl': ('NormChangeDate', 'producer-transition', True),
 }
 
 COMPLETE_REMARKS = frozenset(f for f,(_,rule,_) in FAMILIES.items() if rule=='bpr-remarks-prune-only')
+TRANSITION_FAMILIES = frozenset(f for f,(_,rule,_) in FAMILIES.items() if rule=='producer-transition')
+SORTED_IMPORTER = frozenset(f for f in TRANSITION_FAMILIES if f.startswith('closing/importer/'))
+RETIREMENT = 'closing/importer/RetiredNormsTbl'
 
 
 def family_enabled(family, profile):
@@ -57,6 +65,8 @@ def source_table(family):
     if family in COMPLETE_REMARKS:
         return 'complete/BPR/'+family.rsplit('/',1)[1]
     _, section, name = family.split('/')
+    if family in SORTED_IMPORTER:
+        return 'Importer/'+name
     return section.upper()+'/'+name
 
 
@@ -152,6 +162,72 @@ def _same(left, right):
     return type(left) is type(right) and (left.hex() == right.hex() if type(left) is float else left == right)
 
 
+def producer_sort_key(row, family):
+    values = storage(row)
+    if family == RETIREMENT:
+        if type(values['Event_Type']) not in (bool, int) or values['Event_Type'] not in (0, 1):
+            raise ValueError('Retirement event type differs')
+        values['Event_Type'] = int(values['Event_Type'])
+    return json.dumps(values, sort_keys=True)
+
+
+def transition_facts(family, transition, *, opening_count, today=None, position):
+    """Validate producer-owned logical ordinal removals and appended facts."""
+    if (family not in TRANSITION_FAMILIES or type(transition) is not dict
+            or set(transition) != {'opening_count','removed','additions','sorted_prefix'}
+            or type(transition['opening_count']) is not int
+            or transition['opening_count'] != opening_count
+            or type(transition['removed']) is not list or not is_record_rows(transition['additions'])):
+        raise ValueError('History producer transition or opening count differs')
+    removed = transition['removed']
+    if any(type(n) is not int or not 0 <= n < opening_count for n in removed) or len(set(removed)) != len(removed):
+        raise ValueError('History producer removal ordinal differs')
+    prefix = transition['sorted_prefix']
+    additions = transition['additions']
+    if family in SORTED_IMPORTER:
+        if (removed or type(prefix) is not int or not 0 <= prefix <= len(additions)
+                or family == RETIREMENT and prefix != len(additions)):
+            raise ValueError('Importer history sort boundary differs')
+    elif prefix is not None:
+        raise ValueError('Norm history retains its opening order')
+    field = FAMILIES[family][0]
+    columns = fields(family)
+    today = _date(today)
+    def facts():
+        for ordinal, raw in enumerate(additions):
+            row = _row(raw, columns)
+            stamp = row[field]
+            if field == 'RejectionDate' and type(stamp) is str:
+                stamp = datetime.fromisoformat(stamp).date()
+            if (today is not None and _date(stamp) != today
+                    or family == RETIREMENT and (type(row['Event_Type']) is not int or row['Event_Type'] not in (0,1))):
+                raise ValueError('History producer addition date or type differs')
+            yield Fact(Occurrence(position, ordinal), row)
+    return frozenset(removed), facts(), prefix
+
+
+def transition_rows(prior_rows, transition, family):
+    """Exact logical projection for a qualified producer's current cut."""
+    removed, facts, prefix = transition_facts(family, transition,
+        opening_count=len(prior_rows), position=1)
+    columns = fields(family)
+    if family in SORTED_IMPORTER:
+        def normalized(raw):
+            row = _row(raw, columns)
+            if family == RETIREMENT:
+                if type(row['Event_Type']) not in (bool, int) or row['Event_Type'] not in (0,1):
+                    raise ValueError('Retirement event type differs')
+                row['Event_Type'] = int(row['Event_Type'])
+            return row
+        rows = [normalized(row) for row in prior_rows]
+        rows.extend(fact.values for fact in islice(facts,prefix))
+        yield from sorted(rows, key=lambda row: producer_sort_key(row, family))
+        yield from (fact.values for fact in facts)
+    else:
+        yield from (_row(row, columns) for ordinal,row in enumerate(prior_rows) if ordinal not in removed)
+        yield from (fact.values for fact in facts)
+
+
 def changes(prior, closing, *, family, today, position, horizon=None, unchanged=False):
     """Emit only additions/removals from a qualified ordered history transition.
 
@@ -162,6 +238,8 @@ def changes(prior, closing, *, family, today, position, horizon=None, unchanged=
     Runtime integration must bind horizon to this run's frozen settings.
     """
     columns = fields(family)
+    if family in TRANSITION_FAMILIES:
+        raise ValueError('History requires its producer transition')
     if type(unchanged) is not bool or unchanged and family != 'closing/dbm/SuspendHistory':
         raise ValueError('Only disabled suspension gathering has unchanged-history correspondence')
     field, rule, nullable = FAMILIES[family]
