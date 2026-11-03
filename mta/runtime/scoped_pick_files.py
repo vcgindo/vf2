@@ -78,7 +78,7 @@ def _accepted(phase_id, expected_digest):
             or phase.attempt.input_manifest_digest!=phase.run.input_manifest_digest
             or capture.status not in ('CAPTURED','CONSUMED') or image is None
             or image.acceptance_id!=phase.pk or image.run_id!=phase.run_id or image.phase!=phase.phase
-            or image.input_digest!=phase.input_digest or image.recipe_digest!=phase_state.recipe_digest()
+            or image.input_digest!=phase.input_digest or not phase_state.contract.compatible(image)
             or image.state_digest!=digest(image.manifest)
             or phase.metadata.get('snapshot_digest')!=image.state_digest
             or phase.metadata.get('effect_digest')!=digest(phase.metadata.get('effects'))):

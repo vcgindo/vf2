@@ -20,7 +20,7 @@ def _parent(run, parent, phase):
             or image.acceptance_id!=parent.pk or image.run_id!=run.pk
             or image.phase!=expected or image.input_digest!=run.input_digest
             or image.state_digest!=digest(image.manifest)
-            or image.recipe_digest!=phase_state.recipe_digest()
+            or not phase_state.contract.compatible(image)
             or parent.metadata.get('snapshot_digest')!=image.state_digest
             or parent.metadata.get('compatibility_digest')!=parent.attempt.compatibility_digest
             or parent.metadata.get('effects',{}).get('schema')!=(PREPARED if phase=='BPR' else SCHEMA)

@@ -25,7 +25,7 @@ def accepted_prefix(run, *, lock_capture=True):
     captures=MdmDailyInputCapture.objects
     if lock_capture:captures=captures.select_for_update()
     capture=captures.get(run=run)
-    result=[];parent_image=None;parent_digest=None;recipe=phase_state.recipe_digest()
+    result=[];parent_image=None;parent_digest=None
     for phase in ('PRE_BPR','BPR','DBM'):
         receipt=RunPhaseAcceptance.objects.select_related('snapshot','attempt').get(run=run,phase=phase)
         image=receipt.snapshot;effects=receipt.metadata.get('effects',{})
@@ -34,7 +34,7 @@ def accepted_prefix(run, *, lock_capture=True):
                 or receipt.capture_digest!=capture.revision_digest or image is None
                 or image.run_id!=run.pk or image.phase!=phase or image.acceptance_id!=receipt.pk
                 or image.parent_id!=parent_image or image.input_digest!=run.input_digest
-                or image.recipe_digest!=recipe
+                or not phase_state.contract.compatible(image)
                 or image.state_digest!=digest(image.manifest)
                 or receipt.metadata.get('snapshot_digest')!=image.state_digest
                 or receipt.metadata.get('compatibility_digest')!=receipt.attempt.compatibility_digest

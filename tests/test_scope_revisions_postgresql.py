@@ -21,7 +21,8 @@ def bind_metadata_counter_owner(run,source,*,consumer_snapshot=None,configuratio
     from mta.runtime.models import ProductionInitialization
     from mta.runtime.ingestion_models import InitializationCertification,IngestionRevisionState,MasterInputRevision
     from mta.runtime.capture_preparation import seal,CONTRACT
-    if connection.settings_dict['NAME'] not in ('VFTEST_Fresh_LifecycleG2_20261024','vftest_fresh_transit_20261030'):
+    if connection.settings_dict['NAME'] not in ('VFTEST_Fresh_LifecycleG2_20261024',
+            'vftest_fresh_transit_20261030', 'vftest_fresh_ir3_history1_20261103'):
         raise RuntimeError('Metadata counter fixture requires its uniquely owned database')
     if connection.settings_dict['NAME']=='vftest_fresh_transit_20261030':
         with connection.cursor() as cursor:

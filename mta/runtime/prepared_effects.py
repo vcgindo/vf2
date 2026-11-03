@@ -125,7 +125,7 @@ def prepared_family_owner(source, owner, family):
             or captured['revision_digest'] != capture.revision_digest
             or image.acceptance_id != receipt.pk or image.run_id != run.pk or image.phase != 'PRE_BPR'
             or image.input_digest != run.input_digest or image.state_digest != digest(image.manifest)
-            or image.recipe_digest != phase_state.recipe_digest()
+            or not phase_state.contract.compatible(image)
             or receipt.metadata.get('snapshot_digest') != image.state_digest
             or receipt.metadata.get('compatibility_digest') != receipt.attempt.compatibility_digest
             or effects.get('schema') != SCHEMA or effects.get('source_id') != source.pk

@@ -153,10 +153,10 @@ class PhaseStatePostgresTests(unittest.TestCase):
         run, bpr, sources = self.owner()
         original = phase_state._write_rows
         calls = []
-        def fail_late(*args):
+        def fail_late(*args, **kwargs):
             calls.append(args[1])
             if len(calls) == 6:raise RuntimeError('deliberate phase image failure')
-            return original(*args)
+            return original(*args, **kwargs)
         with patch.object(phase_state, '_write_rows', side_effect=fail_late), \
                 self.assertRaisesRegex(RuntimeError, 'deliberate phase'):
             phase_state.save(run, bpr, sources)

@@ -7,6 +7,22 @@ from mta.serialization import digest
 
 
 class GenericCaptureCompatibilityTests(unittest.TestCase):
+    def test_accepted_cut_fields_preserve_opaque_identity_without_inferring_factory(self):
+        for scope in ('UptoBPR', 'UptoDBM'):
+            value, expected = self.value(scope)
+            value['compatibility_digest'] = '8'*64
+            original = deepcopy(value)
+            compatible.require_captured_fields(value, expected)
+            self.assertEqual(value, original)
+            for key in value.keys() - {'compatibility_digest'}:
+                changed = deepcopy(value)
+                changed[key] = 'different'
+                with self.subTest(scope=scope, key=key), self.assertRaises(ValueError):
+                    compatible.require_captured_fields(changed, expected)
+            for identity in ('', 'not-a-digest', None):
+                with self.subTest(identity=identity), self.assertRaises(ValueError):
+                    compatible.require_captured_fields(dict(value, compatibility_digest=identity), expected)
+
     def value(self,scope):
         from mta.runtime.production_scope_policy import SCHEMA
         value=dict(schema='captured-schema',scope=scope,command_key='one-command',

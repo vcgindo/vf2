@@ -41,15 +41,8 @@ class PhaseSources:
         # Storage may reuse an identical ancestor image. Require the exact
         # corresponding path and metadata in an authenticated ancestor, not
         # merely a PRE_BPR/BPR prefix or an empty matching table schema.
-        suffix = logical_image.split('/', 2)[2]
-        matched = False
-        for owner in self.manifests:
-            candidate = 'phase/'+owner['phase']+'/'+suffix
-            if (meta.get('image') == candidate
-                    and owner['images'].get(candidate) == meta):
-                matched = True
-                break
-        if not matched:
+        from mta.runtime.phase_image_storage import owns_physical_image
+        if not owns_physical_image(self.manifests, logical_image, meta):
             raise ValueError('Phase report physical image lineage differs')
         rows = image_rows(self.phase.run, meta, expected_table=physical_table,
                           fields=fields, registry=REGISTRY)
