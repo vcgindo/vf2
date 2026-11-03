@@ -177,9 +177,13 @@ def record(run_id,*,phase_id,phase_digest,expected_revision,operation,selected,
     last=RunCommand.objects.filter(run=run,phase_acceptance__isnull=False).order_by('-id').first()
     if event_date<(datetime.fromisoformat(last.payload['timestamp']).date() if last else run.business_date):
         raise ValueError('Command date precedes its parent or prior command')
-    before=scope_revisions.require_current(run)
-    current_state=_action_reader(run,receipt)
-    state=current_state(expected_revision)
+    from mta.presentation.request_scope import validation_reads
+    # One pre-write admission of the locked prefix, not independent input and
+    # ownership traversals for each helper. It ends before any command write.
+    with validation_reads():
+        before=scope_revisions.require_current(run)
+        current_state=_action_reader(run,receipt)
+        state=current_state(expected_revision)
     result=storage(apply_command(state,operation,[tuple(key) for key in selected],timestamp))
     event=RunCommand.objects.create(run=run,phase_acceptance=receipt,idempotency_key=idempotency_key,
         payload=payload,digest=digest(payload),before_digest=digest(state),after_digest=digest(result),

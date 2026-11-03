@@ -8,6 +8,7 @@ from django.utils import timezone
 from mta.presentation import scoped_prepared,scoped_pick_storage
 from mta.presentation import scoped_expedite_queries as queries,scoped_expedite_pick_queries as pick_queries
 from mta.presentation.context import PublicationUnavailable
+from mta.presentation.registered_read_compatibility import compatible_guard_recipe
 from mta.runtime import scope_expedite_models as models
 from mta.runtime.relational_state import quote
 from mta.serialization import digest,storage,rows_digest
@@ -37,6 +38,9 @@ def recipe_digest():
 
 
 def verify_guards():
+    from mta.presentation.schema_reuse import action_guard
+    if action_guard(__name__):
+        return
     frozen=import_module('mta.runtime.migrations.0214_scope_expedite_guards')
     targets=[frozen.GENERATION,*frozen.TABLES.values()]
     expected=[]
@@ -211,7 +215,7 @@ def bind(generation_id,*,expected_digest,action_revision):
 def _binding(row,prepared,pick,*,expected_digest,action_revision):
     reports=prepared.reports.generation
     if (not row.sealed or row.sealed_at is None or row.digest!=expected_digest or row.digest!=digest(row.metadata)
-            or row.recipe_digest!=recipe_digest() or row.action_revision!=action_revision
+            or not compatible_guard_recipe('scoped_expedite_storage',row.recipe_digest,recipe_digest()) or row.action_revision!=action_revision
             or row.run_id!=prepared.run_id or row.phase_id!=reports.phase_id
             or row.source_digest!=reports.source_digest or row.configuration_digest!=reports.configuration_digest
             or set(row.metadata.get('occurrences',{}).get('images',{}))!=set(TABLES)

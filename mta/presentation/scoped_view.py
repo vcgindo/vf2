@@ -17,7 +17,7 @@ from mta.presentation import (scoped_prepared,scoped_planning,scoped_git,scoped_
 from mta.runtime import scoped_pick_files,scope_runtime_reports
 from mta.runtime.models import CalculationRun,ScopeReadReference,RunPhaseAcceptance,RemarkOwner
 from mta.serialization import digest
-from mta.presentation.request_scope import validated_read
+from mta.presentation.request_scope import validated_read,validation_reads
 
 SCHEMA='fresh-bpr-read-reference-v2'
 
@@ -30,6 +30,9 @@ def recipe_digest():
 
 
 def verify_guards(*,publication=False,registered=False):
+    from mta.presentation.schema_reuse import action_guard
+    if action_guard(__name__):
+        return
     frozen=import_module('mta.runtime.migrations.0218_scope_read_reference_guards')
     current=import_module('mta.runtime.migrations.0228_scope_read_action_ownership')
     with connection.cursor() as cursor:
@@ -277,16 +280,19 @@ def prepare(phase_id,*,expected_digest,action_revision):
         from mta.runtime.scope_execution import _source_lock
         _source_lock(phase.run_id)
     run=CalculationRun.objects.select_for_update().get(pk=phase.run_id)
-    configuration,request_digest=_configuration(run)
-    from mta.presentation.registered_report_view import applicable_configuration
-    if not applicable_configuration(configuration):
-        from mta.presentation.legacy_scope_read_compatibility import require_original_writer
-        require_original_writer()
-    verify_guards(registered=applicable_configuration(configuration))
-    from mta.presentation import scoped_sources
-    sources=scoped_sources.bind(phase_id,expected_digest=expected_digest,action_revision=action_revision,include_nms=True,include_inherited_btr=True)
-    if sources.inherited_btr is None:raise PublicationUnavailable('bpr_read_reference_inherited_btr_required')
-    scoped_requests.bind(sources)
+    # Resolve this immutable preparation graph once before any derived writes.
+    # The same admitted request source is passed to the final binding below.
+    with validation_reads():
+        configuration,request_digest=_configuration(run)
+        from mta.presentation.registered_report_view import applicable_configuration
+        if not applicable_configuration(configuration):
+            from mta.presentation.legacy_scope_read_compatibility import require_original_writer
+            require_original_writer()
+        verify_guards(registered=applicable_configuration(configuration))
+        from mta.presentation import scoped_sources
+        sources=scoped_sources.bind(phase_id,expected_digest=expected_digest,action_revision=action_revision,include_nms=True,include_inherited_btr=True)
+        if sources.inherited_btr is None:raise PublicationUnavailable('bpr_read_reference_inherited_btr_required')
+        requests=scoped_requests.bind(sources)
     files=scoped_pick_files.prepare(phase_id,expected_digest=expected_digest)
     # Pass admitted immutable dependencies forward instead of traversing the
     # same graph at every stage. Keep the exact optional capabilities used by
@@ -308,7 +314,7 @@ def prepare(phase_id,*,expected_digest,action_revision):
     remarks=scoped_remarks.bind(nms_sources,configuration_digest=reports.generation.configuration_digest)
     parent=scoped_expedite_parent._prepare(core,remarks,
         expected_core_digest=core.generation.digest,action_revision=action_revision)
-    expedition=scoped_expedite.ExpediteBinding(core,parent,transit,scoped_requests.bind(sources))
+    expedition=scoped_expedite.ExpediteBinding(core,parent,transit,requests)
     bpr=replace(prepared,sources=sources,remarks=remarks,transit=transit)
     return _save(bpr,planning,git,expedition,files,configuration,request_digest)
 
@@ -323,7 +329,8 @@ def refresh_parent(reference_id,*,expected_digest):
     RemarkOwner.objects.select_for_update().get(pk='BPRReport_RemarkDetails')
     previous=_bind(row,expected_digest,retained_parent=True)
     from mta.presentation import scoped_remarks
-    remarks=scoped_remarks.bind(previous.bpr.sources,configuration_digest=row.report_generation.configuration_digest)
+    remarks=scoped_remarks.bind(previous.bpr.sources,configuration_digest=row.report_generation.configuration_digest,
+        expected_recipe=previous.bpr.remarks.provenance()['recipe_digest'])
     if remarks.highwater==previous.bpr.remarks.highwater:return previous
     # SQL permits retained-prefix recovery only to the registered table owner.
     # A runtime caller still needs its complete fresh canonical remark append.
@@ -331,7 +338,7 @@ def refresh_parent(reference_id,*,expected_digest):
         parent=scoped_expedite_parent._prepare(previous.expedite.core,remarks,
             expected_core_digest=previous.expedite.core.generation.digest,
             action_revision=row.report_generation.action_revision)
-        fresh=scoped_expedite.require_binding(previous.run,replace(previous.expedite,parent=parent))
+        fresh=scoped_expedite.require_binding(previous.run,replace(previous.expedite,parent=parent,reader_recipe=None))
         configuration,request_digest=_configuration(previous.run)
         result,checksum=_save_reference(replace(previous.bpr,remarks=remarks),previous.planning,previous.git,fresh,
             row.pick_files,configuration,request_digest,action_command=row.action_command,

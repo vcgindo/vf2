@@ -84,14 +84,15 @@ def _refresh_after_append(view,*,before,highwater):
     if original!=view.reference.metadata or digest(original)!=view.reference.digest:
         raise PublicationUnavailable('phase_remark_previous_graph_differs')
     with validation_reads():
-        remarks=scoped_remarks.bind(view.bpr.sources,configuration_digest=view.bpr.reports.generation.configuration_digest)
+        remarks=scoped_remarks.bind(view.bpr.sources,configuration_digest=view.bpr.reports.generation.configuration_digest,
+            expected_recipe=view.bpr.remarks.provenance()['recipe_digest'])
     old=view.bpr.remarks.provenance();new=remarks.provenance()
     if (remarks.highwater!=highwater or
             {k:v for k,v in old.items() if k!='live_highwater'}!={k:v for k,v in new.items() if k!='live_highwater'}):
         raise PublicationUnavailable('phase_remark_prefix_owner_changed')
     parent=scoped_expedite_parent._prepare(view.expedite.core,remarks,
         expected_core_digest=view.expedite.core.generation.digest,action_revision=view.bpr.sources.action_revision)
-    expedition=scoped_expedite.require_binding(view.run,replace(view.expedite,parent=parent))
+    expedition=scoped_expedite.require_binding(view.run,replace(view.expedite,parent=parent,reader_recipe=None))
     row,checksum=scoped_view._save_reference(replace(view.bpr,remarks=remarks),view.planning,view.git,expedition,
         view.reference.pick_files,configuration,request_digest,action_command=view.reference.action_command,
         previous_reference=view.reference,transition_kind='REMARK')

@@ -178,13 +178,20 @@ def _cut(run_id):
 
 
 @validated_read
-def _selected():
+def _selected(*, prepared=None):
     from django.conf import settings
     from mta.presentation.context import PublicationUnavailable
     from mta.runtime.models import ScopeReadReference
     from mta.presentation import scoped_view
     from django.core.exceptions import ObjectDoesNotExist, ValidationError
     try:
+        if prepared is not None:
+            from django.db import connection
+            from mta.presentation.request_scope import in_validation_reads
+            if (not connection.in_atomic_block or not in_validation_reads()
+                    or type(prepared) is not scoped_view.ViewBinding
+                    or prepared.reference._state.adding or prepared.reference._state.db != 'default'):
+                raise PublicationUnavailable('phase_prepared_reference_requires_owner_transaction')
         if any(getattr(settings, field, '') for field in
                 ('VF_MTA_SELECTION_FILE', 'VF_MTA_PUBLISHED_RUN', 'VF_MTA_PUBLISHED_DIGEST')):
             raise PublicationUnavailable('phase_full_selection_conflict')
@@ -193,6 +200,8 @@ def _selected():
             raise PublicationUnavailable('phase_selection_changed_restart_required')
         cut = _cut(anchor['run_id'])
         if anchor['schema']==DBM_SCHEMA:
+            if prepared is not None:
+                raise PublicationUnavailable('phase_prepared_reference_scope_differs')
             from mta.presentation import scoped_dbm_view
             view = scoped_dbm_view.selected(anchor,cut)
             if candidate(view)!=anchor or _cut(anchor['run_id'])!=cut:
@@ -215,7 +224,17 @@ def _selected():
             report_generation__phase_id=anchor['phase_id'], report_generation__action_revision=cut[0],
             recipe_digest=reference_recipe, metadata__bpr__remarks__live_highwater=cut[1])[:2])
         if len(rows) != 1: raise PublicationUnavailable('phase_current_reference_missing_or_ambiguous')
-        view = scoped_view.bind(rows[0].pk, expected_digest=rows[0].digest)
+        if prepared is None:
+            view = scoped_view.bind(rows[0].pk, expected_digest=rows[0].digest)
+        else:
+            # prepare() already read back and admitted this immutable graph in
+            # the same locked action transaction. Recheck the live selection,
+            # unique current row and every reference field; do not rebuild the
+            # admitted dependency graph a second time merely to discard it.
+            if any(getattr(rows[0], field.attname) != getattr(prepared.reference, field.attname)
+                   for field in ScopeReadReference._meta.concrete_fields):
+                raise PublicationUnavailable('phase_prepared_reference_not_current')
+            view = prepared
         if candidate(view) != anchor: raise PublicationUnavailable('phase_selection_identity_changed')
         if _cut(anchor['run_id']) != cut: raise PublicationUnavailable('phase_current_reference_changed')
         return view

@@ -11,6 +11,7 @@ import hashlib,inspect
 from django.db import connection,transaction,DatabaseError
 from django.utils import timezone
 from mta.presentation.context import PublicationUnavailable
+from mta.presentation.registered_read_compatibility import compatible_guard_recipe
 from mta.presentation.request_scope import once_per_request
 from mta.presentation import scoped_report_storage as facts,scoped_sources,bpr_candidate_sql,planning_source_sql
 from mta.presentation.bpr_prepared_fields import SOURCES,FIELDS,field_name,schema_digest
@@ -40,6 +41,9 @@ def recipe_digest():
 
 
 def verify_guards():
+    from mta.presentation.schema_reuse import action_guard
+    if action_guard(__name__):
+        return
     frozen=import_module('mta.runtime.migrations.0200_scope_source_guards')
     expected=[];targets=[frozen.PROJECTION,*(item[0] for item in frozen.TABLES.values())]
     for table in targets:
@@ -239,7 +243,7 @@ def bind(generation_id,*,expected_digest,expected_report_digest,action_revision,
 
 def _verify_projection(projection,reports,*,expected_digest):
     if (not projection.sealed or projection.sealed_at is None or projection.digest!=expected_digest
-            or projection.digest!=digest(projection.metadata) or projection.recipe_digest!=recipe_digest()
+            or projection.digest!=digest(projection.metadata) or not compatible_guard_recipe('scoped_prepared',projection.recipe_digest,recipe_digest())
             or projection.report_generation_digest!=reports.generation.digest
             or set(projection.metadata.get('images',{}))!=set(TABLES)
             or projection.metadata!=_identity(reports.generation,projection.recipe_digest,projection.metadata['images'])):

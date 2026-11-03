@@ -89,8 +89,11 @@ def scoped_derived_body(cursor,*,minimum):
     from importlib import import_module
     versions=('0274_complete_remark_history_storage','0272_order_closure_history_storage','0270_bpr_history_storage','0268_dated_history_anchor_revision','0254_rationing_anchor_revision_ownership','0246_btr_scope_dimension_ingestion_ownership','0237_intake_diagnostic_guards','0234_report_definition_guards','0231_runtime_report_placement_guards','0230_runtime_report_publication_guards','0228_scope_read_action_ownership','0223_bpr_history_completion','0218_scope_read_reference_guards','0216_scope_expedite_parent_guards','0214_scope_expedite_guards','0212_scope_pick_guards','0210_scope_git_guards','0207_scope_transit_guards','0204_scoped_bpr_consumer_ownership','0202_scope_planning_guards','0200_scope_source_guards','0198_scope_report_guards','0196_scope_pick_capture_key')
     if minimum not in versions:raise ValueError('Unknown scoped derived guard minimum')
-    cursor.execute("SELECT name FROM mta.django_migrations WHERE app='fresh_mta' AND name=ANY(%s)",[list(versions)])
-    installed={name for name, in cursor.fetchall()}
+    from mta.presentation.schema_reuse import action_migrations
+    installed=action_migrations(cursor)
+    if installed is None:
+        cursor.execute("SELECT name FROM mta.django_migrations WHERE app='fresh_mta' AND name=ANY(%s)",[list(versions)])
+        installed={name for name, in cursor.fetchall()}
     if minimum not in installed:raise ValueError('Required scoped derived guard migration missing')
     return import_module('mta.runtime.migrations.'+next(name for name in versions if name in installed)).NEW
 
@@ -130,6 +133,9 @@ def tables(cursor):
 
 
 def require_guard_coverage(cursor):
+    from mta.presentation.schema_reuse import action_guard
+    if action_guard('ingestion',cursor):
+        return
     from mta.presentation.request_scope import in_read_request, in_validation_reads
     database = getattr(cursor, 'db', None)
     physical = getattr(database, 'connection', None)
@@ -207,6 +213,9 @@ def business_trigger_rows(cursor, rows):
     rows = accepted_rows(cursor, rows)
     if not any(row[0].startswith('ingestion_watch_') for row in rows):
         return rows
+    from mta.presentation.schema_reuse import action_guard
+    if action_guard('ingestion_function', cursor):
+        return [row for row in rows if not row[0].startswith('ingestion_watch_')]
     require_guard_coverage(cursor)
     cursor.execute("SELECT p.prosrc,p.prosecdef,p.proconfig,pg_get_function_result(p.oid) "
         "FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace "

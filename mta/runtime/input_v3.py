@@ -63,6 +63,10 @@ OWNER_PATHS = {
 
 
 def _database_identity():
+    from mta.presentation.schema_reuse import action_contract
+    admitted=action_contract()
+    if admitted is not None and 'database' in admitted:
+        return admitted['database']['name'],admitted['database']['oid']
     with connection.cursor() as cursor:
         cursor.execute('SELECT current_database(),oid::bigint FROM pg_database '
                        'WHERE datname=current_database()')
@@ -72,7 +76,8 @@ def _database_identity():
     return row
 
 
-from mta.presentation.request_scope import once_per_metadata_operation
+from mta.presentation.request_scope import (
+    once_per_metadata_operation, once_per_request, in_validation_reads)
 
 
 @once_per_metadata_operation
@@ -87,7 +92,8 @@ def _live_identity(owner, *, reading):
         owner_kind = 'initialization'
         source_digest = current.source.digest
     elif model_name == 'calculationrun':
-        current = type(owner).objects.get(pk=owner.pk)
+        current = type(owner).objects.select_related(
+            'mdm_input_capture__source','csv_attempt__initialization__source').get(pk=owner.pk)
         if (reading and (current.status not in ('RUNNING', 'SUCCEEDED', 'FAILED')
                          or not current.input_manifest_digest)
                 or not reading and current.status != 'RUNNING'):
@@ -454,37 +460,44 @@ def _owner_target(owner, reference, resolver):
     return target
 
 
-def _owner_manifest(owner, source_path, reference, owner_identity, resolver):
+def _owner_manifest(owner, source_path, reference, owner_identity, resolver, *, admissions=None):
     reference = _owner_reference(reference, source_path)
     if owner_identity['owner_kind'] != 'run' or reference['owner_id'] == owner_identity['owner_id']:
         raise ValueError('Typed input owner reference requires a distinct run target')
-    target = _owner_target(owner, reference, resolver)
-    if str(target.pk).lower() != reference['owner_id']:
-        raise ValueError('Typed input referenced owner differs')
-    if reference['kind'] == 'RUN' and getattr(target, 'status', None) != 'SUCCEEDED':
-        raise ValueError('Typed input referenced run is mutable')
-    if resolver is not None and (getattr(target, '_reference_initialization_id', None)
-            != getattr(owner, '_reference_initialization_id', None)
-            or not getattr(target, '_reference_accepted', False)):
-        raise ValueError('Typed input referenced owner is foreign or unaccepted')
-    target_identity = _identity(target, None if resolver is None else
-        lambda value: getattr(value, '_reference_identity'), reading=True)
-    if target_identity['owner_kind'] != reference['kind'].lower():
-        raise ValueError('Typed input referenced owner kind differs')
-    if (target_identity['database_name'] != owner_identity['database_name']
-            or target_identity['database_oid'] != owner_identity['database_oid']
-            or target_identity['source_digest'] != owner_identity['source_digest']):
-        raise ValueError('Typed input referenced database/source differs')
-    manifest = target.input_payload
-    from mta.runtime import input_storage
-    legacy_initialization = (reference['kind'] == 'INITIALIZATION'
-        and isinstance(manifest, dict) and manifest.get('schema') == input_storage.SCHEMA)
-    if (not isinstance(manifest, dict) or not (manifest.get('schema') == V3 or legacy_initialization)
-            or digest(manifest) != reference['manifest_digest']
-            or target.input_manifest_digest != reference['manifest_digest']
-            or target.input_digest != reference['content_digest']
-            or manifest.get('content_digest') != reference['content_digest']):
-        raise ValueError('Typed input referenced manifest/content differs')
+    key = tuple(reference[name] for name in ('kind','owner_id','manifest_digest','content_digest'))
+    admitted = None if admissions is None else admissions.get(key)
+    if admitted is None:
+        target = _owner_target(owner, reference, resolver)
+        if str(target.pk).lower() != reference['owner_id']:
+            raise ValueError('Typed input referenced owner differs')
+        if reference['kind'] == 'RUN' and getattr(target, 'status', None) != 'SUCCEEDED':
+            raise ValueError('Typed input referenced run is mutable')
+        if resolver is not None and (getattr(target, '_reference_initialization_id', None)
+                != getattr(owner, '_reference_initialization_id', None)
+                or not getattr(target, '_reference_accepted', False)):
+            raise ValueError('Typed input referenced owner is foreign or unaccepted')
+        target_identity = _identity(target, None if resolver is None else
+            lambda value: getattr(value, '_reference_identity'), reading=True)
+        if target_identity['owner_kind'] != reference['kind'].lower():
+            raise ValueError('Typed input referenced owner kind differs')
+        if (target_identity['database_name'] != owner_identity['database_name']
+                or target_identity['database_oid'] != owner_identity['database_oid']
+                or target_identity['source_digest'] != owner_identity['source_digest']):
+            raise ValueError('Typed input referenced database/source differs')
+        manifest = target.input_payload
+        from mta.runtime import input_storage
+        legacy_initialization = (reference['kind'] == 'INITIALIZATION'
+            and isinstance(manifest, dict) and manifest.get('schema') == input_storage.SCHEMA)
+        if (not isinstance(manifest, dict) or not (manifest.get('schema') == V3 or legacy_initialization)
+                or digest(manifest) != reference['manifest_digest']
+                or target.input_manifest_digest != reference['manifest_digest']
+                or target.input_digest != reference['content_digest']
+                or manifest.get('content_digest') != reference['content_digest']):
+            raise ValueError('Typed input referenced manifest/content differs')
+        admitted = target, manifest, legacy_initialization
+        if admissions is not None:
+            admissions[key] = admitted
+    target, manifest, legacy_initialization = admitted
     physical = (_initialization_component_is_physical(manifest, reference['path'])
                 if reference['kind'] == 'INITIALIZATION' and not legacy_initialization else
                 _physical(_node_at(manifest, reference['path'])))
@@ -494,11 +507,11 @@ def _owner_manifest(owner, source_path, reference, owner_identity, resolver):
 
 
 @stage('owner_reference_read')
-def _resolve_owner(owner, source_path, reference, owner_identity, resolver):
+def _resolve_owner(owner, source_path, reference, owner_identity, resolver, *, admissions=None):
     from mta.runtime import input_storage
     reference = _owner_reference(reference, source_path)
     target, manifest, legacy_initialization = _owner_manifest(
-        owner, source_path, reference, owner_identity, resolver)
+        owner, source_path, reference, owner_identity, resolver, admissions=admissions)
     component = reference['path'].removeprefix('input/')
     reader = (__import__('mta.runtime.opening_storage', fromlist=['load_image']).load_image
               if reference['kind'] == 'INITIALIZATION' else
@@ -607,6 +620,8 @@ def _run_initialization_id(owner, resolver):
     csv_initialization_id = getattr(getattr(current, 'csv_attempt', None), 'initialization_id', None)
     if csv_initialization_id is not None and str(csv_initialization_id) != initialization_id:
         raise ValueError('Typed input CSV and native initialization differ')
+    # Certification can be revoked by its trusted owner; it is live state,
+    # unlike the schema/security facts admitted for an action transaction.
     from mta.runtime.ingestion_models import InitializationCertification
     if not InitializationCertification.objects.filter(initialization_id=initialization_id,
             source_digest=current.mdm_input_capture.source.digest, status='CERTIFIED').exists():
@@ -854,6 +869,37 @@ def save_input(owner, raw, *, image_writer, table_selector, aliases=None,
 def read_input(owner, *, components=None, image_reader, materialized_roots=(),
                identity_resolver=None, batch_resolver=None, owner_resolver=None,
                master_resolver=None):
+    # A locked action's pure traversal admits this sealed input owner once.
+    # All component consumers then use that same admitted reader instead of
+    # traversing its identity/reference graph and decoding its rows again.
+    if (in_validation_reads() and components is not None
+            and all(value is None for value in
+                    (identity_resolver, batch_resolver, owner_resolver, master_resolver))):
+        from mta.runtime.opening_storage import load_image as opening_image
+        from mta.runtime.relational_state import load_image as run_image
+        if image_reader in (opening_image, run_image):
+            # Bind actual caller metadata, not just the claimed sealed digest.
+            # Changed caller data cannot inherit another model's admission.
+            caller = (digest(owner.input_payload),
+                digest(getattr(owner, 'production_manifest', {})),
+                getattr(getattr(owner, '_state', None), 'db', None))
+            reader = _validation_reader(owner, image_reader, tuple(materialized_roots), caller)
+            # Keep ordinary mutable results independent. RecordRows already
+            # preserves immutable streaming rows without a population copy.
+            return deepcopy(reader(components))
+    return _input_reader(owner, image_reader=image_reader, materialized_roots=materialized_roots,
+        identity_resolver=identity_resolver, batch_resolver=batch_resolver,
+        owner_resolver=owner_resolver, master_resolver=master_resolver)(components)
+
+
+@once_per_request
+def _validation_reader(owner, image_reader, materialized_roots, caller):
+    return _input_reader(owner, image_reader=image_reader, materialized_roots=materialized_roots)
+
+
+def _input_reader(owner, *, image_reader, materialized_roots=(),
+                  identity_resolver=None, batch_resolver=None, owner_resolver=None,
+                  master_resolver=None):
     value = owner.input_payload
     if (value.get('schema') != V3 or value.get('content_digest') != owner.input_digest
             or digest(value) != owner.input_manifest_digest):
@@ -953,6 +999,7 @@ def read_input(owner, *, components=None, image_reader, materialized_roots=(),
         return image_reader(owner, value['images'][path])
 
     cache = {}
+    owner_admissions = {} if owner_resolver is None else None
     resolving = set()
     def unpack(node, path):
         if path in cache:
@@ -964,7 +1011,7 @@ def read_input(owner, *, components=None, image_reader, materialized_roots=(),
             return resolved
         if 'owner_reference' in node:
             resolved = _resolve_owner(owner, path, owner_references[path], owner_identity,
-                                      owner_resolver)
+                                      owner_resolver, admissions=owner_admissions)
             cache[path] = resolved
             return resolved
         if 'batch_reference' in node:
@@ -988,7 +1035,8 @@ def read_input(owner, *, components=None, image_reader, materialized_roots=(),
         if 'object' in node:
             return {key: unpack(child, path+'/'+key) for key, child in node['object']}
         if 'scalars' in node:
-            return [row['value'] for row in read(node['scalars'])]
+            cache[path] = [row['value'] for row in read(node['scalars'])]
+            return cache[path]
         if 'shape' in node:
             count = node.get('count')
             if type(count) is not int or count < 0 or (node['shape'] is None) != (count == 0):
@@ -1041,18 +1089,20 @@ def read_input(owner, *, components=None, image_reader, materialized_roots=(),
         return rows
 
     from mta.runtime.input_storage import get as common_get
-    tree = value['tree']
-    if components is not None:
-        requested = [component if component.startswith('input/') else 'input/' + component
-                     for component in components]
-        def prune(node, path):
-            if path in requested:
-                return node
-            children = [[key, selected] for key, child in node.get('object', [])
-                        if (selected := prune(child, path + '/' + key)) is not None]
-            return {'object': children} if children else None
-        tree = prune(tree, 'input') or {'object': []}
-    return unpack(tree, 'input')
+    def select(components):
+        tree = value['tree']
+        if components is not None:
+            requested = [component if component.startswith('input/') else 'input/' + component
+                         for component in components]
+            def prune(node, path):
+                if path in requested:
+                    return node
+                children = [[key, selected] for key, child in node.get('object', [])
+                            if (selected := prune(child, path + '/' + key)) is not None]
+                return {'object': children} if children else None
+            tree = prune(tree, 'input') or {'object': []}
+        return unpack(tree, 'input')
+    return select
 
 
 def audit_references(owner, *, identity_resolver=None, batch_resolver=None,

@@ -22,6 +22,9 @@ class PickFilesUnavailable(ValueError):
 
 def verify_guards():
     """Require the exact new custody guard as well as its no-truncate owner."""
+    from mta.presentation.schema_reuse import action_guard
+    if action_guard(__name__):
+        return
     from importlib import import_module
     created=import_module('mta.runtime.migrations.0193_scope_pick_files')
     accepted=import_module('mta.runtime.migrations.0169_accepted_state_ownership')

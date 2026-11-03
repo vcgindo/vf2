@@ -29,6 +29,9 @@ def _fail():raise PublicationUnavailable('bpr_phase_remark_owner_differs')
 
 
 def verify_guards():
+    from mta.presentation.schema_reuse import action_guard
+    if action_guard(__name__):
+        return
     from mta.runtime import daily_input_schema,daily_owner_schema,publication_schema
     from mta.runtime.ingestion_ownership import business_trigger_rows
     targets={
@@ -125,7 +128,13 @@ class RemarkBinding:
         if count!=self.row_count or checksum.hexdigest()!=self.rows_digest:_fail()
 
 
-def bind(sources,*,configuration_digest):
+def bind(sources,*,configuration_digest,expected_recipe=None):
+    from mta.presentation.registered_read_compatibility import compatible_guard_recipe
+    actual_recipe=recipe_digest()
+    if expected_recipe is not None:
+        if not compatible_guard_recipe('scoped_remarks',expected_recipe,actual_recipe):
+            _fail()
+        actual_recipe=expected_recipe
     from mta.presentation.scoped_sources import BprSources
     from mta.runtime.captured_input import SCHEMAS,origin
     from mta.runtime.input_reader import read_input
@@ -165,7 +174,7 @@ def bind(sources,*,configuration_digest):
             input_manifest_digest=run.input_manifest_digest,phase_id=str(sources.acceptance_id),phase_digest=sources.acceptance_digest,
             input_physical_owner_id=str(physical.pk),input_image=deepcopy(image),capture_id=capture.pk,
             provenance_digest=capture.provenance_digest,watermark=capture.watermark,live_highwater=owner.next_ordinal,
-            cutoff=cutoff.isoformat(),row_count=capture.row_count,rows_digest=capture.rows_digest,recipe_digest=recipe_digest())
+            cutoff=cutoff.isoformat(),row_count=capture.row_count,rows_digest=capture.rows_digest,recipe_digest=actual_recipe)
         return RemarkBinding(run,capture.pk,capture.watermark,owner.next_ordinal,cutoff,capture.row_count,capture.rows_digest,locator)
     except (ObjectDoesNotExist,KeyError,TypeError,ValueError,OverflowError) as error:
         raise PublicationUnavailable('bpr_phase_remark_owner_differs') from error

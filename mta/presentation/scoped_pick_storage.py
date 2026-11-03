@@ -7,6 +7,7 @@ from django.db import connection,transaction,DatabaseError
 from django.utils import timezone
 from mta.presentation import scoped_sources,scoped_pick_queries as queries
 from mta.presentation.context import PublicationUnavailable
+from mta.presentation.registered_read_compatibility import compatible_guard_recipe
 from mta.runtime import scope_pick_models as models
 from mta.runtime.relational_state import quote
 from mta.serialization import digest,storage,rows_digest
@@ -29,6 +30,9 @@ def recipe_digest():
 
 
 def verify_guards():
+    from mta.presentation.schema_reuse import action_guard
+    if action_guard(__name__):
+        return
     frozen=import_module('mta.runtime.migrations.0212_scope_pick_guards')
     targets=[frozen.GENERATION,*frozen.TABLES.values()]
     expected=[]
@@ -176,7 +180,7 @@ def _binding(row,sources,*,expected_digest,action_revision):
     pick=row.metadata.get('pick',{})
     if (not row.sealed or row.sealed_at is None or row.digest!=expected_digest or row.digest!=digest(row.metadata)
             or row.run_id!=sources.run.pk or row.action_revision!=action_revision
-            or row.source_digest!=sources.source_digest or row.recipe_digest!=recipe_digest()
+            or row.source_digest!=sources.source_digest or not compatible_guard_recipe('scoped_pick_storage',row.recipe_digest,recipe_digest())
             or row.configuration_digest!=row.phase.snapshot.manifest['references']['profile']
             or set(pick)!= {'schema','inputs','images'} or pick.get('schema')!='fresh-bpr-pick-references-v1'
             or pick.get('inputs')!=_inputs(sources) or set(pick.get('images',{}))!=set(TABLES)

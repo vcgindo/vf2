@@ -17,6 +17,9 @@ def lock_history_owners():
 
 
 def verify_guards():
+    from mta.presentation.schema_reuse import action_guard
+    if action_guard(__name__):
+        return
     from mta.runtime.ingestion_ownership import require_guard_coverage,scoped_derived_body
     migration=import_module('mta.runtime.migrations.0204_scoped_bpr_consumer_ownership')
     recovery=import_module('mta.runtime.migrations.0205_scoped_bpr_consumer_recovery')

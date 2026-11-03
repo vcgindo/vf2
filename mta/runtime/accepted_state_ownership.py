@@ -12,6 +12,9 @@ NAMES = frozenset(('accepted_rows_insert', 'accepted_rows_update', 'accepted_row
 
 
 def verify_guards(cursor, *, required=True):
+    from mta.presentation.schema_reuse import action_guard
+    if action_guard('accepted',cursor):
+        return True
     frozen = import_module('mta.runtime.migrations.0169_accepted_state_ownership')
     cursor.execute("SELECT n.nspname,c.relname,t.tgname,t.tgenabled,t.tgtype,t.tgnargs,"
         "encode(t.tgargs,'escape'),t.tgqual::text,t.tgattr::text,t.tgoldtable,t.tgnewtable,"

@@ -7,6 +7,7 @@ from django.db import connection,transaction,DatabaseError
 from django.utils import timezone
 from mta.presentation import scoped_expedite_storage as core,scoped_remarks,scoped_expedite_pick_queries as queries
 from mta.presentation.context import PublicationUnavailable
+from mta.presentation.registered_read_compatibility import compatible_guard_recipe
 from mta.presentation.rrr_sql import equal
 from mta.runtime import scope_expedite_parent_models as models
 from mta.runtime.relational_state import quote
@@ -34,6 +35,9 @@ def recipe_digest():
 
 
 def verify_guards():
+    from mta.presentation.schema_reuse import action_guard
+    if action_guard(__name__):
+        return
     frozen=import_module('mta.runtime.migrations.0216_scope_expedite_parent_guards')
     targets=[frozen.GENERATION,*frozen.TABLES.values()]
     expected=[]
@@ -205,7 +209,7 @@ class ParentBinding:
 def _admit(row,bound,remarks,expected_digest,action_revision):
     verify_guards();generation=bound.generation
     if (not row.sealed or row.sealed_at is None or row.digest!=expected_digest or row.digest!=digest(row.metadata)
-            or row.recipe_digest not in (recipe_digest(),TEMP_RECIPE,RETAINED_RECIPE) or row.action_revision!=action_revision
+            or (not compatible_guard_recipe('scoped_expedite_parent',row.recipe_digest,recipe_digest()) and row.recipe_digest not in (TEMP_RECIPE,RETAINED_RECIPE)) or row.action_revision!=action_revision
             or row.run_id!=generation.run_id or row.phase_id!=generation.phase_id
             or row.source_digest!=generation.source_digest or row.configuration_digest!=generation.configuration_digest
             or row.core_generation_id!=generation.pk or row.core_generation_digest!=generation.digest
@@ -222,7 +226,8 @@ def bind(generation_id,*,expected_digest,action_revision):
     try:row=models.ScopeExpediteParentGeneration.objects.get(pk=generation_id)
     except ObjectDoesNotExist as error:raise PublicationUnavailable('bpr_expedite_parent_generation_missing') from error
     bound=core.bind(row.core_generation_id,expected_digest=row.core_generation_digest,action_revision=action_revision)
-    remarks=scoped_remarks.bind(bound.prepared.sources,configuration_digest=row.configuration_digest)
+    remarks=scoped_remarks.bind(bound.prepared.sources,configuration_digest=row.configuration_digest,
+        expected_recipe=row.metadata['occurrences']['remarks']['recipe_digest'])
     return _admit(row,bound,remarks,expected_digest,action_revision)
 
 

@@ -28,6 +28,9 @@ def recipe_digest():
 
 
 def verify_guards():
+    from mta.presentation.schema_reuse import action_guard
+    if action_guard(__name__):
+        return
     from mta.runtime import daily_input_schema,daily_owner_schema,publication_schema
     from mta.runtime.ingestion_ownership import business_trigger_rows
     targets={
@@ -127,7 +130,13 @@ class RequestBinding:
         if count!=self.row_count or checksum!=self.rows_digest:_fail()
 
 
-def bind(sources):
+def bind(sources,*,expected_recipe=None):
+    from mta.presentation.registered_read_compatibility import compatible_guard_recipe
+    actual_recipe=recipe_digest()
+    if expected_recipe is not None:
+        if not compatible_guard_recipe('scoped_requests',expected_recipe,actual_recipe):
+            _fail()
+        actual_recipe=expected_recipe
     from mta.presentation.scoped_sources import BprSources
     from mta.runtime.captured_input import SCHEMAS,origin
     from django.core.exceptions import ObjectDoesNotExist
@@ -163,7 +172,7 @@ def bind(sources):
             input_digest=run.input_digest,input_manifest_digest=run.input_manifest_digest,
             input_physical_owner_id=str(physical.pk),input_image=deepcopy(image),capture_id=str(capture.pk),
             owner=capture.owner_id,revision=capture.revision,provenance_digest=capture.provenance_digest,
-            row_count=capture.row_count,rows_digest=capture.rows_digest,recipe_digest=recipe_digest())
+            row_count=capture.row_count,rows_digest=capture.rows_digest,recipe_digest=actual_recipe)
         return RequestBinding(sources,capture.pk,capture.row_count,capture.rows_digest,locator)
     except (ObjectDoesNotExist,KeyError,TypeError,ValueError,OverflowError,OSError) as error:
         raise PublicationUnavailable('bpr_phase_request_owner_differs') from error

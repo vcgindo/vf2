@@ -11,6 +11,7 @@ import inspect
 from django.db import connection,transaction,DatabaseError
 from django.utils import timezone
 from mta.presentation.context import PublicationUnavailable
+from mta.presentation.registered_read_compatibility import compatible_guard_recipe
 from mta.presentation import scoped_sources,scoped_transit
 from mta.application import daily_transit as processor
 from mta.runtime import scope_transit_models as models
@@ -38,6 +39,9 @@ def recipe_digest():
 
 
 def verify_guards():
+    from mta.presentation.schema_reuse import action_guard
+    if action_guard(__name__):
+        return
     frozen=import_module('mta.runtime.migrations.0207_scope_transit_guards')
     targets=[frozen.GENERATION,*frozen.TABLES.values()]
     expected=[]
@@ -191,7 +195,7 @@ def _binding(row,sources,*,expected_digest,action_revision):
     if (not row.sealed or row.sealed_at is None or row.digest!=expected_digest
             or row.digest!=digest(row.metadata) or row.run_id!=sources.run.pk
             or row.action_revision!=action_revision or row.source_digest!=sources.source_digest
-            or row.configuration_digest!=configuration or row.recipe_digest!=recipe_digest()
+            or row.configuration_digest!=configuration or not compatible_guard_recipe('scoped_transit_storage',row.recipe_digest,recipe_digest())
             or reports.get('recipe_digest')!=scoped_transit.recipe_digest()
             or reports.get('source_digest')!=sources.source_digest
             or row.metadata!=_identity(row,sources,reports) or set(reports.get('images',{}))!=set(TABLES)|{'InTransitDataRaw'}):

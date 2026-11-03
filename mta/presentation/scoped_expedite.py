@@ -35,6 +35,7 @@ class ExpediteBinding:
     parent: object
     transit: object
     requests: object
+    reader_recipe: str | None = None
 
     @property
     def run_id(self):return self.core.run_id
@@ -45,6 +46,11 @@ class ExpediteBinding:
     @property
     def read_identity(self):
         recipe=recipe_digest()
+        if self.reader_recipe is not None:
+            from mta.presentation.registered_read_compatibility import compatible_guard_recipe
+            if not compatible_guard_recipe('scoped_expedite',self.reader_recipe,recipe):
+                raise PublicationUnavailable('bpr_expedite_reference_differs')
+            recipe=self.reader_recipe
         if self.parent.generation.recipe_digest==parent_storage.RETAINED_RECIPE:
             from mta.presentation.legacy_scope_read_compatibility import verify_expedite
             verify_expedite()
@@ -111,8 +117,10 @@ def require_binding(run,bound):
 
 @validated_read
 def _load(reference,*,retained_parent=False):
+    from mta.presentation.registered_read_compatibility import compatible_guard_recipe
     if (not isinstance(reference,dict) or reference.get('schema')!=SCHEMA
-            or reference.get('recipe_digest') not in (recipe_digest(),RETAINED_RECIPE)):
+            or (reference.get('recipe_digest')!=RETAINED_RECIPE
+                and not compatible_guard_recipe('scoped_expedite',reference.get('recipe_digest'),recipe_digest()))):
         raise PublicationUnavailable('bpr_expedite_reference_differs')
     try:
         revision=reference['action_revision']
@@ -122,7 +130,8 @@ def _load(reference,*,retained_parent=False):
             # Refresh recovery can follow an append without adopting an unknown
             # old owner. Only the admitted highwater may have advanced.
             row=parent_storage.models.ScopeExpediteParentGeneration.objects.get(pk=reference['parent_generation_id'])
-            fresh=scoped_remarks.bind(core.prepared.sources,configuration_digest=core.generation.configuration_digest)
+            fresh=scoped_remarks.bind(core.prepared.sources,configuration_digest=core.generation.configuration_digest,
+                expected_recipe=row.metadata['occurrences']['remarks']['recipe_digest'])
             old=row.metadata['occurrences']['remarks'];current=fresh.provenance()
             if (fresh.highwater<row.remark_highwater or
                     {k:v for k,v in old.items() if k!='live_highwater'}!={k:v for k,v in current.items() if k!='live_highwater'}):
@@ -135,8 +144,9 @@ def _load(reference,*,retained_parent=False):
             if str(core.generation.pk)!=reference['core_generation_id'] or core.generation.digest!=reference['core_digest']:
                 raise PublicationUnavailable('bpr_expedite_reference_differs')
         transit=scoped_transit_storage.bind(reference['transit_generation_id'],expected_digest=reference['transit_digest'],action_revision=revision)
-        requests=scoped_requests.bind(core.prepared.sources)
-        bound=require_binding(core.prepared.sources.run,ExpediteBinding(core,parent,transit,requests))
+        requests=scoped_requests.bind(core.prepared.sources,expected_recipe=reference['requests']['recipe_digest'])
+        bound=require_binding(core.prepared.sources.run,ExpediteBinding(core,parent,transit,requests,
+            None if reference['recipe_digest']==RETAINED_RECIPE else reference['recipe_digest']))
         if bound.read_identity!=reference:raise PublicationUnavailable('bpr_expedite_reference_differs')
         return bound
     except (KeyError,TypeError,ValueError,ValidationError,parent_storage.models.ScopeExpediteParentGeneration.DoesNotExist) as error:
@@ -178,5 +188,5 @@ def refresh_parent(reference):
     bound=_load(reference,retained_parent=True)
     row=parent_storage.prepare(bound.core.generation.pk,expected_core_digest=bound.core.generation.digest,
         action_revision=bound.sources.action_revision)
-    fresh=replace(bound,parent=parent_storage.bind(row.pk,expected_digest=row.digest,action_revision=bound.sources.action_revision))
+    fresh=replace(bound,parent=parent_storage.bind(row.pk,expected_digest=row.digest,action_revision=bound.sources.action_revision),reader_recipe=None)
     return require_binding(bound.sources.run,fresh).read_identity

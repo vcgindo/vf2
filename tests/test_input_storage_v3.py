@@ -141,6 +141,7 @@ class InputStorageV3Tests(unittest.TestCase):
         class Run:
             _meta = SimpleNamespace(model_name='calculationrun')
         class Manager:
+            def select_related(self, *paths): return self
             def get(self, **kwargs): return current
         Run.objects = Manager()
         owner = Run(); owner.pk = OWNER

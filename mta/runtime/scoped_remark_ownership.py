@@ -10,6 +10,9 @@ def migration():
 
 
 def available(cursor):
+    from mta.presentation.schema_reuse import action_guard
+    if action_guard('remark',cursor):
+        return True
     cursor.execute("SELECT to_regprocedure('mta.guard_scoped_remark_cache_writer()'),"
         "to_regprocedure('mta.stamp_scoped_remark_transaction()')")
     row = cursor.fetchone()
@@ -56,6 +59,13 @@ def application_grants(catalogue):
 
 
 def verify_guards(cursor=None):
+    from mta.presentation.schema_reuse import action_guard
+    if action_guard('remark',cursor):
+        return
+    return _verify_guards(cursor)
+
+
+def _verify_guards(cursor=None):
     expected = []
     frozen = migration()
     for table in frozen.TARGETS:

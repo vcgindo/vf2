@@ -22,14 +22,10 @@ def submit(payload, actor, operation):
         raise ValueError('Unknown scoped action')
     selected = actions.selected_pairs(payload)
     anchor = scoped_selection.read(settings.VF_MTA_PHASE_SELECTION_FILE)
-    _source_lock(anchor['run_id'])
-    CalculationRun.objects.select_for_update().get(pk=anchor['run_id'])
-    RemarkOwner.objects.select_for_update().get(pk='BPRReport_RemarkDetails')
-    # Reuse the existing locked-writer validation lifetime. The marker creates
-    # no cache across writes; each validated_read opens its own SELECT-only
-    # traversal. The final selected() below is a fresh independent traversal.
-    with remark_validation():
+    from mta.presentation.schema_reuse import action_verification
+    with action_verification(anchor['run_id']), remark_validation():
         return _submit_locked(payload,actor,operation,selected,anchor)
+
 
 
 def _submit_locked(payload,actor,operation,selected,anchor):
@@ -69,13 +65,14 @@ def _submit_locked(payload,actor,operation,selected,anchor):
             # admits/replays the resulting DBM state and all report dependencies;
             # constructing that same context here would discard it immediately.
             expected_identity = dict(view.read_identity, **fresh.read_identity)
+            current = scoped_selection.selected()
         else:
             fresh = scoped_view.prepare(view.bpr.sources.acceptance_id,
                 expected_digest=view.bpr.sources.acceptance_digest, action_revision=event.pk)
             expected_identity = fresh.read_identity
+            current = scoped_selection._selected(prepared=fresh)
         # A stale/missing/ambiguous view aborts the command and every dependent
         # generation. The old accepted reference remains available on rollback.
-        current = scoped_selection.selected()
         if current.read_identity!=expected_identity:
             raise PublicationUnavailable('phase_action_reference_not_current')
     return event, dict(data='' if operation=='APPLY' else None,

@@ -146,3 +146,18 @@ def selection_recipe(observed):
 
 
 OBSERVED_SELECTION_RECIPE = '222870d577e1b2e71a5ae339351f55eb344e6a07431b7e861d9b87f55d4a4b4a'
+
+
+# The guard-admission refactor reads this exact earlier producer format. These
+# are historical identities, never values returned by current recipe_digest().
+# Owner, sealed metadata, complete fields/occurrences and data digests remain
+# independently checked by every binder. Unknown formats still fail closed.
+GUARD_ADMISSION_PREDECESSOR = '5cb02c29343df69284f676e636d99545fa00dea0'
+GUARD_ADMISSION_RECIPES = {'scoped_report_storage': '800d7ee3f1fb602be7caa3dcff16da0c765ce50a6433fb83019bd09279c2c7c3', 'scoped_prepared': 'f4b973520fc2a8f54fe03ddf86a348db97bc4e471975190a4be6eb57df2e342b', 'scoped_planning': '46a7c0e06b1a40320ec665d6a188edcacd0751e4282f20bd51f48c2e56e6175d', 'scoped_transit_storage': 'd9e0e25bdc86b927d4fa761a006ef10201b07919925b85d13a69949ba9c27894', 'scoped_pick_storage': 'ae87f82469b7e5241365df16bb93d15f01d23710c01afa29fe6b1627503ade8b', 'scoped_expedite_storage': '11d7313d408ccf14512dd4b5e62b4dd4a68974d3432d53a3fefdf644368f0a7c', 'scoped_expedite_parent': '264c1697a55d2a05cfab31ae94db54357b51682e890ba6b219f6a9e205913da0', 'scoped_git': '648e985e191dfeb384aa6bb79175c6891b5ba58680d4f17933c125d702848b9e', 'scoped_remarks': '943e61294f73a2c24ec882956a3344badde6f9666ef930b228ebafa4483fc01f', 'scoped_requests': '7982419d90f4e018f105ff89253fe6f84fbc32b1272bf7eeba4bc2ebe06aff1a'}
+
+GUARD_ADMISSION_RECIPES['scoped_expedite'] = '8aabac8c3ccb42b238fd5983f7e85adb0015f434f3df6658d8c75325b60f8067'
+
+def compatible_guard_recipe(family, observed, current):
+    if family not in GUARD_ADMISSION_RECIPES:
+        raise ValueError('Unknown guard-admission report contract')
+    return observed == current or observed == GUARD_ADMISSION_RECIPES[family]

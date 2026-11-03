@@ -13,6 +13,7 @@ from django.db import connection,transaction,DatabaseError
 from django.utils import timezone
 from mta.presentation import scoped_prepared,scoped_planning_queries as queries
 from mta.presentation.context import PublicationUnavailable
+from mta.presentation.registered_read_compatibility import compatible_guard_recipe
 from mta.runtime import scope_planning_models as models
 from mta.runtime.relational_state import quote
 from mta.serialization import canonical_parts,digest,storage
@@ -45,6 +46,9 @@ def recipe_digest():
 
 
 def verify_guards():
+    from mta.presentation.schema_reuse import action_guard
+    if action_guard(__name__):
+        return
     frozen=import_module('mta.runtime.migrations.0202_scope_planning_guards')
     # Same finite trigger/function contract as the source projection, with its
     # own relation roster and migration-frozen bodies. No prefix-only trust.
@@ -212,7 +216,7 @@ def bind(generation_id,*,expected_digest,expected_source_digest,expected_report_
 
 def _binding(projection,prepared,*,expected_digest,expected_report_digest):
     if (not projection.sealed or projection.sealed_at is None or projection.digest!=expected_digest
-            or projection.digest!=digest(projection.metadata) or projection.recipe_digest!=recipe_digest()
+            or projection.digest!=digest(projection.metadata) or not compatible_guard_recipe('scoped_planning',projection.recipe_digest,recipe_digest())
             or projection.report_generation_digest!=expected_report_digest
             or projection.source_projection_digest!=prepared.projection.digest
             or set(projection.metadata.get('images',{}))!=set(TABLES)

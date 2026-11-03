@@ -13,8 +13,11 @@ def migration(cursor=None, *, catalogue=None):
     name = MIGRATION
     if cursor is not None:
         versions=(MIGRATION,'0226_scoped_dbm_action_dependencies','0221_scoped_action_cache_writer')
-        cursor.execute("SELECT name FROM mta.django_migrations WHERE app='fresh_mta' AND name=ANY(%s)",[list(versions)])
-        installed={row[0] for row in cursor.fetchall()}
+        from mta.presentation.schema_reuse import action_migrations
+        installed=action_migrations(cursor)
+        if installed is None:
+            cursor.execute("SELECT name FROM mta.django_migrations WHERE app='fresh_mta' AND name=ANY(%s)",[list(versions)])
+            installed={row[0] for row in cursor.fetchall()}
         name=next((version for version in versions if version in installed),'0221_scoped_action_cache_writer')
     elif catalogue is not None:
         functions={f['name']:f for f in catalogue['functions']}
@@ -27,6 +30,9 @@ def migration(cursor=None, *, catalogue=None):
 
 
 def available(cursor):
+    from mta.presentation.schema_reuse import action_guard
+    if action_guard('action',cursor):
+        return True
     cursor.execute("SELECT EXISTS(SELECT 1 FROM mta.django_migrations WHERE app='fresh_mta' AND name=%s),"
         "to_regprocedure('mta.stamp_scoped_action_transaction()')", [MIGRATION])
     applied, function = cursor.fetchone()
@@ -37,6 +43,13 @@ def available(cursor):
 
 
 def verify_guards(cursor=None):
+    from mta.presentation.schema_reuse import action_guard
+    if action_guard('action',cursor):
+        return
+    return _verify_guards(cursor)
+
+
+def _verify_guards(cursor=None):
     with (connection.cursor() if cursor is None else nullcontext(cursor)) as c:
         frozen = migration(c)
         verify_actionable(c)
@@ -186,6 +199,9 @@ def application_grants(catalogue):
 
 
 def verify_actionable(cursor):
+    from mta.presentation.schema_reuse import action_guard
+    if action_guard('action',cursor):
+        return
     """Only the original or explicitly migrated222 helper may own actions."""
     cursor.execute("SELECT EXISTS(SELECT 1 FROM mta.django_migrations WHERE app='fresh_mta' AND name=%s)",
         ['0222_recovered_scope_actions'])

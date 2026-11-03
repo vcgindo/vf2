@@ -32,6 +32,11 @@ def _role(values):
 
 
 def _database_identity(cursor):
+    from mta.presentation.schema_reuse import action_contract
+    admitted = action_contract(cursor)
+    if admitted is not None and 'database' in admitted:
+        from copy import deepcopy
+        return deepcopy(admitted['database'])
     cursor.execute("""
         SELECT d.oid::bigint,d.datname::text,
                o.oid::bigint,o.rolname,o.rolcanlogin,o.rolsuper,o.rolcreatedb,
@@ -51,6 +56,11 @@ def _database_identity(cursor):
 
 
 def _registered_identity(cursor):
+    from mta.presentation.schema_reuse import action_contract
+    admitted = action_contract(cursor)
+    if admitted is not None and 'registration' in admitted:
+        from copy import deepcopy
+        return deepcopy(admitted['registration'])
     cursor.execute("SELECT pg_catalog.to_regclass(%s)::text", [REGISTRY])
     row = cursor.fetchone()
     if row is None or row[0] is None:
@@ -182,6 +192,12 @@ def _acl_violations(cursor, database, registration):
 
 
 def _catalogue_evidence(cursor, database, registration):
+    from mta.presentation.schema_reuse import action_contract
+    admitted = action_contract(cursor)
+    if (admitted is not None and 'namespace_evidence' in admitted
+            and database == admitted['database'] and registration == admitted['registration']):
+        from copy import deepcopy
+        return deepcopy(admitted['namespace_evidence'])
     return dict(owner_members=_owner_member_oids(cursor, registration['owner_oid']),
                 acceptor_members=_owner_member_oids(cursor, registration['acceptor_oid']),
                 registrar_members=_owner_member_oids(cursor, registration['registrar']['oid']),

@@ -60,7 +60,8 @@ def bind(row, *, retained_parent=False):
     scoped_expedite_storage.verify_guards()
     core=scoped_expedite_storage._binding(core_row,nms_prepared,pick,
         expected_digest=locator['core_digest'],action_revision=build)
-    remarks=scoped_remarks.bind(sources,configuration_digest=report.configuration_digest)
+    remarks=scoped_remarks.bind(sources,configuration_digest=report.configuration_digest,
+        expected_recipe=row.expedite_parent_generation.metadata['occurrences']['remarks']['recipe_digest'])
     parent_row=row.expedite_parent_generation
     if retained_parent:
         old=parent_row.metadata['occurrences']['remarks'];fresh=remarks.provenance()
@@ -71,7 +72,8 @@ def bind(row, *, retained_parent=False):
         remarks=replace(remarks,highwater=parent_row.remark_highwater,locator=old)
     parent=scoped_expedite_parent._admit(parent_row,core,remarks,locator['parent_digest'],build)
     expedition=scoped_expedite.require_binding(sources.run,scoped_expedite.ExpediteBinding(
-        core,parent,transit,scoped_requests.bind(nms)))
+        core,parent,transit,scoped_requests.bind(nms,expected_recipe=locator['requests']['recipe_digest']),
+        None if locator['recipe_digest']==scoped_expedite.RETAINED_RECIPE else locator['recipe_digest']))
     if expedition.read_identity!=locator:
         raise PublicationUnavailable('bpr_expedite_reference_differs')
 

@@ -47,7 +47,8 @@ def binding(run):
             or reference.metadata['phase_digest']!=phase.digest):
         raise PublicationUnavailable('terminal_scoped_remark_reference_differs')
     sources=scoped_sources.bind(phase.pk,expected_digest=phase.digest,action_revision=AUTHORITY['action_revision'])
-    fresh=scoped_remarks.bind(sources,configuration_digest=AUTHORITY['profile_digest'])
+    fresh=scoped_remarks.bind(sources,configuration_digest=AUTHORITY['profile_digest'],
+        expected_recipe=reference.metadata['bpr']['remarks']['recipe_digest'])
     bound,values=retained_prefix(fresh,reference.metadata['bpr']['remarks'])
     metadata=dict(image=scoped_remarks.PATH,table=TABLE,count=len(values),digest=digest(values),
         fields=[[name,name,'str'] for name in scoped_remarks.FIELDS],
