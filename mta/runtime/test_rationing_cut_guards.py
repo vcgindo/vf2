@@ -236,6 +236,8 @@ class RationingCutGuardTests(TestCase):
         from mta.domain.btr_rationing_history import collect, SOURCE_FIELDS
         from mta.runtime.rationing_writer import write_day
         from mta.runtime.rationing_reader import load_image
+        from mta.runtime.rationing_audit import audit_image
+        from django.test.utils import CaptureQueriesContext
         before = [row('2026-07-09'), row('2026-07-09'), row(None)]
         self.initialized_writer(before)
         old = deepcopy(before)
@@ -255,6 +257,11 @@ class RationingCutGuardTests(TestCase):
             before, parent = after, run
         for run, item, expected in accepted:
             self.assertEqual(load_image(run, item), expected)
+            with CaptureQueriesContext(connection) as queries:
+                audited = audit_image(run, item)
+            self.assertEqual(audited['count'], len(expected))
+            self.assertEqual(audited['root_digest'], item['digest'])
+            self.assertLessEqual(len(queries), 6)  # independent of prefix length
         with connection.cursor() as cursor:
             cursor.execute('SELECT count(*) FROM mta_state.rationing_fact')
             self.assertEqual(cursor.fetchone()[0], len(old)+3)
@@ -329,6 +336,113 @@ class RationingCutGuardTests(TestCase):
                     cursor.execute('SELECT has_table_privilege(%s,%s,%s)',
                                    ['vectorflow_mta_runtime', table, privilege])
                     self.assertFalse(cursor.fetchone()[0], (table, privilege))
+
+    def test_explicit_audit_empty_anchor_and_many_facts(self):
+        from django.test.utils import CaptureQueriesContext
+        from tests.test_rationing_delta import row
+        from mta.runtime.rationing_writer import write_day
+        from mta.runtime.rationing_reader import read_cut, load_image
+        from mta.runtime.rationing_audit import audit_cut, audit_image
+        cut = self.initialized_writer([])
+        self.assertEqual(audit_cut(read_cut(cut.pk))['facts'], 0)
+        run = self.new_run()
+        after = [row('2026-07-10') for _ in range(1001)]
+        item = write_day(run, after)
+        self.accept_storage_fixture(run, item)
+        with CaptureQueriesContext(connection) as queries:
+            audited = audit_image(run, item)
+        self.assertEqual((audited['cuts'], audited['facts'], audited['count']), (2, 1001, 1001))
+        self.assertLessEqual(len(queries), 6)
+        # The accepted path never invokes the full physical audit.
+        from unittest.mock import patch
+        with patch('mta.runtime.rationing_audit.audit_cut', side_effect=AssertionError('routine audit')):
+            self.assertEqual(load_image(run, item), after)
+
+    def test_explicit_audit_detects_corrupt_fact_despite_valid_header(self):
+        from unittest.mock import patch
+        from dataclasses import replace
+        from tests.test_rationing_delta import row
+        from mta.runtime import rationing_writer as writer
+        from mta.runtime.rationing_audit import audit_image
+        self.initialized_writer([])
+        run = self.new_run()
+        facts, seal = writer._facts, writer._seal
+        def corrupt(cut, events):
+            facts(cut, [replace(e, values={**e.values, 'GIT': e.values['GIT']+1}) for e in events])
+        def faulty_verifier(cut, **kwargs):
+            # Deliberate isolated producer-verifier fault. All DB guards stay
+            # enabled; an independent audit must not trust writer hash claims.
+            with patch.object(writer, '_stored_digests', return_value=kwargs['checks']):
+                return seal(cut, **kwargs)
+        with patch.object(writer, '_facts', corrupt), patch.object(writer, '_seal', faulty_verifier):
+            item = writer.write_day(run, [row('2026-07-10')])
+        self.accept_storage_fixture(run, item)
+        with self.assertRaisesMessage(ValueError, 'audit facts values/type/order differ'):
+            audit_image(run, item)
+        from mta.runtime.state_image_read import load_image
+        with self.assertRaisesMessage(ValueError, 'audit facts values/type/order differ'):
+            load_image(run, item)
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT 1')
+            self.assertEqual(cursor.fetchone()[0], 1)
+
+    def test_explicit_audit_detects_corrupt_dispatch(self):
+        from unittest.mock import patch
+        from dataclasses import replace
+        from tests.test_rationing_delta import row
+        from mta.domain.btr_rationing_history import collect, SOURCE_FIELDS
+        from mta.runtime import rationing_writer as writer
+        from mta.runtime.rationing_delta import DispatchRevision
+        from mta.runtime.rationing_audit import audit_image
+        before = [row('2026-07-09')]
+        self.initialized_writer(before)
+        run = self.new_run()
+        current = row('2026-07-10', GIT=14)
+        after = collect('2026-07-10', before, [{k: current[k] for k in SOURCE_FIELDS}],
+            [dict(SKUCode='S', WHCode='W', ReportDate='2026-07-10', Receipts=3, Consumption=2)], [], 30)
+        flush, seal = writer._flush, writer._seal
+        def corrupt(cut, events):
+            flush(cut, [replace(e, dispatch=e.dispatch+1) if type(e) is DispatchRevision else e for e in events])
+        def faulty_verifier(cut, **kwargs):
+            with patch.object(writer, '_stored_digests', return_value=kwargs['checks']):
+                return seal(cut, **kwargs)
+        with patch.object(writer, '_flush', corrupt), patch.object(writer, '_seal', faulty_verifier):
+            item = writer.write_day(run, after)
+        self.accept_storage_fixture(run, item)
+        with self.assertRaisesMessage(ValueError, 'audit revisions values/type/order differ'):
+            audit_image(run, item)
+
+    def test_old_new_reader_dispatch_preserves_exact_values_and_refuses_foreign_formats(self):
+        from types import SimpleNamespace
+        from unittest.mock import patch
+        from tests.test_rationing_delta import row
+        from mta.runtime import accepted_state_read, relational_state, state_image_read
+        from mta.runtime.rationing_writer import write_day
+        from mta.runtime.rationing_reader import IMAGE, TABLE
+        self.initialized_writer([])
+        run = self.new_run()
+        rows = [row('2026-07-10'), row('2026-07-10')]
+        legacy = relational_state.save_image(run, IMAGE, IMAGE, rows)
+        item = write_day(run, rows)
+        self.accept_storage_fixture(run, item)
+        for metadata in (legacy, item):
+            self.assertEqual(state_image_read.load_image(run, metadata), rows)
+            self.assertEqual(list(state_image_read.iter_image(run, metadata)), rows)
+            with patch('mta.runtime.rationing_audit.audit_cut', side_effect=AssertionError('routine audit')):
+                self.assertEqual(accepted_state_read.load_accepted_image(run, metadata), rows)
+                self.assertEqual(list(accepted_state_read.iter_accepted_image(run, metadata)), rows)
+        for read in (state_image_read.load_image, accepted_state_read.load_accepted_image):
+            for invalid in ({**item, 'storage_format': 'unknown-v9'},
+                            {k: v for k, v in item.items() if k != 'storage_format'},
+                            {**item, 'image': 'foreign'},
+                            {**item, 'digest': '0'*64}, {**item, 'count': 1}):
+                with self.subTest(read=read.__name__, invalid=invalid), self.assertRaises(ValueError):
+                    read(run, invalid)
+            with self.assertRaisesMessage(ValueError, 'Unknown operational table'):
+                read(run, item, table_registry={})
+            with self.assertRaisesMessage(ValueError, 'exact accepted run/cut'):
+                read(SimpleNamespace(pk=uuid.uuid4()), item)
+        self.assertEqual(item['table'], TABLE)
 
     def test_prior_cursor_expiry_flush_rolls_back_and_preserves_parent(self):
         from tests.test_rationing_delta import row

@@ -19,6 +19,10 @@ def iter_accepted_image(run, item, *, table_registry=None):
     registry = STORAGE_TABLES if table_registry is None else table_registry
     if item['table'] not in registry:
         raise ValueError('Unknown operational table')
+    from mta.runtime import rationing_reader
+    if rationing_reader.uses_occurrences(item):
+        yield from rationing_reader.iter_image(run, item)
+        return
     fields = item['fields']
     with connection.chunked_cursor() as cursor:
         cursor.execute('SELECT vf_ordinal' +
@@ -32,6 +36,12 @@ def iter_accepted_image(run, item, *, table_registry=None):
 
 
 def load_accepted_image(run, item, *, table_registry=None):
+    registry = STORAGE_TABLES if table_registry is None else table_registry
+    if item['table'] not in registry:
+        raise ValueError('Unknown operational table')
+    from mta.runtime import rationing_reader
+    if rationing_reader.uses_occurrences(item):
+        return rationing_reader.load_image(run, item)
     def records():
         return iter_accepted_image(run, item, table_registry=table_registry)
     return RecordRows(item['count'], records) if item['count'] > 10000 else list(records())

@@ -23,6 +23,8 @@ IMAGE = 'closing/btr/RationingHistory'
 TABLE = 'BTR/RationingHistory'
 FAMILY = 'rationing_history'
 IMAGE_KEYS = frozenset(('image', 'table', 'count', 'digest', 'fields', 'storage_format', 'cut_id'))
+CUT_FIELDS = ('id', 'initialization_id', 'run_id', 'position', 'family', 'parent_id',
+              'input_digest', 'settings_digest', 'root_body', 'root_digest', 'run__status')
 
 
 @dataclass(frozen=True)
@@ -37,9 +39,11 @@ class Cut:
 
 def read_cut(identity):
     """Authenticate one sealed header. Normal reads do not walk its ancestry."""
-    row = OperationalStateCut.objects.values('id', 'initialization_id', 'run_id', 'position',
-        'family', 'parent_id', 'input_digest', 'settings_digest', 'root_body', 'root_digest',
-        'run__status').get(pk=identity)
+    return authenticate_cut(OperationalStateCut.objects.values(*CUT_FIELDS).get(pk=identity))
+
+
+def authenticate_cut(row):
+    """Validate an already fetched header; also used by the explicit audit."""
     if not row['root_body'] or not row['root_digest'] or row['run_id'] is not None and row['run__status'] != 'SUCCEEDED':
         raise ValueError('Rationing image requires its accepted sealed cut')
     body = json.loads(row['root_body'])
@@ -60,6 +64,15 @@ def read_cut(identity):
 def image_metadata(cut):
     return dict(image=IMAGE, table=TABLE, count=cut.body['count'], digest=cut.root_digest,
                 fields=cut.body['fields'], storage_format=FORMAT, cut_id=str(cut.identity))
+
+
+def uses_occurrences(item):
+    """An unrecognized explicit format must never fall back to legacy rows."""
+    if 'storage_format' not in item and 'cut_id' not in item:
+        return False
+    if item.get('storage_format') != FORMAT or item.get('table') != TABLE or item.get('image') != IMAGE:
+        raise ValueError('Unknown operational image storage format')
+    return True
 
 
 def require_image(run, item):
@@ -123,7 +136,11 @@ def iter_image(run, item):
 
 
 def load_image(run, item):
-    cut = require_image(run, item)
+    return load_cut(require_image(run, item))
+
+
+def load_cut(cut):
     def records():
         return (row for _, row in iter_occurrences(cut))
-    return RecordRows(item['count'], records) if item['count'] > 10000 else list(records())
+    count = cut.body['count']
+    return RecordRows(count, records) if count > 10000 else list(records())
