@@ -63,7 +63,7 @@ def _sealed_header(row):
             or body.get('family') != row['family'] or body.get('input_digest') != row['input_digest']
             or body.get('settings_digest') != row['settings_digest']):
         raise ValueError('Rationing cut commitment differs')
-    require_fields(body.get('fields'), body.get('count'))
+    require_fields(body.get('fields'), body.get('count'), source_order=True)
     return Cut(row['id'], row['initialization_id'], row['run_id'], row['position'], row['root_digest'], body)
 
 
@@ -92,7 +92,7 @@ def require_image(run, item):
 
 def _selected_fields(cut, names):
     fields = cut.body['fields']
-    require_fields(fields, cut.body['count'])
+    require_fields(fields, cut.body['count'], source_order=True)
     if names is None:
         return fields
     by_name = {field[0]: field for field in fields}

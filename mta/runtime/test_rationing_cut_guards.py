@@ -245,6 +245,63 @@ class RationingCutGuardTests(TestCase):
         with connection.cursor() as cursor:
             cursor.execute('SET CONSTRAINTS state_cut_complete DEFERRED')
 
+    def test_admitted_opening_order_survives_new_facts_and_audit(self):
+        from tests.test_rationing_delta import row
+        from mta.runtime.rationing_writer import write_day
+        from mta.runtime.rationing_reader import load_image, read_cut, load_cut
+        from mta.runtime.rationing_audit import audit_image
+        original = dict(reversed(row('2026-07-09').items()))
+        anchor = self.initialized_writer([original, original])
+        old_rows = load_cut(read_cut(anchor.pk))
+        self.assertEqual(list(old_rows[0]), list(original))
+        run = self.new_run()
+        after = [dict(old, Dispatch=7) for old in old_rows] + [row('2026-07-10')]
+        item = write_day(run, after)
+        self.accept_storage_fixture(run, item)
+        self.assertEqual([f[0] for f in item['fields']], list(original))
+        self.assertEqual(load_image(run, item), after)
+        self.assertEqual(audit_image(run, item)['count'], 3)
+        self.assertEqual(load_cut(read_cut(anchor.pk)), [original, original])
+
+    def test_large_accepted_history_reopens_its_database_cursor_for_each_projection(self):
+        from tests.test_rationing_delta import row
+        from mta.row_sequences import RecordRows
+        from mta.runtime.rationing_writer import write_day
+        from mta.runtime.rationing_reader import load_image
+        from mta.runtime.runtime_report_sources import image_rows
+        from mta.runtime.rationing_reader import TABLE
+        from django.test.utils import CaptureQueriesContext
+        self.initialized_writer([])
+        run = self.new_run()
+        rows = [row('2026-07-10', GIT=n % 3) for n in range(10001)]
+        item = write_day(run, rows)
+        self.accept_storage_fixture(run, item)
+        self.assertIsInstance(load_image(run, item), RecordRows)
+        expected = digest([{'GIT': r['GIT'], 'Dispatch': None} for r in rows])
+        with CaptureQueriesContext(connection) as queries:
+            projected = image_rows(run, item, expected_table=TABLE, fields=('GIT', 'Dispatch'))
+            for _ in range(2):
+                with transaction.atomic():
+                    self.assertEqual(digest(projected), expected)
+        scans = [q for q in queries if 'FROM mta_state.rationing_lifetime L' in q['sql']]
+        self.assertEqual(len(scans), 2)
+
+    def test_daily_descriptor_cannot_invent_a_different_column_order(self):
+        from unittest.mock import patch
+        from tests.test_rationing_delta import row
+        from mta.runtime import rationing_writer as writer
+        self.initialized_writer([row('2026-07-09')])
+        run = self.new_run()
+        real = writer._seal
+        def wrong_order(cut, **options):
+            options['fields'] = list(reversed(options['fields']))
+            return real(cut, **options)
+        with self.assertRaisesMessage(DatabaseError, 'Operational commitment context differs'), transaction.atomic():
+            with patch.object(writer, '_seal', side_effect=wrong_order):
+                item = writer.write_day(run, [row('2026-07-09'), row('2026-07-10')])
+            self.accept_storage_fixture(run, item)
+        self.assertFalse(OperationalStateCut.objects.filter(run=run).exists())
+
     def test_writer_first_successor_expiry_and_historical_reads_exact(self):
         from copy import deepcopy
         from unittest.mock import patch

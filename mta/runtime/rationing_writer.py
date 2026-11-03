@@ -49,15 +49,20 @@ class _Digest:
 
 class _Shape:
     """Observe the classifier's existing pass, without another history scan."""
-    def __init__(self, rows):
+    def __init__(self, rows, inherited_order):
         self.rows = rows
+        self.inherited_order = inherited_order
         self.kinds = [set() for _ in COLUMNS]
+        self.order = None
         self.count = 0
 
     def __iter__(self):
         for row in self.rows:
-            if tuple(row) != FIELDS:
+            order = tuple(row)
+            if order not in (FIELDS, self.inherited_order):
                 raise ValueError('Rationing produced row order differs')
+            if self.order is None:
+                self.order = order
             for kinds, column in zip(self.kinds, COLUMNS):
                 value = row[column['name']]
                 if value is not None:
@@ -68,9 +73,9 @@ class _Shape:
             yield row
 
     def fields(self):
-        value = ([[c['name'], c['name'], next(iter(kinds), 'str')]
-                  for c, kinds in zip(COLUMNS, self.kinds)] if self.count else [])
-        require_fields(value, self.count)
+        kinds = dict(zip(FIELDS, self.kinds))
+        value = [[name, name, next(iter(kinds[name]), 'str')] for name in self.order or ()]
+        require_fields(value, self.count, source_order=True)
         return value
 
 
@@ -173,7 +178,8 @@ def _seal(cut, *, parent, fields, counts, checks, anchor=None):
 @stage('rationing_delta_write')
 def _write_delta(cut, parent, rows, *, today, capture_enabled, horizon):
     """Private storage operation, called only inside the owner/savepoint below."""
-    observed = _Shape(rows)
+    inherited = tuple(field[0] for field in parent.body['fields']) or FIELDS
+    observed = _Shape(rows, inherited)
     checks = {name: _Digest() for name in ('facts', 'revisions', 'expiry')}
     batch = []
     counts = None
@@ -181,7 +187,7 @@ def _write_delta(cut, parent, rows, *, today, capture_enabled, horizon):
     # Leaving it in an exception traceback can otherwise issue CLOSE against
     # an already-removed portal later and poison the caller's recovered TX.
     with closing(iter_occurrences(parent)) as prior:
-        with closing(changes(prior, observed, today=today, position=cut.position,
+        with closing(changes(prior, observed, today=today, position=cut.position, inherited_order=inherited,
                              capture_enabled=capture_enabled, horizon=horizon)) as events:
             for event in events:
                 if type(event) is Counts:
@@ -258,20 +264,20 @@ def seal_initial_anchor(cut, owner):
     """One-time opening materialization, using its existing audited reader."""
     if not connection.in_atomic_block or cut.initialization_id != owner.pk or cut.position != 0 or cut.run_id:
         raise ValueError('Rationing opening anchor owner differs')
-    from mta.runtime.opening_storage import load_image
+    from mta.runtime.opening_storage import iter_image
     from mta.runtime.btr_history_storage import OPENING
     with transaction.atomic():
         item = owner.input_payload['images'][OPENING]
-        rows = load_image(owner, item)
         anchor = dict(owner_kind='INITIALIZATION', owner_id=str(owner.pk),
             manifest_digest=owner.input_manifest_digest, image=OPENING,
             digest=item['digest'], count=item['count'])
-        return seal_anchor_rows(cut, item, rows, anchor)
+        with closing(iter_image(owner, item)) as rows:
+            return seal_anchor_rows(cut, item, rows, anchor)
 
 
 def seal_anchor_rows(cut, item, rows, anchor):
     """Private one-time transport of an independently audited opening/prefix."""
-    require_fields(item['fields'], item['count'])
+    require_fields(item['fields'], item['count'], source_order=True)
     checks = {name: _Digest() for name in ('facts', 'revisions', 'expiry')}
     batch = []
     for ordinal, row in enumerate(rows):

@@ -114,10 +114,11 @@ def audit_cut(cut):
                 raise ValueError('Rationing audit prefix commitment chain differs')
             checks = {name: _Hash() for name in streams}
             anchor_hash = _Hash() if position == 0 else None
+            field_indexes = [(name, kind, FIELDS.index(name) + 2) for name, _, kind in body['fields']]
             for record in streams['facts'].at(position):
                 if record[1] != checks['facts'].count:
                     raise ValueError('Rationing audit fact order differs')
-                row = {f: wire_value(v, kind) for (f, _, kind), v in zip(body['fields'], record[2:])}
+                row = {name: wire_value(record[index], kind) for name, kind, index in field_indexes}
                 checks['facts'].add([record[1], row])
                 if anchor_hash is not None:
                     anchor_hash.add(row)
