@@ -75,6 +75,23 @@ class TransitJoinPostgresTests(unittest.TestCase):
         with optimized.prepared_match(base=('SELECT * FROM '+self.tables['base'],[]),remarks=image(self.run,'remarks'),facts=('SELECT * FROM '+self.tables['facts'],[]),grids=grids,pick=pick) as (query,params):
             with connection.cursor() as c:
                 c.execute(query,params);self.assertEqual(c.fetchall(),expected)
+        from mta.presentation.scoped_expedite_join import prepared_match
+        relations=dict(base=('SELECT * FROM '+self.tables['base'],[]),
+            remarks=image(self.run,'remarks'),facts=('SELECT * FROM '+self.tables['facts'],[]),
+            grids=grids,pick=pick)
+        with connection.cursor() as c:
+            # Fixture construction belongs to the owner; the query itself must
+            # work with the unmodified, no-TEMP runtime role.
+            for table in self.tables.values():
+                c.execute('GRANT SELECT ON '+table+' TO vectorflow_mta_runtime')
+            c.execute('SELECT current_user');previous=c.fetchone()[0]
+            c.execute('SET LOCAL ROLE vectorflow_mta_runtime')
+            try:
+                c.execute("SELECT has_database_privilege(current_user,current_database(),'TEMP')")
+                self.assertFalse(c.fetchone()[0])
+                with prepared_match(**relations) as (query,params):
+                    c.execute(query,params);self.assertEqual(c.fetchall(),expected)
+            finally:c.execute('SET LOCAL ROLE '+connection.ops.quote_name(previous))
         with connection.cursor() as c:
             c.execute("SELECT count(*) FROM pg_class WHERE relnamespace=pg_my_temp_schema() AND relname LIKE 'vf_transit_%%'")
             self.assertEqual(c.fetchone()[0],0)
@@ -99,3 +116,23 @@ class TransitJoinPostgresTests(unittest.TestCase):
         with connection.cursor() as c:
             c.execute('SELECT count(*),count(remark_ordinal) FROM '+self.tables['base'])
             self.assertEqual(c.fetchone(),(len(self.nms),0))
+
+    def test_scoped_planner_preference_restores_caller_after_each_exit(self):
+        from django.db import connection,transaction,DatabaseError
+        from mta.presentation.scoped_expedite_join import prepared_match
+        relations={n:('SELECT * FROM '+t,[]) for n,t in self.tables.items() if n!='nms'}
+        with connection.cursor() as c:
+            for previous in ('on','off'):
+                c.execute("SELECT set_config('enable_nestloop',%s,true)",[previous])
+                for failure in (None,ValueError,DatabaseError):
+                    try:
+                        with transaction.atomic(),prepared_match(**relations):
+                            c.execute("SELECT current_setting('enable_nestloop')")
+                            self.assertEqual(c.fetchone()[0],'off')
+                            if failure is ValueError:raise ValueError('proof failure')
+                            if failure is DatabaseError:c.execute('SELECT 1/0')
+                    except (ValueError,DatabaseError) as exc:
+                        self.assertIsInstance(exc,failure)
+                    else:self.assertIsNone(failure)
+                    c.execute("SELECT current_setting('enable_nestloop'),40+2")
+                    self.assertEqual(c.fetchone(),(previous,42))

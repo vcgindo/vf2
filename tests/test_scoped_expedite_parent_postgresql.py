@@ -119,6 +119,16 @@ class ScopedExpediteParentTests(unittest.TestCase):
         self.assertEqual(self.binding(row).read_identity,before)
         self.assertEqual({name:self.binding(row).rows(name) for name in module.TABLES},self.expected())
 
+    def test_temp_preparer_recipe_is_readable_and_reused_without_rebuild(self):
+        from mta.presentation import scoped_expedite_parent as module
+        self.start('dispatch')
+        with patch.object(module,'recipe_digest',return_value=module.TEMP_RECIPE):row=self.prepare()
+        before=self.binding(row).read_identity
+        with patch.object(module,'_inserts',side_effect=AssertionError('accepted parent rebuild')):
+            self.assertEqual(self.prepare().pk,row.pk)
+        self.assertEqual(self.binding(row).read_identity,before)
+        self.assertEqual({name:self.binding(row).rows(name) for name in module.TABLES},self.expected())
+
     def test_match_statement_failure_rolls_back_temporary_operands_and_parent(self):
         from contextlib import contextmanager
         from django.db import connection,DatabaseError

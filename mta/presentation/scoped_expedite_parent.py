@@ -12,11 +12,14 @@ from mta.runtime import scope_expedite_parent_models as models
 from mta.runtime.relational_state import quote
 from mta.serialization import digest,storage,rows_digest
 from mta.presentation.request_scope import validated_read,validation_reads
-from mta.presentation import expedite_transit_join
+from mta.presentation import scoped_expedite_join
 
 SCHEMA='fresh-bpr-expedite-parent-generation-v1'
 TABLES={'base':models.ScopeExpediteParentBase,'match':models.ScopeExpediteParentMatch}
 RETAINED_RECIPE='93e9b676d014cdd6c05b66346e0d8b963b7d718a7aef1be6f44778cf7f7693a3'
+# Native package 92767386: identical fields, occurrence order, and owner guards.
+# Keep accepted generations immutable when replacing its TEMP-only access path.
+TEMP_RECIPE='76385cef50d7eb0ff78226ffa21a79c73021e858072786a8a1fe4b01a9c33d10'
 
 
 def fields(name):
@@ -26,7 +29,7 @@ def fields(name):
 def recipe_digest():
     return digest(dict(schema=SCHEMA,builder=inspect.getsource(inspect.getmodule(recipe_digest)),
         models=inspect.getsource(models),base=inspect.getsource(queries.ExpeditePickQueries.parent_base_query),
-        join=expedite_transit_join.recipe_digest(),
+        join=scoped_expedite_join.recipe_digest(),
         fields={n:[m._meta.get_field(f).deconstruct() for f in fields(n)] for n,m in TABLES.items()}))
 
 
@@ -125,7 +128,7 @@ def _inserts(bound,remarks,identifier):
 
 
 def _prepared_match(bound,remarks,identifier):
-    return expedite_transit_join.prepared_match(
+    return scoped_expedite_join.prepared_match(
         base=('SELECT ordinal,remark_ordinal FROM mta.fresh_mta_scopeexpediteparentbase WHERE generation_id=%s',[identifier]),
         remarks=remarks.query(),facts=bound.fact_query('ExpediteDispatches'),
         grids=bound.query('grid'),pick=bound.pick_query())
@@ -202,7 +205,7 @@ class ParentBinding:
 def _admit(row,bound,remarks,expected_digest,action_revision):
     verify_guards();generation=bound.generation
     if (not row.sealed or row.sealed_at is None or row.digest!=expected_digest or row.digest!=digest(row.metadata)
-            or row.recipe_digest not in (recipe_digest(),RETAINED_RECIPE) or row.action_revision!=action_revision
+            or row.recipe_digest not in (recipe_digest(),TEMP_RECIPE,RETAINED_RECIPE) or row.action_revision!=action_revision
             or row.run_id!=generation.run_id or row.phase_id!=generation.phase_id
             or row.source_digest!=generation.source_digest or row.configuration_digest!=generation.configuration_digest
             or row.core_generation_id!=generation.pk or row.core_generation_digest!=generation.digest
@@ -250,7 +253,7 @@ def _prepare(bound,remarks,*,expected_core_digest,action_revision):
         raise PublicationUnavailable('bpr_expedite_parent_prepared_owner_differs')
     generation=bound.generation
     verify_guards();recipe=recipe_digest();remark_fields=_remark_fields(remarks)
-    for compatible_recipe in (recipe,RETAINED_RECIPE):
+    for compatible_recipe in (recipe,TEMP_RECIPE,RETAINED_RECIPE):
         existing=models.ScopeExpediteParentGeneration.objects.filter(core_generation=generation,
             remark_digest=remark_fields['remark_digest'],recipe_digest=compatible_recipe).first()
         if existing is not None:
