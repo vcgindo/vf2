@@ -26,8 +26,7 @@ class PhaseSelectiveTest(unittest.TestCase):
     def test_existing_phase_owner_resolves_without_empty_default(self):
         for rows in ([], [{'SKUCode': '337'}, {'SKUCode': '337'}]):
             run, item = self.run_value(count=len(rows))
-            with patch('mta.presentation.qualified_consumption.empty_metadata', return_value=None), \
-                 patch('mta.presentation.daily_preparation.production_branch', return_value=True), \
+            with patch('mta.presentation.daily_preparation.production_branch', return_value=True), \
                  patch('mta.presentation.selective.load_image', return_value=rows) as load:
                 self.assertIs(image_metadata(run, self.path), item)
                 self.assertIs(image_rows(run, self.path), rows)
@@ -37,21 +36,18 @@ class PhaseSelectiveTest(unittest.TestCase):
         for change in ({'table': 'DBM/DBMMaster'}, {'image': 'other'},
                        {'fields': [['SKUCode', 'unregistered', 'str']]}):
             run, _ = self.run_value(**change)
-            with patch('mta.presentation.qualified_consumption.empty_metadata', return_value=None), \
-                 patch('mta.presentation.daily_preparation.production_branch', return_value=True):
+            with patch('mta.presentation.daily_preparation.production_branch', return_value=True):
                 with self.assertRaises(PublicationUnavailable):
                     image_metadata(run, self.path)
         run, _ = self.run_value()
         run.production_manifest['images'].clear()
-        with patch('mta.presentation.qualified_consumption.empty_metadata', return_value=None), \
-             patch('mta.presentation.daily_preparation.production_branch', return_value=True):
+        with patch('mta.presentation.daily_preparation.production_branch', return_value=True):
             with self.assertRaises(PublicationUnavailable):
                 image_metadata(run, self.path)
 
-    def test_typed_checksum_failure_propagates(self):
+    def test_typed_decoder_failure_propagates(self):
         run, _ = self.run_value()
-        with patch('mta.presentation.qualified_consumption.empty_metadata', return_value=None), \
-             patch('mta.presentation.daily_preparation.production_branch', return_value=True), \
+        with patch('mta.presentation.daily_preparation.production_branch', return_value=True), \
              patch('mta.presentation.selective.load_image', side_effect=ValueError('Operational image drift')):
             with self.assertRaisesRegex(ValueError, 'Operational image drift'):
                 image_rows(run, self.path)

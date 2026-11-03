@@ -27,6 +27,12 @@ SCOPE_TABLES = ('SkuAttributeData', 'LocationAttributeData')
 def _selected_rows(run,path,selected,*,cutoff=None,date_field=None,metadata=None):
     """Filter immutable native rows before transfer, retaining physical order."""
     item=metadata if metadata is not None else image_metadata(run,path)
+    from mta.runtime import dated_history_reader
+    cut=None
+    if dated_history_reader.owns(item):
+        if item['image']!=path:
+            raise PublicationUnavailable('selected_report_image_table_mismatch:'+path)
+        cut=dated_history_reader.require_image(run,item)
     if not item['count']:return []
     fields={name:(column,kind) for name,column,kind in item['fields']}
     where=[];params=[]
@@ -43,12 +49,17 @@ def _selected_rows(run,path,selected,*,cutoff=None,date_field=None,metadata=None
         # SQL must not silently turn an invalid value into an excluded row.
         where.append('(S.'+column+' IS NULL OR S.'+column+'>=%s)')
         params.append(cutoff)
-    query,source_params=image_query(run,path,metadata=item)
+    if cut is not None:
+        query,source_params,_=dated_history_reader.occurrence_relation(cut)
+        ordering='S.born_position,S.vf_ordinal'
+    else:
+        query,source_params=image_query(run,path,metadata=item)
+        ordering='S.vf_ordinal'
     projection=','.join('S.'+quote(column) for column,kind in fields.values())
     rows=[]
     with connection.cursor() as cursor:
         cursor.execute('SELECT '+projection+' FROM ('+query+') S WHERE '+
-            ' AND '.join(where)+' ORDER BY S.vf_ordinal',source_params+params)
+            ' AND '.join(where)+' ORDER BY '+ordering,source_params+params)
         while batch:=cursor.fetchmany(500):
             rows.extend({name:wire_value(value,kind) for (name,(column,kind)),value in zip(fields.items(),record)}
                         for record in batch)

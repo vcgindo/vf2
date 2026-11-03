@@ -56,6 +56,10 @@ def image_field(run, path, field):
     selected = [entry for entry in item['fields'] if entry[0] == field]
     if len(selected) != 1:
         raise PublicationUnavailable('selected_metadata_column_not_published')
+    from mta.runtime import dated_history_reader
+    if dated_history_reader.owns(item):
+        cut = dated_history_reader.require_image(run,item)
+        return [row[field] for _,row in dated_history_reader.iter_occurrences(cut,names=(field,))]
     from mta.presentation.daily_preparation import production_branch
     from mta.presentation import daily_opening_sob
     if production_branch(run) and path == daily_opening_sob.PATH:
@@ -83,6 +87,11 @@ def image_field(run, path, field):
 def image_query(run, path, *, metadata=None, required_fields=None):
     """Trusted manifest/schema-bound relation; values are always parameters."""
     item = metadata if metadata is not None else image_metadata(run, path)
+    from mta.runtime import dated_history_reader
+    if dated_history_reader.owns(item):
+        if item['image'] != path:
+            raise PublicationUnavailable('selected_report_image_table_mismatch:'+path)
+        return dated_history_reader.image_relation(run,item,required_fields=required_fields)
     from mta.runtime import btr_import_image
     if btr_import_image.owns(item):
         return btr_import_image.relation(run,item)

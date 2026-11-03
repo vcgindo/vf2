@@ -63,7 +63,8 @@ def require_image(run,item):
     return cut
 
 
-def occurrence_query(cut,names=None):
+def occurrence_relation(cut,names=None):
+    """Unnumbered visible occurrences; selective consumers filter this first."""
     fields = cut.body['fields']
     if names is not None:
         by_name = {d[0]:d for d in fields}
@@ -72,8 +73,33 @@ def occurrence_query(cut,names=None):
         fields = [by_name[n] for n in names]
     sql = ('SELECT born_position,vf_ordinal'+(' ,'+','.join(quote(n) for _,n,_ in fields) if fields else '')+
         ' FROM '+table(cut.body['family'])+" WHERE initialization_id=%s AND int8range(born_position,end_position,'[)') @> %s::bigint"
-        ' ORDER BY born_position,vf_ordinal')
+        )
     return sql,[cut.initialization,cut.position],fields
+
+
+def occurrence_query(cut,names=None):
+    sql,params,fields = occurrence_relation(cut,names)
+    return sql+' ORDER BY born_position,vf_ordinal',params,fields
+
+
+def image_relation(run,item,*,required_fields=None):
+    """Full logical image with dense consumer ordinals, not birth identities.
+
+    Pair/date graph reads use occurrence_relation directly: putting their filter
+    above this window would number the complete history before selection.
+    """
+    cut = require_image(run,item)
+    fields = cut.body['fields']
+    names = None
+    if required_fields is not None:
+        by_column = {column:name for name,column,_ in fields}
+        if not set(required_fields) <= by_column.keys():
+            raise ValueError('Unknown history SQL projection column')
+        names = [by_column[c] for c in dict.fromkeys(required_fields)]
+    sql,params,fields = occurrence_relation(cut,names)
+    projection = ''.join(','+quote(column) for _,column,_ in fields)
+    return ('SELECT row_number() OVER (ORDER BY born_position,vf_ordinal)-1 AS vf_ordinal'+
+            projection+' FROM ('+sql+') history_occurrences'),params
 
 
 def iter_occurrences(cut,*,names=None):
@@ -100,7 +126,10 @@ def iter_image(run,item):
 
 
 def load_image(run,item):
-    cut = require_image(run,item)
+    return load_cut(require_image(run,item))
+
+
+def load_cut(cut,*,names=None):
     def records():
-        return (row for _,row in iter_occurrences(cut))
+        return (row for _,row in iter_occurrences(cut,names=names))
     return RecordRows(cut.body['count'],records) if cut.body['count']>10000 else list(records())

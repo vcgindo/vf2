@@ -19,7 +19,10 @@ def iter_accepted_image(run, item, *, table_registry=None):
     registry = STORAGE_TABLES if table_registry is None else table_registry
     if item['table'] not in registry:
         raise ValueError('Unknown operational table')
-    from mta.runtime import btr_import_image, rationing_reader
+    from mta.runtime import btr_import_image, rationing_reader, dated_history_reader
+    if dated_history_reader.owns(item):
+        yield from dated_history_reader.iter_image(run,item)
+        return
     if btr_import_image.owns(item):
         yield from btr_import_image.iter_image(run,item,audit=False)
         return
@@ -42,7 +45,9 @@ def load_accepted_image(run, item, *, table_registry=None):
     registry = STORAGE_TABLES if table_registry is None else table_registry
     if item['table'] not in registry:
         raise ValueError('Unknown operational table')
-    from mta.runtime import btr_import_image, rationing_reader
+    from mta.runtime import btr_import_image, rationing_reader, dated_history_reader
+    if dated_history_reader.owns(item):
+        return dated_history_reader.load_image(run,item)
     if btr_import_image.owns(item):
         return btr_import_image.load(run,item,audit=False)
     if rationing_reader.uses_occurrences(item):

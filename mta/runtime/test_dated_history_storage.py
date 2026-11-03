@@ -86,6 +86,9 @@ class DatedHistoryStorageTests(TestCase):
 
     def test_all_families_first_own_successor_old_reads_and_only_new_payloads(self):
         from mta.runtime.dated_history_audit import audit_cut,audit_image
+        from mta.runtime.accepted_state_read import load_accepted_image
+        from mta.runtime.state_image_read import load_image as audited_image
+        from mta.presentation.selective import image_field
         run=self.new_run()
         images={};cuts={};expected={}
         for f,parent in self.anchors.items():
@@ -108,6 +111,9 @@ class DatedHistoryStorageTests(TestCase):
             self.assertEqual([v for _,v in iter_occurrences(self.anchors[f])],self.opening[f])
             self.assertEqual(list(iter_image(run,images[f])),expected[f])
             self.assertEqual(list(iter_image(next_run,next_images[f])),expected[f]+[row(f,'2026-07-11')])
+            self.assertEqual(list(load_accepted_image(run,images[f])),expected[f])
+            self.assertEqual(list(audited_image(next_run,next_images[f])),expected[f]+[row(f,'2026-07-11')])
+            self.assertEqual(image_field(run,f,'SKUCode'),[r['SKUCode'] for r in expected[f]])
             self.assertEqual(audit_cut(self.anchors[f])['facts'],4)
             self.assertEqual(audit_image(run,images[f])['facts'],6)
             audited=audit_image(next_run,next_images[f])
@@ -206,6 +212,62 @@ class DatedHistoryStorageTests(TestCase):
                          [{'ReportDate':None},{'ReportDate':'2026-07-10'}])
         with self.assertRaises(ValueError):list(iter_image(run,dict(item,count=99)))
         with self.assertRaises(ValueError):list(iter_image(run,dict(item,image='closing/dbm/OrderData')))
+
+    def test_actual_reader_adapters_sparse_dense_and_filtered_orders(self):
+        from mta.runtime import accepted_state_read,state_image_read,runtime_report_sources
+        from mta.presentation import selective,dbm_read
+        from mta.runtime.relational_state import quote,wire_value
+        f='closing/dbm/DailyConsumption';parent=self.anchors[f];run=self.new_run()
+        # Expired physical ordinals 0/1/2 must not become consumer gaps. New
+        # duplicate facts keep their occurrence order, including raw pair keys.
+        expected=[self.opening[f][-1],row(f,'2026-07-10'),row(f,'2026-07-10'),
+                  dict(row(f,'2026-07-10'),SKUCode='SKU '),
+                  dict(row(f,'2026-07-10'),SKUCode='sku'),
+                  dict(row(f,'2026-07-10'),WhCode='WH')]
+        c=self.pending(run,parent);item=write_delta(c,parent,expected,today=run.business_date,horizon=1)
+        self.accept(run,{f:item})
+        # This unregistered storage fixture has owner access only. Normal
+        # runtime SELECT capability is qualified with packaged admission.
+        for reader in (accepted_state_read.load_accepted_image,accepted_state_read.iter_accepted_image,
+                       state_image_read.load_image,state_image_read.iter_image):
+            self.assertEqual(list(reader(run,item)),expected)
+            with self.assertRaises(ValueError):list(reader(run,item,table_registry={}))
+        self.assertEqual(list(selective.image_rows(run,f)),expected)
+        self.assertEqual(selective.image_field(run,f,'ReportDate'),[r['ReportDate'] for r in expected])
+        typed=runtime_report_sources.image_rows(run,item,expected_table='DBM/DailyConsumption',
+            fields=('SKUCode','WhCode'))
+        self.assertEqual(list(typed),[{k:r[k] for k in ('SKUCode','WhCode')} for r in expected])
+        sql,params=selective.image_query(run,f)
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT vf_ordinal,'+','.join(quote(c) for _,c,_ in item['fields'])+
+                           ' FROM ('+sql+') S ORDER BY vf_ordinal',params)
+            rows=cursor.fetchall()
+        self.assertEqual([r[0] for r in rows],list(range(len(expected))))
+        self.assertEqual([{n:wire_value(v,k) for (n,_,k),v in zip(item['fields'],r[1:])} for r in rows],expected)
+        sql,params=selective.image_query(run,f,required_fields=('ReportDate',))
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT * FROM ('+sql+') S ORDER BY vf_ordinal',params)
+            self.assertEqual(cursor.fetchall(),list(enumerate(
+                date.fromisoformat(r['ReportDate']) if r['ReportDate'] else None for r in expected)))
+        observed=[]
+        def watch(execute,sql,params,many,context):
+            if 'history_dbm_dailyconsumption' in sql:observed.append(sql)
+            return execute(sql,params,many,context)
+        with connection.execute_wrapper(watch):
+            actual=dbm_read._selected_rows(run,f,{'SKUCode':'sku ','WhCode':'wh'},
+                cutoff='2026-07-10',date_field='ReportDate')
+        self.assertEqual(actual,expected[:3])
+        self.assertEqual(len(observed),1)
+        self.assertNotIn('row_number',observed[0].lower())
+        self.assertIn('ORDER BY S.born_position,S.vf_ordinal',observed[0])
+        self.assertEqual(dbm_read._selected_rows(run,f,{'SKUCode':'missing','WhCode':'wh'}),[])
+        with self.assertRaises(ValueError):
+            selective.image_query(run,f,metadata=dict(item,count=0))
+        with self.assertRaises(ValueError):
+            selective.image_query(run,f,required_fields=('not_a_field',))
+        from types import SimpleNamespace
+        with self.assertRaises(ValueError):
+            accepted_state_read.load_accepted_image(SimpleNamespace(pk=self.owner.pk),item)
 
     def test_large_actual_order_producer_and_execution_local_ordinal_cache(self):
         from mta.domain.dbm_ingestion import import_orders

@@ -19,6 +19,7 @@ class DBMReadTest(unittest.TestCase):
         run = SimpleNamespace(business_date=date(2026, 6, 17), commands=Mock())
         run.commands.exists.return_value = bool(commands)
         run.commands.order_by.return_value = commands
+        run.commands.filter.return_value.order_by.return_value = commands
         return run
 
     def test_grid_reads_only_nine_native_images(self):

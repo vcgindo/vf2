@@ -89,8 +89,12 @@ def image_rows(run, metadata, *, expected_table, fields, registry=None):
     if metadata['fields'] and not set(requested) <= available.keys():
         raise ValueError('Required report source image columns missing')
     from mta.runtime.rationing_reader import uses_occurrences
-    from mta.runtime import btr_import_image
-    if btr_import_image.owns(metadata):
+    from mta.runtime import btr_import_image, dated_history_reader
+    if dated_history_reader.owns(metadata):
+        cut = dated_history_reader.require_image(run,metadata)
+        names = tuple(available[key] for key in requested) if available else ()
+        original = dated_history_reader.load_cut(cut,names=names)
+    elif btr_import_image.owns(metadata):
         original = btr_import_image.load(run,metadata,audit=True)
     elif uses_occurrences(metadata):
         # The new immutable cut was fully verified at commit. Its selected
