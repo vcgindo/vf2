@@ -22,6 +22,21 @@ def setting(value):
 
 
 class RationingCutGuardTests(TestCase):
+    def test_actual_revision_watch_and_scoped_consumers_recognize_anchor_migration(self):
+        from importlib import import_module
+        from mta.runtime import ingestion_ownership as ownership
+        migration = import_module('mta.runtime.migrations.0254_rationing_anchor_revision_ownership')
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT p.prosrc,p.prosecdef,p.proconfig,pg_get_function_result(p.oid) "
+                "FROM pg_proc p WHERE p.oid='mta.ingestion_watch()'::regprocedure")
+            body, definer, configuration, returns = cursor.fetchone()
+            self.assertEqual(body, migration.NEW)
+            self.assertTrue(ownership.is_revision_guard(dict(name='mta.ingestion_watch()',
+                body=body, security_definer=definer, configuration=configuration, returns=returns)))
+            self.assertEqual(ownership.scoped_derived_body(cursor,
+                minimum='0246_btr_scope_dimension_ingestion_ownership'), body)
+            ownership.require_guard_coverage(cursor)
+
     def tearDown(self):
         # Several cases intentionally leave pending cuts to test their refusal.
         # Every test transaction is discarded, never an application commit.
