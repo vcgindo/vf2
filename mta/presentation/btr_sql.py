@@ -171,11 +171,11 @@ def read_btr(run, payload, *, paging, count=False, export=False, read_binding=No
         for alias, table in (('A', 'BPPTrend' + trend), ('btd', 'BufferTrend' + trend)):
             required = None
             if count or (export and alias=='btd'):
-                # Counts never consume level history; export consumes the colour
-                # roster and today's colour filter, not its 90 historical cells.
+                # Counts never consume level history. Export consumes colour
+                # summaries; only a colour-age predicate needs today's cell.
                 required = [field for field,_ in CATALOG['tables']['BTR/'+table]
                             if field not in {f'D{i}' for i in range(1,91)}]
-                if alias=='btd':
+                if alias=='btd' and 'btd."D90"' in where:
                     required.append('D90')
             query, bound = source_query('closing/btr/' + table, required_fields=required)
             local_ctes.append(alias + ' AS ' + inline + '(' + query + ')')

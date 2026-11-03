@@ -1,8 +1,9 @@
 """Read projections must retain publication validation and full-history fallback."""
 import os
 import unittest
+from datetime import date
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE','vectorflow.settings')
 os.environ.setdefault('VF_SECRET_KEY','unit-only')
@@ -12,6 +13,33 @@ from mta.presentation import btr_calendar_images as calendar
 
 
 class BtrConsumerProjectionTests(unittest.TestCase):
+    def test_sql_requests_current_colour_only_for_a_colour_age_predicate(self):
+        from mta.presentation import btr_sql,btr_reporting
+        from mta.presentation.context import PermissionCodes
+        for kind in (None,'colorcount','colorage'):
+            payload={'name':'tech'}
+            if kind:
+                payload['filters']={'colorFilter':{'filters':[{'attributeName':'green','type':kind,
+                                                              'operator':'greaterthan','value':'0'}]}}
+            calls=[]
+            def relation(run,path,**kwargs):
+                calls.append((path,kwargs.get('required_fields')))
+                return 'SELECT * FROM owned_test_relation',[]
+            cursor=MagicMock();cursor.__enter__.return_value=cursor;cursor.fetchone.return_value=(0,)
+            with patch.object(btr_reporting,'selected_generation',return_value=None), \
+                    patch.object(btr_sql,'image_rows',return_value=[]), \
+                    patch.object(btr_sql,'image_query',side_effect=relation), \
+                    patch.object(btr_sql.hierarchy,'selected_manifest',return_value=None), \
+                    patch.object(btr_sql,'scope',return_value=(PermissionCodes({'S':1}),PermissionCodes({'W':1}))), \
+                    patch.object(btr_sql.connection,'cursor',return_value=cursor):
+                for export in (False,True):
+                    calls.clear()
+                    btr_sql.read_btr(SimpleNamespace(business_date=date(2026,4,9)),payload,
+                                     paging=(1,10),count=not export,export=export)
+                    colours=[fields for path,fields in calls if path.startswith('closing/btr/BufferTrend')]
+                    self.assertTrue(colours)
+                    self.assertTrue(all(('D90' in fields)==(kind=='colorage') for fields in colours))
+
     def test_current_colour_only_and_scalar_counts_use_authenticated_roster(self):
         for name, fields, colour in (
                 ('BPPTrendPhysicalInv', ['SKUCode','WhCode'], False),
