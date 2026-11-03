@@ -70,9 +70,11 @@ class PostDbmPublicationRecoveryTests(unittest.TestCase):
                                 images={},images_digest=digest({}))
         with patch.object(sources.DailySourceReceipt.objects,'get',return_value=receipt):
             self.assertIs(sources.receipt(run),receipt)
+            receipt.recipe_digest=sources.RETAINED_ACTION_ADMISSION_RECIPE
+            self.assertIs(sources.receipt(run),receipt)
             receipt.recipe_digest='unknown'
             with self.assertRaisesRegex(ValueError,'identity drift'):sources.receipt(run)
-            receipt.recipe_digest=sources.RETAINED_V6_RECIPE;receipt.images_digest='wrong'
+            receipt.recipe_digest=sources.RETAINED_ACTION_ADMISSION_RECIPE;receipt.images_digest='wrong'
             with self.assertRaisesRegex(ValueError,'identity drift'):sources.receipt(run)
             receipt.images_digest=digest({});receipt.input_digest='wrong'
             with self.assertRaisesRegex(ValueError,'identity drift'):sources.receipt(run)

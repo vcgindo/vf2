@@ -20,6 +20,10 @@ RETAINED_V5_RECIPE = '4e110600f15a7dcf36beb191261961cbdef641c0514b5a1d89ecc4164e
 # Authenticated c21850c8 native package; both retained Full predecessors use it.
 # The corrected writer publishes accepted scoped histories without recollection.
 RETAINED_V6_RECIPE = '06126733256006b008a2b11b0b9e7bfefaecef56e68cd395f5d0f7474eb15b59'
+# Exact 5cb02c29 producer, qualified before the action-admission change.
+# Its only changed dependency passes the stored remark recipe to the existing
+# binder. Source rows, fields, ordering and immutable receipt identities agree.
+RETAINED_ACTION_ADMISSION_RECIPE = '2b7c330b6c043f1f73b23df3f56a2a2da8b9378eff36fd2f711cb4bf8b6ce720'
 
 
 def recipe_digest():
@@ -148,7 +152,8 @@ def write_sources(run, output, *, opening=None, _sources=None, _bpr_history=None
 @once_per_request
 def receipt(run):
     value = DailySourceReceipt.objects.get(run=run)
-    if (value.input_digest != run.input_digest or value.recipe_digest not in (recipe_digest(), RETAINED_V5_RECIPE, RETAINED_V6_RECIPE)
+    if (value.input_digest != run.input_digest or value.recipe_digest not in (
+            recipe_digest(), RETAINED_V5_RECIPE, RETAINED_V6_RECIPE, RETAINED_ACTION_ADMISSION_RECIPE)
             or value.images_digest != digest(value.images)):
         raise ValueError('Daily source publication identity drift')
     if value.recipe_digest == RETAINED_V5_RECIPE and any(
