@@ -718,9 +718,12 @@ def daily(raw, sha256, *, frame=None, predecessor=None, initialization_id=None,
                 opening_orders=order_state.get('SpikeOrderData')
                 if isinstance(opening_orders,RecordRows):
                     opening_orders=[deepcopy(row) for row in opening_orders]
+                closure_history=order_state.get('SpikeOrderClosureHistory')
+                if isinstance(closure_history,RecordRows):
+                    closure_history=[deepcopy(row) for row in closure_history]
                 source=dict(opening_date=opening_date,opening_identity='native-owned-opening',
                     feed_status=day.get('order_feed_status'),feed_rows=day.get('order_feed'),
-                    opening_orders=opening_orders,closure_history=order_state.get('SpikeOrderClosureHistory'))
+                    opening_orders=opening_orders,closure_history=closure_history)
                 if isinstance(order_state.get('OrderIdentity'),list) and len(order_state['OrderIdentity'])==1:
                     source['identity_last_value']=order_state['OrderIdentity'][0].get('LastValue')
                 c.check('/day/order_feed','r1_order_input.validate_order_input',lambda:validate_order_input(source,day.get('business_date')))

@@ -25,7 +25,7 @@ class RationingCutGuardTests(TestCase):
     def test_actual_revision_watch_and_scoped_consumers_recognize_anchor_migration(self):
         from importlib import import_module
         from mta.runtime import ingestion_ownership as ownership
-        migration = import_module('mta.runtime.migrations.0270_bpr_history_storage')
+        migration = import_module('mta.runtime.migrations.0272_order_closure_history_storage')
         with connection.cursor() as cursor:
             cursor.execute("SELECT p.prosrc,p.prosecdef,p.proconfig,pg_get_function_result(p.oid) "
                 "FROM pg_proc p WHERE p.oid='mta.ingestion_watch()'::regprocedure")

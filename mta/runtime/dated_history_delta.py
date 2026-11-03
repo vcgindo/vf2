@@ -31,12 +31,15 @@ FAMILIES = {
     'closing/dbm/SpikeReport': ('SuspendFromDate', 'literal-current', True),
     'closing/dbm/SuspendHistory': ('ReportDate', 'ninety-strict', False),
     'closing/bpr/DailyConsumption': ('ReportDate', 'bpr-configured-strict', True),
+    'closing/orders/SpikeOrderClosureHistory': ('ClosureDate', 'order-closure-append', True),
 }
 
 
 def source_table(family):
     if family not in FAMILIES:
         raise ValueError('Unqualified dated history family')
+    if family == 'closing/orders/SpikeOrderClosureHistory':
+        return 'BPR/SpikeOrderClosureHistory'
     _, section, name = family.split('/')
     return section.upper()+'/'+name
 
@@ -180,13 +183,22 @@ def changes(prior, closing, *, family, today, position, horizon=None, unchanged=
             raise ValueError('History prior occurrence ownership/order differs')
         previous_occurrence = occurrence
         before = _row(original, columns)
-        stamp = None if unchanged else (_date(before[field]) if rule != 'literal-current' else before[field])
+        stamp = None if unchanged or rule=='order-closure-append' else (_date(before[field]) if rule != 'literal-current' else before[field])
         seen += 1
         # Postrules compare str(value), unlike ingestion's parsed SQL dates.
         # Preserve that owner distinction even for noncanonical direct inputs.
         keep = True if unchanged else (stamp != today.isoformat() if rule == 'literal-current' else stamp != today and in_window(stamp))
         if rule == 'bpr-configured-strict':
             keep = before[field] != today.isoformat() and in_window(stamp)
+        if rule == 'order-closure-append':
+            # ImportSpikeOrders retains the entire prior prefix. Its existing
+            # producer casts these two bit fields to bool even on the first
+            # integer-wire opening; old cut descriptors remain unchanged.
+            keep = True
+            for name in ('IsSpike','IsElephant'):
+                if type(before[name]) not in (bool,int,float) or before[name] not in (0,1):
+                    raise ValueError('Order closure classification flag differs')
+                before[name] = bool(before[name])
         if not keep:
             removed += 1
             yield Removal(occurrence)
@@ -202,6 +214,8 @@ def changes(prior, closing, *, family, today, position, horizon=None, unchanged=
         if unchanged:
             raise ValueError('Disabled suspension gathering must retain exactly its prior image')
         row = _row(raw, columns)
+        if rule=='order-closure-append' and any(type(row[n]) is not bool for n in ('IsSpike','IsElephant')):
+            raise ValueError('Order closure producer requires boolean classification flags')
         current_day = row[field] == today.isoformat() if rule == 'literal-current' else _date(row[field]) == today
         if not current_day or not in_window(today):
             raise ValueError('New history fact must belong to the current retained producer')

@@ -27,7 +27,7 @@ class OperationalStateCut(models.Model):
                 'closing/dbm/OrderData', 'closing/dbm/OrderDataSummary',
                 'closing/dbm/SuggestionsLog', 'closing/dbm/DiscardedSuggestions',
                 'closing/dbm/SpikeReport', 'closing/dbm/SuspendHistory',
-                'closing/bpr/DailyConsumption')),
+                'closing/bpr/DailyConsumption','closing/orders/SpikeOrderClosureHistory')),
                                    name='state_cut_qualified_family'),
             models.CheckConstraint(condition=(models.Q(position=0, parent__isnull=True) |
                 models.Q(position__gt=0, parent__isnull=False, run__isnull=False)),

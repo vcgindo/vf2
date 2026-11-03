@@ -36,6 +36,22 @@ def context(value=None):
 
 
 class ProductionPreflightTests(unittest.TestCase):
+    def test_mature_order_closure_reader_preserves_daily_preflight(self):
+        from mta.row_sequences import RecordRows
+        from tests.test_order_closure_delta import closure
+        frame=context();rows=[closure('2037-04-08')]*10001
+        frame['opening']['state']['orders']['SpikeOrderClosureHistory']=rows
+        raw,sha=encoded_day(day_input('2037-04-10',root=True))
+        with TemporaryDirectory() as root:
+            args=dict(frame=frame,initialization_id=INIT,source_digest=SOURCE,
+                configuration_digest=digest(frame['profile']),pick_output_root=root,execution_revision='closure')
+            expected=pf.daily(raw,sha,**args)
+            self.assertTrue(expected['stage_eligibility']['day'],expected['issues'])
+            frame['opening']['state']['orders']['SpikeOrderClosureHistory']=RecordRows(len(rows),lambda:iter(rows))
+            actual=pf.daily(raw,sha,**args)
+        self.assertEqual(actual,expected)
+        self.assertIsInstance(frame['opening']['state']['orders']['SpikeOrderClosureHistory'],RecordRows)
+
     def test_valid_installation_retains_all_types_nulls_duplicates_order_and_full_roster(self):
         value=initialized_input()
         value['masters']['importer']['SKUDescriptionTbl'] *= 2

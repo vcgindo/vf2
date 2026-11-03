@@ -16,6 +16,8 @@ from mta.runtime.state_cut_models import OperationalStateCut
 def row(family,stamp):
     result = dict.fromkeys(fields(family))
     result.update(SKUCode='sku ',**{('WHCode' if '/bpr/' in family else 'WhCode'):'wh',FAMILIES[family][0]:stamp})
+    if family.endswith('/SpikeOrderClosureHistory'):
+        result.update(IsSpike=False,IsElephant=False)
     return result
 
 
@@ -32,7 +34,12 @@ class DatedHistoryStorageTests(TestCase):
         Fixture.setUp(self)
         self.opening = {f:[row(f,'2026-07-09'),row(f,'2026-07-09'),row(f,'2026-07-10'),
                            row(f,None if FAMILIES[f][2] else '2026-07-08')] for f in FAMILIES}
-        for section in ('dbm','bpr'):
+        if self._testMethodName == 'test_closure_mature_reader_producer_old_integer_wire_and_rollback':
+            from tests.test_order_closure_delta import closure
+            self.opening['closing/orders/SpikeOrderClosureHistory']=[
+                dict(closure(stamp),IsSpike=1,IsElephant=0)
+                for stamp in ([None,'2026-07-10','2026-07-11']+['2026-07-09']*9998)]
+        for section in ('dbm','bpr','orders'):
             self.raw['opening']['state'][section] = {f.rsplit('/',1)[1]:r for f,r in self.opening.items() if f.split('/')[1]==section}
         self.owner.input_digest=digest(self.raw)
         self.owner.save(update_fields=['input_digest'])
@@ -68,6 +75,59 @@ class DatedHistoryStorageTests(TestCase):
         f='closing/dbm/OrderData'
         self.assertEqual([r for _,r in iter_occurrences(self.anchors[f])],self.opening[f])
 
+    def test_closure_mature_reader_producer_old_integer_wire_and_rollback(self):
+        from copy import deepcopy
+        from mta.row_sequences import RecordRows
+        from mta.runtime.dated_history_reader import load_cut
+        from mta.runtime.dated_history_audit import audit_cut,audit_image
+        from tests.test_production_order_identity import state,opening,feed,calculate
+        f='closing/orders/SpikeOrderClosureHistory';parent=self.anchors[f]
+        rows=load_cut(parent)
+        self.assertIsInstance(rows,RecordRows)
+        self.assertIs(type(next(iter(rows))['IsSpike']),int)
+        value=state();value['LastBatchRunTbl']=[{'LastRunDate':'2026-07-09T00:00:00'}]
+        value['SpikeOrderClosureHistory']=rows
+        value['SpikeOrderData']=[opening('CLOSE')]
+        actual=calculate(value,[feed('NEW')],today='2026-07-10',prior='2026-07-09')
+        control=deepcopy(value);control['SpikeOrderClosureHistory']=deepcopy(self.opening[f])
+        expected=calculate(control,[feed('NEW')],today='2026-07-10',prior='2026-07-09')
+        self.assertEqual(actual,expected)
+        after=actual['SpikeOrderClosureHistory']
+        self.assertEqual(len(after),10002)
+        self.assertTrue(all(type(r['IsSpike']) is bool for r in after))
+        run=self.new_run();c=self.pending(run,parent)
+        # Fail after an actual COPY batch, then retry on the same connection.
+        with self.assertRaisesRegex(ValueError,'current retained producer'):
+            write_delta(c,parent,after[:-1]+[after[-1]]*501+
+                [dict(after[-1],ClosureDate='2026-07-11')],today=run.business_date)
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT count(*),count(closing_cut_id) FROM '+table(f))
+            self.assertEqual(cursor.fetchone(),(10001,0))
+        item=write_delta(c,parent,after,today=run.business_date)
+        self.accept(run,{f:item})
+        self.assertEqual(list(iter_image(run,item)),after)
+        self.assertEqual(list(load_cut(parent)),self.opening[f])
+        self.assertIs(type(next(iter(load_cut(parent)))['IsSpike']),int)
+        self.assertEqual(audit_cut(parent)['facts'],10001)
+        self.assertEqual(audit_image(run,item)['facts'],10002)
+        successor=self.new_run(predecessor=run,business_date=date(2026,7,11))
+        newer=self.pending(successor,read_cut(c.pk))
+        next_item=write_delta(newer,read_cut(c.pk),after,today=successor.business_date)
+        self.accept(successor,{f:next_item})
+        self.assertEqual(list(iter_image(successor,next_item)),after)
+        for statement in ('UPDATE '+table(f)+' SET "IsSpike"=false',
+                          'DELETE FROM '+table(f),'TRUNCATE '+table(f)):
+            with self.assertRaises(DatabaseError),transaction.atomic(),connection.cursor() as cursor:
+                cursor.execute(statement)
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT born_position,count(*) FROM '+table(f)+' GROUP BY born_position ORDER BY born_position')
+            self.assertEqual(cursor.fetchall(),[(0,10001),(1,1)])
+            cursor.execute('SET LOCAL ROLE vectorflow_mta_runtime')
+            try:
+                with self.assertRaises(DatabaseError),transaction.atomic():
+                    cursor.execute('UPDATE '+table(f)+' SET end_position=3')
+            finally:cursor.execute('SET LOCAL ROLE vectorflow_mta_owner')
+
     def pending(self,run,parent):
         return OperationalStateCut.objects.create(initialization=self.owner,family=parent.body['family'],
             position=parent.position+1,parent_id=parent.identity,run=run,input_digest=run.input_digest,
@@ -93,7 +153,7 @@ class DatedHistoryStorageTests(TestCase):
         run=self.new_run()
         images={};cuts={};expected={}
         for f,parent in self.anchors.items():
-            expected[f]=self.opening[f][:2]+self.opening[f][3:]+[row(f,'2026-07-10')]*2
+            expected[f]=(self.opening[f] if f.endswith('/SpikeOrderClosureHistory') else self.opening[f][:2]+self.opening[f][3:])+[row(f,'2026-07-10')]*2
             c=self.pending(run,parent)
             images[f]=write_delta(c,parent,expected[f],today=run.business_date,
                                   horizon=30 if f.endswith('/DailyConsumption') else None)
@@ -118,7 +178,7 @@ class DatedHistoryStorageTests(TestCase):
             self.assertEqual(audit_cut(self.anchors[f])['facts'],4)
             self.assertEqual(audit_image(run,images[f])['facts'],6)
             audited=audit_image(next_run,next_images[f])
-            self.assertEqual((audited['cuts'],audited['facts'],audited['removals']),(3,7,1))
+            self.assertEqual((audited['cuts'],audited['facts'],audited['removals']),(3,7,0 if f.endswith('/SpikeOrderClosureHistory') else 1))
             with connection.cursor() as cursor:
                 cursor.execute('SELECT born_position,count(*) FROM '+table(f)+' GROUP BY born_position ORDER BY born_position')
                 self.assertEqual(cursor.fetchall(),[(0,4),(1,2),(2,1)])

@@ -33,7 +33,7 @@ class DatedHistoryLifecycleTests(TestCase):
         self.profile['complete_daily']={'policy':'generic-finalization-v1','consumption_days':1,'remark_days':30}
         self.opening={f:[row(f,'2026-07-09'),row(f,'2026-07-09'),row(f,'2026-07-10'),row(f,'2026-01-01')]
                       for f in FAMILIES}
-        for section in ('dbm','bpr'):
+        for section in ('dbm','bpr','orders'):
             self.raw['opening']['state'][section]={f.rsplit('/',1)[1]:rr for f,rr in self.opening.items() if f.split('/')[1]==section}
 
     def initialize(self,*,anchors=False):
@@ -69,7 +69,7 @@ class DatedHistoryLifecycleTests(TestCase):
         for f in FAMILIES:
             # All configured/90-day expiry rules remove the January fixture;
             # unbounded and postrule histories preserve that exact old fact.
-            prior=self.opening[f][:2]+self.opening[f][3:]
+            prior=self.opening[f] if f.endswith('/SpikeOrderClosureHistory') else self.opening[f][:2]+self.opening[f][3:]
             if f.endswith('/DailyConsumption'):prior=[]
             elif f.endswith(('/OrderDataSummary','/SuspendHistory')):prior=prior[:2]
             first[f]=prior+[row(f,'2026-07-10')]

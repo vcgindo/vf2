@@ -54,9 +54,15 @@ def order_stages(today, opening_date, state, feed_status, feed):
     accepted, elephants = acceptance(state['ElephantOrders'], state['SpikeOrderData'],
                                      attributes, masters, today, counter)
     counter += len(accepted)
+    # The unchanged producer owns a mutable list. Large typed old/new history
+    # readers provide immutable RecordRows; materialize only this dependency.
+    from mta.row_sequences import RecordRows
+    closures=state['SpikeOrderClosureHistory']
+    if isinstance(closures,RecordRows):
+        closures=[deepcopy(row) for row in closures]
     source = {'opening_date': opening_date, 'opening_identity': 'own-closing-order-state',
               'feed_status': feed_status, 'feed_rows': deepcopy(feed),
-              'opening_orders': state['SpikeOrderData'], 'closure_history': state['SpikeOrderClosureHistory']}
+              'opening_orders': state['SpikeOrderData'], 'closure_history': closures}
     # Counter ownership survives an empty table and the deletion of prior rows.
     source['identity_last_value'] = counter
     joined = []
