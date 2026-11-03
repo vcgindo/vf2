@@ -48,3 +48,32 @@ class BtrImportRelationTests(TestCase):
                        [history.ImportBlock(uuid4(),day-timedelta(days=90),1),history.ImportBlock(run.pk,day,0)]):
             with self.subTest(blocks=blocks), self.assertRaises(ValueError):
                 history.query(run,anchor=None,blocks=blocks)
+
+    def test_anchor_expires_by_its_surviving_facts_including_future_dates(self):
+        first = date(2026,4,7)
+        last = first+timedelta(days=93)
+        def source(path, table, count):
+            return dict(image=path,table=table,digest='a'*64,count=count)
+        original = source(history.HISTORY,'BTR/BPR',5)
+        parent = SimpleNamespace(pk=uuid4(),business_date=first,status='SUCCEEDED',
+                                 production_manifest={'version':3,'images':{history.HISTORY:original}})
+        owner_id = parent.pk
+        with connection.cursor() as cursor:
+            cursor.execute('CREATE TEMP TABLE ir2_anchor_dates (LIKE '+history.table_sql('BTR/BPR')+') ON COMMIT DROP')
+            for i,stamp in enumerate((first-timedelta(days=89),first,first+timedelta(days=1),last,last)):
+                cursor.execute('INSERT INTO ir2_anchor_dates (vf_run_id,vf_image,vf_ordinal,"ReportDate")'
+                               ' VALUES (%s,%s,%s,%s)',[parent.pk,history.HISTORY,i,stamp])
+        with patch.object(history,'table_sql',return_value='pg_temp.ir2_anchor_dates'):
+            for age, surviving, nblocks in ((1,3,1),(2,3,2),(92,2,1),(93,0,2)):
+                run = SimpleNamespace(pk=uuid4(),business_date=first+timedelta(days=age),
+                                      status='SUCCEEDED',predecessor_id=parent.pk)
+                directory = history.advance(run,parent,source(history.DAILY,'BPR/vf_RationedReqReport',0))
+                anchor = directory['anchor']
+                self.assertEqual(anchor['count'] if anchor else 0,surviving)
+                if anchor:
+                    self.assertEqual(anchor['owner'],str(owner_id))
+                self.assertEqual(len(directory['daily']),nblocks)
+                self.assertEqual(directory['daily'][-1]['owner'],str(run.pk))
+                run.production_manifest={'version':3,'images':{history.HISTORY:
+                    dict(original,count=surviving,storage_format=history.FORMAT,sources=directory)}}
+                parent=run
