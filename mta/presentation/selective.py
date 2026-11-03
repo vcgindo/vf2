@@ -42,6 +42,9 @@ def image_rows(run, path, *, metadata=None):
         from mta.presentation.daily_sources import image_rows as daily_rows
         return daily_rows(run, path)
     item = metadata if metadata is not None else image_metadata(run, path)
+    from mta.presentation import btr_calendar_images as calendar
+    if calendar.owns(item):
+        return calendar.load(run, calendar.published_directory(run, item), item)
     return load_image(run, item)
 
 
@@ -55,9 +58,14 @@ def image_field(run, path, field):
     if production_branch(run) and path == daily_opening_sob.PATH:
         return [row[field] for row in daily_opening_sob.read(run, item)]
     _, column, kind = selected[0]
+    from mta.presentation import btr_calendar_images as calendar
+    if calendar.owns(item):
+        relation, params = calendar.published_query(run, item)
+    else:
+        relation = 'SELECT * FROM '+table_sql(item['table'])+' WHERE vf_run_id=%s AND vf_image=%s'
+        params = [run.pk,path]
     with connection.cursor() as cursor:
-        cursor.execute('SELECT vf_ordinal,'+quote(column)+' FROM '+table_sql(item['table'])+
-            ' WHERE vf_run_id=%s AND vf_image=%s ORDER BY vf_ordinal',[run.pk,path])
+        cursor.execute('SELECT vf_ordinal,'+quote(column)+' FROM ('+relation+') fields ORDER BY vf_ordinal', params)
         rows = cursor.fetchall()
     if [r[0] for r in rows] != list(range(item['count'])):
         raise ValueError('Operational metadata population/order drift')
@@ -67,6 +75,9 @@ def image_field(run, path, field):
 def image_query(run, path, *, metadata=None):
     """Trusted manifest/schema-bound relation; values are always parameters."""
     item = metadata if metadata is not None else image_metadata(run, path)
+    from mta.presentation import btr_calendar_images as calendar
+    if calendar.owns(item):
+        return calendar.published_query(run, item)
     from mta.presentation import terminal_scoped_remarks
     if item.get('table')==terminal_scoped_remarks.TABLE:
         return terminal_scoped_remarks.read(run,item,as_query=True)

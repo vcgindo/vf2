@@ -72,12 +72,22 @@ class InheritedBtr:
 
     def rows(self):
         if self.locator['representation']=='explicit_empty':return []
+        from mta.presentation import btr_calendar_images as calendar
+        item = self.metadata()
+        if calendar.owns(item):
+            return calendar.load(self.owner, calendar.published_directory(self.owner, item), item)
         reader=opening_storage.load_image if self.locator['owner_kind']=='INITIALIZATION' else typed.load_image
         try:return reader(self.owner,self.metadata())
         except ValueError as error:raise PublicationUnavailable('bpr_inherited_btr_rows_differ') from error
 
     def verify_rows(self):
         if self.locator['representation']=='explicit_empty':return
+        from mta.presentation import btr_calendar_images as calendar
+        item = self.metadata()
+        if calendar.owns(item):
+            for _ in calendar.verified_rows(self.owner, calendar.published_directory(self.owner, item), item):
+                pass
+            return
         reader=opening_storage.iter_image if self.locator['owner_kind']=='INITIALIZATION' else typed.iter_image
         try:
             for _ in reader(self.owner,self.metadata()):pass
@@ -89,6 +99,10 @@ class InheritedBtr:
         if not selected:selected=','.join(typed.quote(name) for name,_ in typed.STORAGE_TABLES[TABLE])
         if self.locator['representation']=='explicit_empty':
             return ('SELECT vf_ordinal,'+selected+' FROM '+typed.table_sql(TABLE)+' WHERE false',[])
+        from mta.presentation import btr_calendar_images as calendar
+        if calendar.owns(item):
+            relation, params = calendar.published_query(self.owner, item)
+            return 'SELECT vf_ordinal,'+selected+' FROM ('+relation+') inherited', params
         initial=self.locator['owner_kind']=='INITIALIZATION'
         table=opening_storage.table_sql(TABLE) if initial else typed.table_sql(TABLE)
         column='vf_initialization_id' if initial else 'vf_run_id'

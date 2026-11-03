@@ -8,6 +8,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 
 from mta.presentation.context import PublicationUnavailable
+from mta.presentation import btr_calendar_images as calendar
 from mta.runtime import relational_state as typed
 
 NAMES = ('BPPTrendPhysicalInv', 'BPPTrendDispatch', 'BufferTrendPhysicalInv',
@@ -54,7 +55,10 @@ class BtrBinding:
             return self.sources.rows(path)
         if path not in self.images:
             raise PublicationUnavailable('btr_scoped_source_unavailable:'+path)
-        return typed.load_image(self.predecessor,_checked(path,self.images[path]))
+        item = _checked(path,self.images[path])
+        if calendar.owns(item):
+            return calendar.load(self.predecessor, calendar.published_directory(self.predecessor, item), item)
+        return typed.load_image(self.predecessor,item)
 
     def query(self, path):
         if path in CURRENT:
@@ -65,6 +69,9 @@ class BtrBinding:
         fields=item['fields']
         selected=(','.join(typed.quote(column)+' AS '+typed.quote(name) for name,column,_ in fields)
             if fields else ','.join(typed.quote(name) for name,_ in typed.CATALOG['tables'][item['table']]))
+        if calendar.owns(item):
+            relation, params = calendar.published_query(self.predecessor, item)
+            return 'SELECT vf_ordinal,'+selected+' FROM ('+relation+') inherited', params
         return ('SELECT vf_ordinal,'+selected+' FROM '+typed.table_sql(item['table'])+
             ' WHERE vf_run_id=%s AND vf_image=%s',[self.predecessor.pk,item['image']])
 

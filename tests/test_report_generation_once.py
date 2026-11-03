@@ -74,7 +74,7 @@ class ReportGenerationOnceTests(unittest.TestCase):
 
     @override_settings(VF_MTA_PUBLISHED_RUN='')
     def test_ready_derived_generation_is_reused_without_build_or_row_scan(self):
-        run = SimpleNamespace(pk=uuid.uuid4(), production_manifest={'version': 3},
+        run = SimpleNamespace(pk=uuid.uuid4(), evidence_mode='production', production_manifest={'version': 3},
             production_digest='production', output_digest='output')
         row = SimpleNamespace(status='READY', source_digest='production', recipe_digest='recipe')
         with ExitStack() as stack:
@@ -222,7 +222,7 @@ class ReportGenerationOnceTests(unittest.TestCase):
                 self.patch(stack, 'mta.presentation.daily_publication.' + function, return_value=value)
             self.patch(stack, 'mta.presentation.daily_preparation.required_layers', return_value=('bpr',))
             build = self.patch(stack, 'mta.presentation.daily_preparation.prepare_layer', return_value={'rows_digest': 'rows', 'row_count': 3})
-            verify = self.patch(stack, 'mta.presentation.daily_preparation.verify_layer', side_effect=AssertionError('full reread'))
+            verify = self.patch(stack, 'mta.presentation.daily_preparation.verify_layer')
             ready = self.patch(stack, 'mta.presentation.daily_publication.require_ready')
             cursor = MagicMock()
             cursor.__enter__.return_value.fetchone.return_value = (True,)
@@ -246,6 +246,6 @@ class ReportGenerationOnceTests(unittest.TestCase):
             self.assertEqual(row.layers['bpr']['status'], 'FAILED')
             self.assertEqual(row.layers['bpr']['error'], 'report build failed')
             self.assertEqual(run.status, 'SUCCEEDED')
-        verify.assert_not_called()
+        verify.assert_called_once_with(run, 'bpr', {'rows_digest': 'rows', 'row_count': 3})
         ready.assert_called_once_with(run)
         self.assertEqual(create.call_count, 3)

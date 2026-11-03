@@ -11,6 +11,26 @@ from mta.runtime import relational_state as typed
 from mta.serialization import canonical_parts
 
 
+FORMAT = 'btr-dated-roster-v1'
+
+
+def owns(item):
+    return item.get('storage_format') == FORMAT
+
+
+def published_directory(run, item):
+    from mta.presentation.operational_reports import generation
+    owner = generation(run)
+    if owner.version != 2 or owner.metadata['images'].get(item['image']) != item or not owns(item):
+        raise ValueError('Dated BTR image does not belong to the sealed report generation')
+    return owner.metadata['btr_calendar']
+
+
+def published_query(run, item):
+    directory = published_directory(run, item)
+    return _trend_query(run, directory, item['image'].removeprefix('closing/btr/'))
+
+
 def verified_rows(run, directory, item):
     name = item['image'].removeprefix('closing/btr/')
     if name not in TRENDS or item['image'] != 'closing/btr/' + name or item['table'] != 'BTR/' + name:
@@ -58,6 +78,7 @@ def save(run, directory, name, rows):
     columns = {col.casefold(): (col, kind) for col, kind in typed.STORAGE_TABLES[table]}
     item, fields, _ = typed.describe_rows(rows, columns, path)
     item['table'] = table
+    item['storage_format'] = FORMAT
     scalars = tuple(field for field in fields if field not in DAYS)
     roster = RecordRows(len(rows), lambda: ({key: row[key] for key in scalars} for row in rows))
     typed.save_image(run, path, path, roster)

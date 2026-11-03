@@ -459,9 +459,16 @@ def _consumer_graph(run, *, include_reports=True):
         reports.append(report)
     if manifest.get('version') == 3 and include_reports:
         from mta.presentation.operational_reports import generation
+        from mta.presentation import btr_calendar_images as calendar
         derived = generation(run).metadata
         for path, item in derived['images'].items():
-            closing['btr'][path.rsplit('/', 1)[1]] = image(item)
+            if calendar.owns(item):
+                def records(item=item):
+                    return calendar.verified_rows(run, derived['btr_calendar'], item)
+                rows = RecordRows(item['count'], records) if item['count'] > 10000 else list(records())
+            else:
+                rows = image(item)
+            closing['btr'][path.rsplit('/', 1)[1]] = rows
         for report in reports:
             if 'deferred' in report:
                 report['tables'].update({name: export(item) for name, item in derived['exports'][report['stage']].items()})
