@@ -21,7 +21,7 @@ def encode(phase, sources, memory, parent=None):
 
 
 class PhaseImageStorageTests(TestCase):
-    def test_current_dbm_cannot_indirectly_inherit_prior_control_cut(self):
+    def test_v4_exact_dbm_projection_reuses_control_cut_and_v3_still_refuses(self):
         rows=[dict(SKUCode='S',WhCode='W',Type=5,OldNorm=123,NewNorm=82,SuggestionDate=None)]
         from mta.runtime.inherited_history_image import FORMAT as HISTORY_FORMAT
         control='phase/DBM/controls/suggestions_log'
@@ -36,12 +36,41 @@ class PhaseImageStorageTests(TestCase):
         carried=writer(control,'DBM/SuggestionsLog',rows)
         produced=writer(current,'DBM/SuggestionsLog',rows)
         self.assertEqual(carried['storage_format'],HISTORY_FORMAT)
-        self.assertNotIn('storage_format',produced)
-        self.assertEqual(produced['image'],current)
-        self.assertEqual(memory.writes,[current])
-        forged=dict(phase='DBM',storage_format=FORMAT,images={current:carried,control:carried},
+        self.assertEqual(produced,carried)
+        self.assertEqual(memory.writes,[])
+        manifest=dict(phase='DBM',storage_format=FORMAT,images={current:carried,control:carried},
                     state={'control_final':{'suggestions_log':{'image':control}}})
-        self.assertFalse(owns_physical_image((forged,),current,carried))
+        self.assertTrue(owns_physical_image((manifest,),current,carried))
+        self.assertFalse(owns_physical_image((dict(manifest,
+            storage_format='fresh-phase-image-references-v3'),),current,carried))
+        for changed in (list(reversed(rows+[dict(rows[0], NewNorm=83)])),
+                        rows+[deepcopy(rows[0])], [dict(rows[0], Type=True)]):
+            other=writer(current,'DBM/SuggestionsLog',changed)
+            self.assertNotIn('storage_format',other)
+            self.assertEqual(other['image'],current)
+
+    def test_inherited_report_projection_requires_complete_declared_source_chain(self):
+        from mta.runtime.inherited_history_image import FORMAT as HISTORY_FORMAT
+        from mta.runtime.phase_image_storage import supports_inherited_images
+        control='phase/DBM/controls/suggestions_log'
+        dbm='phase/DBM/dbm/SuggestionsLog'
+        report='phase/DBM/report-facts/norm-change-history/SuggestionsLog'
+        item=dict(image=control,table='DBM/SuggestionsLog',storage_format=HISTORY_FORMAT,run_id='child')
+        manifest=dict(phase='DBM',metadata={'identity':'child'},storage_format=FORMAT,
+            images={control:item,dbm:item,report:item},state={
+                'control_final':{'suggestions_log':{'image':control}},
+                'final_dbm':{'SuggestionsLog':{'image':dbm}}})
+        self.assertTrue(supports_inherited_images(manifest))
+        self.assertTrue(owns_physical_image((manifest,),report,item))
+        for altered in ('missing_control','wrong_dbm','wrong_state','wrong_run','old_format','unknown_report'):
+            bad=deepcopy(manifest)
+            if altered=='missing_control':del bad['images'][control]
+            elif altered=='wrong_dbm':bad['images'][dbm]=dict(item,cut_id='other')
+            elif altered=='wrong_state':bad['state']['final_dbm']['SuggestionsLog']={'image':control}
+            elif altered=='wrong_run':bad['metadata']['identity']='other'
+            elif altered=='old_format':bad['storage_format']='fresh-phase-image-references-v3'
+            else:bad['images']['phase/DBM/report-facts/unknown/SuggestionsLog']=item
+            self.assertFalse(supports_inherited_images(bad),altered)
 
     def test_unchanged_history_reuses_pre_bpr_owner_through_dbm_and_restarts(self):
         self._assert_history_restart(legacy_parent=False)

@@ -59,7 +59,7 @@ class PhaseContractTests(TestCase):
         snapshot=SimpleNamespace(recipe_digest='2'*64,manifest=manifest)
         self.assertTrue(contract.compatible(snapshot))
         self.assertEqual(manifest,before)
-        self.assertEqual(FORMAT,'fresh-phase-image-references-v3')
+        self.assertEqual(FORMAT,'fresh-phase-image-references-v4')
 
     def test_inherited_reference_requires_v3_and_its_control_owner(self):
         path='phase/BPR/controls/suggestions_log'
