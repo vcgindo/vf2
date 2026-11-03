@@ -30,7 +30,7 @@ def compatible_parent(run):
     from mta.runtime.models import DailyReportGeneration
     if run.predecessor_id is None:
         return False
-    prior = DailyReportGeneration.objects.filter(run_id=run.predecessor_id,version=2,status='READY').values(
+    prior = DailyReportGeneration.objects.filter(run_id=run.predecessor_id,version__in=(2,3),status='READY').values(
         'metadata__btr_calendar__anchor').first()
     if prior is None:
         return False
@@ -44,15 +44,15 @@ def report_version(run):
         return 1
     item = run.production_manifest['images'][imports.HISTORY]
     if owns(item):
-        return 2 if compatible_parent(run) else 1
+        return 3 if compatible_parent(run) else 1
     if _has_future(run.pk,run.business_date):
         return 1
     # An older sealed report may refer to a physical anchor that contained a
     # future day. Rebase via the physical report for this transition.
     from mta.runtime.models import DailyReportGeneration
-    if run.predecessor_id and DailyReportGeneration.objects.filter(run_id=run.predecessor_id,version=2).exists():
-        return 2 if compatible_parent(run) else 1
-    return 2
+    if run.predecessor_id and DailyReportGeneration.objects.filter(run_id=run.predecessor_id,version__in=(2,3)).exists():
+        return 3 if compatible_parent(run) else 1
+    return 3
 
 
 def _require(run, item):

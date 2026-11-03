@@ -380,7 +380,7 @@ def read_snapshot(run, generation, payload, paging):
         from mta.presentation import btr_page_dates
         from mta.presentation.operational_reports import generation as report_generation
         derived = report_generation(run)
-        if derived.version != 2 or derived.digest != generation.lineage.get('dated_report_digest'):
+        if derived.version not in (2, 3) or derived.digest != generation.lineage.get('dated_report_digest'):
             raise PublicationUnavailable('btr_dated_report_source_required')
         date_slots = btr_page_dates.date_slots(generation.qualification['labels'][0], columns)
     projection, slots = _display_projection(() if dated else columns)

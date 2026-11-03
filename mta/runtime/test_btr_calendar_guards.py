@@ -12,6 +12,64 @@ from mta.serialization import digest
 
 
 class BtrDirectoryGuardTests(TestCase):
+    def test_compact_generation_seals_only_direct_local_references_and_own_calendar(self):
+        from mta.presentation import btr_snapshot_storage as snapshot
+        previous = self.create_run(date(2026, 4, 8))
+        prior = advance(previous)
+        self.seal(self.start(previous, 2), prior)
+        run = self.create_run(date(2026, 4, 9), previous)
+        row = self.start(run, 3)
+        current = advance(run, predecessor=previous, directory=prior)
+        def seal(item, calendar):
+            metadata = dict(schema='fresh-derived-report-generation-v3', btr_calendar=calendar,
+                            images={snapshot.PATH: item})
+            DailyReportGeneration.objects.filter(pk=row.pk).update(
+                metadata=metadata, digest=digest(metadata), status='READY', sealed_at=timezone.now())
+        with connection.cursor() as c:
+            c.execute("SELECT set_config('fresh.report_generation',%s,true)", [str(run.pk)])
+            item = snapshot.save(run, [dict.fromkeys(snapshot.XML, 'a')]*2)
+            with self.assertRaisesMessage(DatabaseError, 'owner, count or ordinal'), transaction.atomic():
+                seal(dict(item, reuse_before=0), current)
+            with self.assertRaisesMessage(DatabaseError, 'source lineage'), transaction.atomic():
+                seal(item, advance(run))
+            with self.assertRaisesMessage(DatabaseError, 'owner, count or ordinal'), transaction.atomic():
+                c.execute('INSERT INTO mta_state.btr_btrsnapshotforui '
+                          '(vf_run_id,vf_image,vf_ordinal,vf_xml_ordinal) VALUES (%s,%s,2,1)',
+                          [run.pk, snapshot.PATH])
+                seal(dict(item, count=3), current)
+            seal(item, current)
+            with self.assertRaises(DatabaseError), transaction.atomic():
+                c.execute('INSERT INTO mta_state.btr_btrsnapshotforui '
+                          '(vf_run_id,vf_image,vf_ordinal,vf_xml_ordinal) VALUES (%s,%s,2,0)',
+                          [run.pk, snapshot.PATH])
+            self.assertEqual(len(list(snapshot.verified_rows(run, item))), 2)
+
+    def test_snapshot_xml_ordinal_roundtrip_and_prior_recipe_refusal(self):
+        from unittest.mock import patch
+        from mta.presentation import btr_snapshot_storage as snapshot
+        run = self.create_run(date(2026, 4, 8))
+        generation = self.start(run, 2)
+        rows = [dict(SKUCode=str(i), **dict.fromkeys(snapshot.XML, value))
+                for i, value in enumerate(('<X/>', '<X/>', '', '<X/>', '', '<X D1="9"/>'))]
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT set_config('fresh.report_generation',%s,true)", [str(run.pk)])
+        with patch.object(snapshot, 'MAX_ENTRIES', 1):
+            item = snapshot.save(run, rows)
+            self.assertEqual(item['reuse_before'], 2)
+            self.assertEqual(snapshot.load(run, item), rows)
+        relation, bindings = snapshot.relation(run, item)
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT vf_xml_ordinal,"BPPTech" FROM mta_state.btr_btrsnapshotforui '
+                           'WHERE vf_run_id=%s ORDER BY vf_ordinal', [run.pk])
+            self.assertEqual(cursor.fetchall(), [(0,'<X/>'), (0,None), (2,''), (0,None), (4,''), (5,'<X D1="9"/>')])
+            cursor.execute('SELECT vf_ordinal FROM ('+relation+') x WHERE "BPPTech"=%s ORDER BY 1',
+                           bindings + ['<X/>'])
+            self.assertEqual(cursor.fetchall(), [(0,), (1,), (3,)])
+        with self.assertRaisesMessage(ValueError, 'logical image differs'):
+            list(snapshot.verified_rows(run, dict(item, digest='a'*64)))
+        with self.assertRaisesMessage(DatabaseError, 'compatible report generation'), transaction.atomic():
+            self.seal(generation, advance(run))
+
     def test_sparse_store_recovers_nonnull_values_and_rejects_late_divergence(self):
         from mta.presentation import btr_calendar_images as calendar
         from mta.runtime import relational_state as typed

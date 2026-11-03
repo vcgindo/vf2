@@ -48,7 +48,7 @@ def source_identity(run, version=VERSION):
     if version == 3:
         from mta.presentation.operational_reports import generation
         report = generation(run)
-        if report.version != 2:
+        if report.version not in (2, 3):
             raise PublicationUnavailable('btr_dated_report_source_required')
         identity['dated_report_digest'] = report.digest
     return identity

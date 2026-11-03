@@ -1,5 +1,6 @@
 """Read only named accepted operational images; never a whole-run cache/trace."""
 from django.db import connection
+from mta.presentation import btr_snapshot_storage as snapshot
 from mta.runtime.relational_state import CATALOG, table_sql, quote, wire_value
 from mta.runtime.accepted_state_read import load_accepted_image as load_image
 from mta.presentation.context import PublicationUnavailable
@@ -43,6 +44,8 @@ def image_rows(run, path, *, metadata=None):
         return daily_rows(run, path)
     item = metadata if metadata is not None else image_metadata(run, path)
     from mta.presentation import btr_calendar_images as calendar
+    if snapshot.owns(item):
+        return snapshot.load(run,item)
     if calendar.owns(item):
         return calendar.load(run, calendar.published_directory(run, item), item)
     return load_image(run, item)
@@ -62,6 +65,8 @@ def image_field(run, path, field):
     from mta.runtime import btr_import_image
     if btr_import_image.owns(item):
         relation, params = btr_import_image.relation(run,item)
+    elif snapshot.owns(item):
+        relation, params = snapshot.relation(run,item)
     elif calendar.owns(item):
         relation, params = calendar.published_query(run, item)
     else:
@@ -82,6 +87,8 @@ def image_query(run, path, *, metadata=None):
     if btr_import_image.owns(item):
         return btr_import_image.relation(run,item)
     from mta.presentation import btr_calendar_images as calendar
+    if snapshot.owns(item):
+        return snapshot.relation(run,item)
     if calendar.owns(item):
         return calendar.published_query(run, item)
     from mta.presentation import terminal_scoped_remarks

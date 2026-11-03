@@ -465,10 +465,15 @@ def _consumer_graph(run, *, include_reports=True):
         from mta.presentation.operational_reports import generation
         from mta.presentation import btr_calendar_images as calendar
         derived = generation(run).metadata
+        from mta.presentation import btr_snapshot_storage as snapshot
         for path, item in derived['images'].items():
             if calendar.owns(item):
                 def records(item=item):
                     return calendar.verified_rows(run, derived['btr_calendar'], item)
+                rows = RecordRows(item['count'], records) if item['count'] > 10000 else list(records())
+            elif snapshot.owns(item):
+                def records(item=item):
+                    return snapshot.verified_rows(run, item)
                 rows = RecordRows(item['count'], records) if item['count'] > 10000 else list(records())
             else:
                 rows = image(item)

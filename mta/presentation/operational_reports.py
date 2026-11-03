@@ -18,6 +18,7 @@ from mta.runtime.accepted_state_read import read_accepted_daily as read_daily
 
 SCHEMA='fresh-derived-report-generation-v1'
 DATED_SCHEMA='fresh-derived-report-generation-v2'
+COMPACT_SCHEMA='fresh-derived-report-generation-v3'
 CONSUMERS=('ExcessProjection','FulfillmentProjection','ExpediteProjection','PickPostProjection')
 
 
@@ -30,11 +31,16 @@ def recipe_identity(version=1):
             (excess_storage,fulfillment_storage,expedite_storage,pick_post_storage)}))
     if version == 1:
         return legacy
-    if version != 2:
+    if version not in (2, 3):
         raise ValueError('Unsupported derived report generation version')
-    from mta.presentation import btr_calendar_images, btr_calendar_sources, btr_calendar
-    return digest(dict(schema=DATED_SCHEMA, base=legacy, builder=inspect.getsource(_build_dated),
-        storage=[inspect.getsource(module) for module in (btr_calendar_images, btr_calendar_sources, btr_calendar)]))
+    from mta.presentation import btr_calendar_images_v2, btr_calendar_sources, btr_calendar
+    dated = digest(dict(schema=DATED_SCHEMA, base=legacy, builder=inspect.getsource(_build_dated),
+        storage=[inspect.getsource(module) for module in (btr_calendar_images_v2, btr_calendar_sources, btr_calendar)]))
+    if version == 2:
+        return dated
+    from mta.presentation import btr_snapshot_storage
+    return digest(dict(schema=COMPACT_SCHEMA, base=dated, builder=inspect.getsource(_build_compact),
+                       snapshot=inspect.getsource(btr_snapshot_storage)))
 
 
 def consumer_metadata(run):
@@ -52,17 +58,20 @@ def consumer_metadata(run):
 @once_per_request
 def generation(run):
     row=DailyReportGeneration.objects.filter(run=run,status='READY').first()
-    if (row is None or row.version not in (1,2) or row.source_digest!=run.production_digest
+    if (row is None or row.version not in (1,2,3) or row.source_digest!=run.production_digest
             or row.recipe_digest!=recipe_identity(row.version) or row.digest!=digest(row.metadata)
-            or row.metadata.get('schema')!=(SCHEMA if row.version==1 else DATED_SCHEMA)):
+            or row.metadata.get('schema')!={1:SCHEMA, 2:DATED_SCHEMA, 3:COMPACT_SCHEMA}[row.version]):
         raise ValueError('Derived report generation is not ready or its identity differs')
-    if row.version == 2:
+    if row.version in (2,3):
         from mta.presentation.btr_calendar_sources import TRENDS, validate
         from mta.presentation import btr_calendar_images as calendar
         validate(run, row.metadata['btr_calendar'])
         dated_paths = {path for path, item in row.metadata['images'].items() if calendar.owns(item)}
         if dated_paths != {'closing/btr/'+name for name in TRENDS}:
             raise ValueError('Dated BTR generation storage roster differs')
+    if row.version == 3:
+        from mta.presentation import btr_snapshot_storage as snapshot
+        snapshot.require(row.metadata['images'][snapshot.PATH])
     if row.metadata['consumers']!=consumer_metadata(run):
         raise ValueError('Derived consumer receipt drift')
     return row
@@ -74,10 +83,12 @@ def image_metadata(run,path):
 
 def include_generation(run,output):
     from mta.presentation import btr_calendar_images as calendar
+    from mta.presentation import btr_snapshot_storage as snapshot
     metadata=generation(run).metadata
     for path,item in metadata['images'].items():
         output['ClosingState'][0]['btr'][path.rsplit('/',1)[1]]=(
-            calendar.load(run,metadata['btr_calendar'],item) if calendar.owns(item) else load_image(run,item))
+            calendar.load(run,metadata['btr_calendar'],item) if calendar.owns(item) else
+            snapshot.load(run,item) if snapshot.owns(item) else load_image(run,item))
     for report in output['Reports']:
         if 'deferred' in report:
             nodes=metadata['exports'].get(report['stage'])
@@ -90,10 +101,11 @@ def include_generation(run,output):
 
 def verify_rows(run,metadata):
     from mta.presentation import btr_calendar_images as calendar
+    from mta.presentation import btr_snapshot_storage as snapshot
     for item in metadata['images'].values():
         with stage('report_image_verify',image=item['image'],rows=item['count']):
             rows = (calendar.verified_rows(run,metadata['btr_calendar'],item) if calendar.owns(item)
-                    else iter_image(run,item))
+                    else snapshot.verified_rows(run,item) if snapshot.owns(item) else iter_image(run,item))
             for _ in rows:pass
     for nodes in metadata['exports'].values():
         for item in nodes.values():
@@ -196,6 +208,60 @@ def _build_dated(run):
     return metadata
 
 
+def _build_compact(run):
+    from mta.presentation import btr_snapshot_storage as snapshot
+    from mta.presentation import btr_calendar_images as calendar
+    from mta.presentation.btr_calendar_sources import TRENDS, advance
+    predecessor = run.predecessor if run.predecessor_id else None
+    prior_directory = None
+    if predecessor is not None and DailyReportGeneration.objects.filter(run=predecessor,version__in=(2,3)).exists():
+        prior_directory = generation(predecessor).metadata['btr_calendar']
+    directory = advance(run, predecessor=predecessor if prior_directory is not None else None,
+                        directory=prior_directory)
+    from mta.runtime.input_reader import read_execution_input as read_input
+    from mta.runtime.report_sources import read_routes
+    from mta.domain.btr_finalization import reporting_btr,DERIVED_TABLES
+    from mta.domain.deferred_dbm_exports import render
+    from mta.presentation.pick_storage import read_pick_bands
+    from mta.presentation.excess_storage import write_excess
+    from mta.presentation.fulfillment_storage import write_fulfillment
+    from mta.presentation.expedite_storage import write_expedite
+    from mta.presentation.pick_post_storage import write_pick_post
+    output=read_daily(run)
+    closing=output['ClosingState'][0]
+    facts={**closing['consumer_context'],**closing['importer'],**closing['dbm'],
+        'vf_RationedReqReport':output['BPRReports'][0]['vf_RationedReqReport']}
+    profile=read_input(run,components=('profile',))['profile']
+    delivery=profile['delivery']
+    derived=reporting_btr(run.business_date,closing['btr'],facts,delivery['btr_settings'],
+        importer_vf_settings=delivery.get('btr_history',{}).get('importer_vf_settings'))
+    images={}
+    for name in sorted(DERIVED_TABLES):
+        path='closing/btr/'+name
+        if name in TRENDS:
+            images[path] = calendar.save(run, directory, name, derived[name])
+        elif path == snapshot.PATH:
+            images[path] = snapshot.save(run, derived[name])
+        else:
+            images[path] = save_image(run, path, path, derived[name])
+    exports={}
+    for report in output['Reports']:
+        if 'deferred' not in report:continue
+        rows=render(run.business_date,report['deferred'],report['sources'])
+        exports[report['stage']]={name:save_export(run,'reports/'+report['stage']+'/'+name,values)
+            for name,values in rows.items()}
+    bands=read_pick_bands(run)
+    calculation_digest=run.pick_projection.calculation_digest
+    routes=read_routes(run,run.production_manifest['report_sources']['routes'])
+    write_excess(run,output)
+    write_fulfillment(run,output,calculation_digest=calculation_digest,routes=routes)
+    write_expedite(run,output,bands=bands)
+    write_pick_post(run,output,bands=bands)
+    metadata=dict(schema=COMPACT_SCHEMA,btr_calendar=directory,images=images,exports=exports,consumers=consumer_metadata(run))
+    if len(json.dumps(metadata))>1024*1024:raise ValueError('Derived report metadata exceeds its finite bound')
+    return metadata
+
+
 def prepare(run_id,*,expected_output_digest):
     if not transaction.get_autocommit():raise ValueError('Report generation owns its transaction')
     run=CalculationRun.objects.get(pk=run_id)
@@ -224,7 +290,8 @@ def prepare(run_id,*,expected_output_digest):
             with connection.cursor() as cursor:
                 cursor.execute("SELECT set_config('fresh.report_generation',%s,true)",[str(run.pk)])
             with stage('derived_report_build'):
-                row.metadata=_build_dated(run) if row.version==2 else _build(run)
+                builder = {1: _build, 2: _build_dated, 3: _build_compact}[row.version]
+                row.metadata=builder(run)
             summary('derived_report_consumers',families=len(row.metadata['consumers']))
             row.digest=digest(row.metadata);row.status='READY';row.sealed_at=timezone.now()
             row.save(update_fields=['metadata','digest','status','sealed_at'])
