@@ -11,5 +11,15 @@ def published_directory(run, item):
     return owner.metadata['btr_calendar']
 
 
-def published_query(run, item):
+def published_query(run, item, *, required_fields=None):
+    if required_fields is not None:
+        from mta.runtime.relational_state import STORAGE_TABLES
+        fields = set(required_fields)
+        if not fields or not fields.issubset(dict(STORAGE_TABLES[item['table']])):
+            raise ValueError('Unknown BTR trend projection fields')
+        days = fields & {f'D{i}' for i in range(1,91)}
+        colour = item['image'].rsplit('/',1)[1] in ('BufferTrendPhysicalInv','BufferTrendDispatch')
+        if not days or (colour and days=={'D90'}):
+            from mta.presentation.btr_page_dates import roster_query
+            return roster_query(run, item, current_colour=bool(days))
     return _trend_query(run, published_directory(run, item), item['image'].removeprefix('closing/btr/'))

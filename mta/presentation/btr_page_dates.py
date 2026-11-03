@@ -40,7 +40,9 @@ def roster_query(run, item, *, current_colour=False):
         source += (' LEFT JOIN (SELECT "SKUCode" COLLATE "C" AS sku,'+typed.quote(location)+' COLLATE "C" AS loc,'
                    +'max('+typed.quote(operand)+' COLLATE "C") AS today FROM '+typed.table_sql(table)
                    +' WHERE vf_run_id=%s AND vf_image=%s'+dated+' GROUP BY 1,2) c '
-                   +'ON c.sku=k."SKUCode" COLLATE "C" AND c.loc=k."WhCode" COLLATE "C"')
+                   +'ON (c.sku IS NULL)=(k."SKUCode" IS NULL) AND (c.loc IS NULL)=(k."WhCode" IS NULL) '
+                   +"AND coalesce(c.sku,'')=coalesce(k.\"SKUCode\",'') COLLATE \"C\" "
+                   +"AND coalesce(c.loc,'')=coalesce(k.\"WhCode\",'') COLLATE \"C\"")
         columns.append('c.today AS "D90"')
     return ('SELECT '+','.join(columns)+' FROM '+source+' WHERE k.vf_run_id=%s AND k.vf_image=%s',
             bindings+[run.pk,item['image']])

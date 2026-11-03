@@ -97,7 +97,7 @@ def image_query(run, path, *, metadata=None, required_fields=None):
                     ' WHERE vf_run_id=%s AND vf_image=%s', [run.pk, snapshot.PATH])
         return snapshot.relation(run,item)
     if calendar.owns(item):
-        return calendar.published_query(run, item)
+        return calendar.published_query(run, item, required_fields=required_fields)
     from mta.presentation import terminal_scoped_remarks
     if item.get('table')==terminal_scoped_remarks.TABLE:
         return terminal_scoped_remarks.read(run,item,as_query=True)

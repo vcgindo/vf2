@@ -79,8 +79,12 @@ def read_btr(run, payload, *, paging, count=False, export=False, read_binding=No
         raise PublicationUnavailable('btr_phase_binding_run_differs')
     def source_rows(path):
         return image_rows(run, path) if read_binding is None else read_binding.rows(path)
-    def source_query(path):
-        return image_query(run, path) if read_binding is None else read_binding.query(path)
+    def source_query(path, *, required_fields=None):
+        if read_binding is not None:
+            return read_binding.query(path)
+        if required_fields is not None:
+            return image_query(run, path, required_fields=required_fields)
+        return image_query(run, path)
     generation = btr_reporting.selected_generation(run) if read_binding is None else None
     if generation is not None and generation.version in (2,3,4):
         from mta.presentation.btr_snapshot import read_snapshot, reference_generation
@@ -165,7 +169,15 @@ def read_btr(run, payload, *, paging, count=False, export=False, read_binding=No
             continue
         local_ctes, values = (list(ctes), list(params))
         for alias, table in (('A', 'BPPTrend' + trend), ('btd', 'BufferTrend' + trend)):
-            query, bound = source_query('closing/btr/' + table)
+            required = None
+            if count or (export and alias=='btd'):
+                # Counts never consume level history; export consumes the colour
+                # roster and today's colour filter, not its 90 historical cells.
+                required = [field for field,_ in CATALOG['tables']['BTR/'+table]
+                            if field not in {f'D{i}' for i in range(1,91)}]
+                if alias=='btd':
+                    required.append('D90')
+            query, bound = source_query('closing/btr/' + table, required_fields=required)
             local_ctes.append(alias + ' AS ' + inline + '(' + query + ')')
             values.extend(bound)
         if reporting:
