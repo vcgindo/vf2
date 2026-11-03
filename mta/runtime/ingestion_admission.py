@@ -367,7 +367,8 @@ def _admit(cursor, initialization_id, release, *, pending=False):
     # Database compatibility belongs to its actual schema and original sealed
     # owners, not an append-only permission for every application commit.
     from mta.runtime.schema_admission import validate as validate_schema
-    cert = validate_schema(cursor, initialization_id, release)
+    with verification(admission_cursor=cursor):
+        cert = validate_schema(cursor, initialization_id, release)
     from mta.runtime.initialization_models import ProductionInitialization
     from mta.runtime.ingestion_models import IngestionRevisionState, MasterInputRevision
     owner = ProductionInitialization.objects.values('source__digest', 'input_digest', 'configuration_digest',

@@ -97,23 +97,36 @@ def _ticket(database):
 
 
 @contextmanager
-def verification(*, preparation=False):
-    """Lend catalogue evidence to one owned read-only admission snapshot."""
+def verification(*, preparation=False, admission_cursor=None):
+    """Lend catalogue evidence to one owned database admission."""
     from mta.presentation import admission
     from mta.presentation.request_scope import in_read_request, in_admission_preflight
     database = connections[DEFAULT_DB_ALIAS]
     serving = admission._admitted is not None and (in_read_request() or in_admission_preflight())
-    if (_active.get() is not None or not (preparation or serving)
-            or database.vendor != 'postgresql' or database.in_atomic_block
-            or database.connection is None or database.connection.closed
-            or not database.get_autocommit()):
+    if (_active.get() is not None or database.vendor != 'postgresql'
+            or database.connection is None or database.connection.closed):
         yield
         return
+    if admission_cursor is not None:
+        if (getattr(admission_cursor, 'db', None) is not database
+                or not database.in_atomic_block or database.get_autocommit()):
+            yield
+            return
+        outer = database.atomic_blocks[0]
+    else:
+        if not (preparation or serving) or database.in_atomic_block or not database.get_autocommit():
+            yield
+            return
+        outer = None
     try:
         ticket = _ticket(database)
+        if ticket is not None and outer is not None:
+            ticket['transaction'] = outer
     except DatabaseError:
         # Unsupported WAL functions/recovery modes do not disable admission.
         clear()
+        if outer is not None:
+            raise
         ticket = None
     token = _active.set(ticket)
     try:
@@ -132,6 +145,10 @@ def _valid(cursor, ticket):
             or database.get_autocommit()):
         return False
     wal, session, mode = _session(cursor)
+    outer = ticket.get('transaction')
+    if outer is not None:
+        return (database.atomic_blocks[0] is outer and wal == ticket['wal']
+                and session == ticket['session'] and mode == ('read committed', 'off'))
     return (wal == ticket['wal'] and session == ticket['session']
             and mode == ('repeatable read', 'on'))
 

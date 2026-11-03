@@ -34,11 +34,13 @@ def native_migrations():
 
 def validate_migration_history(cursor, files, expected_digest):
     expected={Path(name).stem for name in files if Path(name).stem!='__init__'}
-    actual={name for app,name in applied_migrations(cursor) if app=='fresh_mta'}
+    applied = applied_migrations(cursor)
+    actual={name for app,name in applied if app=='fresh_mta'}
     installed={name:pin for name,pin in files.items()
         if Path(name).stem=='__init__' or Path(name).stem in actual}
     if not actual <= expected or digest(installed) != expected_digest:
         raise ValueError('Applied migration history is incomplete or contains unknown migrations')
+    return applied
 
 
 def applied_migrations(cursor):
@@ -83,7 +85,7 @@ def validate(cursor, initialization_id, release):
     from mta.runtime.ingestion_admission import validate_activation, security_digest
     from release.native_schema import schema_digest
     cert, original, capability, body = original_activation(cursor, initialization_id)
-    validate_migration_history(cursor,native_migrations(),release['migrations_digest'])
+    applied = validate_migration_history(cursor,native_migrations(),release['migrations_digest'])
     if release['migrations_digest'] == capability['release_identity']['migrations_digest']:
         # A compatible reader of the original schema keeps the same original
         # activation and all live schema/security checks, without a current-
@@ -94,7 +96,7 @@ def validate(cursor, initialization_id, release):
         raise SchemaUpgradeRequired('Installed schema requires the explicit upgrade command')
     if (record['certification_digest'] != cert['receipt_digest']
             or record['original_registration_digest'] != digest(original)
-            or record['applied_migrations'] != applied_migrations(cursor)
+            or record['applied_migrations'] != applied
             or record['schema_digest'] != schema_digest(cursor)
             or record['guard_digest'] != security_digest(cursor, cert['authority_roles'])):
         raise ValueError('Migrated schema, ownership or guard contract differs')
