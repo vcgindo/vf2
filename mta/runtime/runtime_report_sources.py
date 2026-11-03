@@ -92,8 +92,10 @@ def image_rows(run, metadata, *, expected_table, fields, registry=None):
     if uses_occurrences(metadata):
         # The new immutable cut was fully verified at commit. Its selected
         # header and indexed relation replace a repeated full-prefix audit.
-        from mta.runtime.accepted_state_read import load_accepted_image
-        original = load_accepted_image(run, metadata, table_registry=registry)
+        from mta.runtime.rationing_reader import load_cut, require_image
+        cut = require_image(run, metadata)
+        names = tuple(available[key] for key in requested) if available else ()
+        original = load_cut(cut, names=names)
     else:
         original = relational_state.load_image(run, metadata, table_registry=registry)
     if len(original) != metadata['count']:

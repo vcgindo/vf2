@@ -15,7 +15,6 @@ from mta.row_sequences import RecordRows
 from mta.runtime.rationing_delta import Occurrence
 from mta.runtime.rationing_shape import require_fields
 from mta.runtime.relational_state import quote, wire_value
-from mta.runtime.state_cut_models import OperationalStateCut
 
 
 FORMAT = 'rationing-occurrences-v1'
@@ -39,6 +38,7 @@ class Cut:
 
 def read_cut(identity):
     """Authenticate one sealed header. Normal reads do not walk its ancestry."""
+    from mta.runtime.state_cut_models import OperationalStateCut
     return authenticate_cut(OperationalStateCut.objects.values(*CUT_FIELDS).get(pk=identity))
 
 
@@ -84,35 +84,51 @@ def require_image(run, item):
     return cut
 
 
-def occurrence_query(cut):
+def _selected_fields(cut, names):
+    fields = cut.body['fields']
+    require_fields(fields, cut.body['count'])
+    if names is None:
+        return fields
+    by_name = {field[0]: field for field in fields}
+    if len(set(names)) != len(names) or not set(names) <= by_name.keys():
+        raise ValueError('Unknown or repeated rationing projection field')
+    return [by_name[name] for name in names]
+
+
+def _occurrence_query(cut, fields):
     """One range-bounded relation, ordered by immutable producer occurrence.
 
     A NULL Dispatch revision is a value; it must not fall back to the fact.
     No revision newer than this cut may affect a historical read.
     """
-    fields = cut.body['fields']
-    require_fields(fields, cut.body['count'])
     columns = [
         '(CASE WHEN D.cut_id IS NULL THEN F."Dispatch" ELSE D.dispatch END) AS "Dispatch"'
         if name == 'Dispatch' else 'F.'+quote(name)
         for _, name, _ in fields]
-    sql = ('SELECT L.born_position,L.original_ordinal' + (','+','.join(columns) if columns else '') +
-        ' FROM mta_state.rationing_lifetime L'
-        ' JOIN mta_state.rationing_fact F ON F.cut_id=L.fact_cut_id AND F.vf_ordinal=L.original_ordinal'
+    needs_dispatch = any(name == 'Dispatch' for _, name, _ in fields)
+    revision_join = (
         ' LEFT JOIN LATERAL (SELECT V.cut_id,V.dispatch FROM mta_state.rationing_dispatch V'
         ' WHERE V.original_cut_id=L.fact_cut_id AND V.original_ordinal=L.original_ordinal'
-        ' AND V.position<=%s ORDER BY V.position DESC LIMIT 1) D ON true'
+        ' AND V.position<=%s ORDER BY V.position DESC LIMIT 1) D ON true')
+    sql = ('SELECT L.born_position,L.original_ordinal' + (','+','.join(columns) if columns else '') +
+        ' FROM mta_state.rationing_lifetime L'
+        ' JOIN mta_state.rationing_fact F ON F.cut_id=L.fact_cut_id AND F.vf_ordinal=L.original_ordinal' +
+        (revision_join if needs_dispatch else '') +
         " WHERE L.initialization_id=%s AND int8range(L.born_position,L.end_position,'[)') @> %s::bigint"
         ' ORDER BY L.born_position,L.original_ordinal')
-    return sql, [cut.position, cut.initialization, cut.position]
+    return sql, ([cut.position] if needs_dispatch else []) + [cut.initialization, cut.position]
 
 
-def iter_occurrences(cut):
+def occurrence_query(cut):
+    return _occurrence_query(cut, _selected_fields(cut, None))
+
+
+def iter_occurrences(cut, *, names=None):
     """Accepted reader: no payload rehash; full physical audit is separate."""
-    sql, params = occurrence_query(cut)
+    fields = _selected_fields(cut, names)
+    sql, params = _occurrence_query(cut, fields)
     count = 0
     previous = None
-    fields = cut.body['fields']
     with connection.chunked_cursor() as cursor:
         cursor.execute(sql, params)
         while batch := cursor.fetchmany(500):
@@ -139,8 +155,8 @@ def load_image(run, item):
     return load_cut(require_image(run, item))
 
 
-def load_cut(cut):
+def load_cut(cut, *, names=None):
     def records():
-        return (row for _, row in iter_occurrences(cut))
+        return (row for _, row in iter_occurrences(cut, names=names))
     count = cut.body['count']
     return RecordRows(count, records) if count > 10000 else list(records())

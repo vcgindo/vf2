@@ -284,6 +284,15 @@ class RationingCutGuardTests(TestCase):
             before, parent = after, run
         for run, item, expected in accepted:
             self.assertEqual(load_image(run, item), expected)
+            from mta.runtime.runtime_report_sources import image_rows
+            for fields in [('Dispatch', 'SKUCode'), ('SKUCode',)]:
+                with CaptureQueriesContext(connection) as capture:
+                    rows = list(image_rows(run, item, expected_table='BTR/RationingHistory', fields=fields))
+                self.assertEqual(rows, [{key: row[key] for key in fields} for row in expected])
+                statements = [q['sql'] for q in capture if 'FROM mta_state.rationing_lifetime L' in q['sql']]
+                self.assertEqual(len(statements), 1)
+                self.assertNotIn('F."ParentWhName"', statements[0])
+                self.assertEqual('JOIN LATERAL' in statements[0], 'Dispatch' in fields)
             with CaptureQueriesContext(connection) as queries:
                 audited = audit_image(run, item)
             self.assertEqual(audited['count'], len(expected))
