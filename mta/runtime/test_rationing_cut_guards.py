@@ -462,7 +462,7 @@ class RationingCutGuardTests(TestCase):
     def test_daily_storage_integration_reuses_frozen_profile_and_serves_typed_projection(self):
         from unittest.mock import patch
         from tests.test_rationing_delta import row
-        from mta.runtime import relational_state, accepted_state_read, runtime_report_sources
+        from mta.runtime import relational_state, accepted_state_read, runtime_report_sources, receipt_integrity
         from mta.runtime.input_reader import read_execution_input
         from mta.runtime.rationing_reader import IMAGE, TABLE
         self.initialized_writer([])
@@ -479,6 +479,12 @@ class RationingCutGuardTests(TestCase):
         self.accept_storage_fixture(run, item, manifest=manifest)
         self.assertEqual(relational_state.read_daily(run, include_reports=False)['BTRFinal'][0]['RationingHistory'], rows)
         self.assertEqual(accepted_state_read.read_accepted_daily(run, include_reports=False)['BTRFinal'][0]['RationingHistory'], rows)
+        # The public diagnostic owner must dispatch too; testing only its
+        # lower-level reader does not qualify whole-output audits.
+        receipt_integrity.audit_output(run)
+        with patch('mta.runtime.state_image_read.audit_cut', side_effect=ValueError('physical audit refusal')):
+            with self.assertRaisesMessage(ValueError, 'physical audit refusal'):
+                receipt_integrity.audit_output(run)
         with patch('mta.runtime.rationing_audit.audit_cut', side_effect=AssertionError('routine prefix audit')):
             projected = runtime_report_sources.image_rows(run, item, expected_table=TABLE,
                 fields=('SKUCode', 'ReportDate', 'Dispatch'))
