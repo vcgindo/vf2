@@ -84,6 +84,6 @@ def bind(row, *, retained_parent=False):
             or git_row.transit_generation_digest!=transit.generation.digest):
         raise PublicationUnavailable('bpr_git_reference_dependencies_differ')
     scoped_git.verify_guards()
-    git=scoped_git._binding(git_row,replace(prepared,transit=transit),
+    git=scoped_git._binding(git_row,replace(nms_prepared,transit=transit),
         expected_digest=row.metadata['git']['digest'],action_revision=build)
     return replace(prepared,sources=sources,remarks=remarks,transit=transit),planning,git,expedition

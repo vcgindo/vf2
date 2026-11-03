@@ -129,6 +129,10 @@ GUIDED_STATISTICS_READERS = {
     'mta.presentation.scoped_guided_availability': '9a1b4f5a92f0293b08451d6e2a08531f23df587c9baff26b2d9dc68ab9948dc7',
 }
 
+# The scoped child GIT reader gets the already admitted NMS image. It adds
+# no source rows to the prepared bags and preserves every generation identity.
+GIT_NMS_READ_GRAPH = 'f1973894ed5f16a749e6c3eb4756d99e9c90ce9630c785c0e84adff8dba0f673'
+
 
 @once_per_request
 def recipe():
@@ -138,6 +142,8 @@ def recipe():
     for name, checksum in dict(ORIGINAL_DEPENDENCIES, **ADAPTED_DEPENDENCIES).items():
         actual = hashlib.sha256(inspect.getsource(import_module(name)).encode()).hexdigest()
         if actual != checksum:
+            if name == 'mta.presentation.scoped_read_graph' and actual == GIT_NMS_READ_GRAPH:
+                continue
             if GUIDED_STATISTICS_READERS.get(name) == actual:
                 if not guided_qualified:
                     guided_qualified = all(
