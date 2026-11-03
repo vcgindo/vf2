@@ -28,6 +28,13 @@ class ConsumerReadTransitionTests(unittest.TestCase):
         rows=[dict(name=name,body=body,security_definer=False,returns='boolean',language=14,
             configuration=['search_path=pg_catalog, mta']) for name,body in zip(transition.CATALOGUE_NAMES,transition.bodies())]
         self.assertEqual(transition.application_functions({'functions':rows}),set(transition.CATALOGUE_NAMES))
+        from importlib import import_module
+        body = import_module('mta.runtime.migrations.0255_postbtr_rationing_reference').SOURCE
+        referenced = [dict(rows[0], body=body)]
+        self.assertEqual(transition.application_functions({'functions': referenced}), set(transition.CATALOGUE_NAMES))
+        self.assertEqual(transition.application_functions({'functions': [dict(rows[0], body=body+' ')]}), set())
+        with self.assertRaises(ValueError):
+            transition.application_functions({'functions': [dict(referenced[0], security_definer=True)]})
         for field,value in (('security_definer',True),('returns','text'),('body','SELECT true')):
             wrong=deepcopy(rows);wrong[0][field]=value
             if field=='body':

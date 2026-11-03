@@ -16,13 +16,12 @@ def application_functions(catalogue):
     """The pending_day_final dependency already belongs to the scoped profile."""
     functions={f['name']:f for f in catalogue['functions']}
     source=functions.get(CATALOGUE_NAMES[0])
-    if source is None or source['body']!=bodies()[0]:return set()
-    for name,body in zip(CATALOGUE_NAMES,bodies()):
-        value=functions.get(name,{})
-        if (value.get('body')!=body or value.get('security_definer') is not False
-                or value.get('returns')!='boolean' or value.get('language')!=14
-                or value.get('configuration')!=['search_path=pg_catalog, mta']):
-            raise ValueError('Exact placement consumer predicate required')
+    reference = import_module('mta.runtime.migrations.0255_postbtr_rationing_reference')
+    if source is None or source['body'] not in (*bodies(), reference.SOURCE):
+        return set()
+    if (source.get('security_definer') is not False or source.get('returns') != 'boolean'
+            or source.get('language') != 14 or source.get('configuration') != ['search_path=pg_catalog, mta']):
+        raise ValueError('Exact placement consumer predicate required')
     return set(CATALOGUE_NAMES)
 
 
