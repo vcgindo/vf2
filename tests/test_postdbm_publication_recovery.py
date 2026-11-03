@@ -7,6 +7,10 @@ import unittest
 from unittest.mock import MagicMock,patch
 
 
+# Phase implementation sealed with PREVIOUS.source_commit c21850c8.
+ORIGINAL_PHASE_RECIPE = '762debd7f6eaef53f9699ed43be5befe273de286b1a99b6e2702c2c44a60d63b'
+
+
 class PostDbmPublicationRecoveryTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -86,7 +90,8 @@ class PostDbmPublicationRecoveryTests(unittest.TestCase):
         from mta.runtime import production_post_dbm as entry,scoped_postdbm_recovery as recovery
         run=SimpleNamespace(pk=entry.AUTHORITY['run'],input_digest=entry.AUTHORITY['input_digest'],
                             input_manifest_digest=entry.AUTHORITY['input_manifest_digest'])
-        with patch('release.native_identity.require_current',return_value=recovery.PREVIOUS):
+        with (patch('release.native_identity.require_current',return_value=recovery.PREVIOUS),
+              patch('mta.runtime.phase_state.recipe_digest',return_value=ORIGINAL_PHASE_RECIPE)):
             value=entry.request(run,expected_dbm_digest=entry.AUTHORITY['dbm_digest'],
                 expected_action_revision=177,command_key=recovery.COMMAND)
         self.assertEqual(value['compatibility_digest'],recovery.COMPATIBILITY)
@@ -96,12 +101,13 @@ class PostDbmPublicationRecoveryTests(unittest.TestCase):
         from mta.runtime import scoped_postdbm_recovery as recovery
         from mta.runtime.phase_state import recipe_digest
         run,value=self.request_value()
-        self.assertEqual(recovery.frozen_request(value,recipe_digest()),value)
+        self.assertEqual(recovery.frozen_request(value,ORIGINAL_PHASE_RECIPE),value)
         for field in ('run_id','input_digest','input_manifest_digest','command_key','dbm_digest','action_revision','authority','dispositions'):
             with self.subTest(field=field),self.assertRaisesRegex(ValueError,'frozen request'):
-                recovery.frozen_request(dict(value,**{field:'changed'}),recipe_digest())
-        with self.assertRaisesRegex(ValueError,'phase recipe'):
-            recovery.frozen_request(value,'changed')
+                recovery.frozen_request(dict(value,**{field:'changed'}),ORIGINAL_PHASE_RECIPE)
+        for changed in ('changed',recipe_digest()):
+            with self.subTest(phase_recipe=changed),self.assertRaisesRegex(ValueError,'phase recipe'):
+                recovery.frozen_request(value,changed)
 
     def test_source_guard_denies_extra_missing_and_changed_protected_sources(self):
         from mta.runtime import scoped_postdbm_recovery as recovery
@@ -140,7 +146,6 @@ class PostDbmPublicationRecoveryTests(unittest.TestCase):
 
     def test_resolver_denies_schema_guard_certificate_and_release_authority_drift(self):
         from mta.runtime import scoped_postdbm_recovery as recovery,ingestion_authority as authority
-        from mta.runtime.phase_state import recipe_digest
         run,value=self.request_value()
         old={k:'same' for k in authority.FIELDS}
         old.update(target_commit=recovery.PREVIOUS['source_commit'],target_release=recovery.PREVIOUS['manifest_sha256'])
@@ -159,19 +164,19 @@ class PostDbmPublicationRecoveryTests(unittest.TestCase):
             extension=stack.enter_context(patch.object(authority,'read_schema_transition',return_value={
                 'contract':authority.CODE_SCHEMA_CONTRACT}))
             effective=stack.enter_context(patch('mta.runtime.ingestion_admission.effective_schema',return_value=schema))
-            self.assertEqual(recovery.resolve(run,value,current,recipe_digest()),value)
+            self.assertEqual(recovery.resolve(run,value,current,ORIGINAL_PHASE_RECIPE),value)
             self.assertEqual(admit.call_count,2)
             for index,changed in ((0,{'certificate':'changed'}),(2,'changed-schema'),(3,'changed-guard')):
                 revised=list(schema);revised[index]=changed
                 effective.side_effect=[schema,tuple(revised)]
                 with self.subTest(index=index),self.assertRaisesRegex(ValueError,'code-only authority'):
-                    recovery.resolve(run,value,current,recipe_digest())
+                    recovery.resolve(run,value,current,ORIGINAL_PHASE_RECIPE)
             effective.side_effect=None
             new['certification_digest']='changed'
-            with self.assertRaisesRegex(ValueError,'code-only authority'):recovery.resolve(run,value,current,recipe_digest())
+            with self.assertRaisesRegex(ValueError,'code-only authority'):recovery.resolve(run,value,current,ORIGINAL_PHASE_RECIPE)
             new['certification_digest']=old['certification_digest']
             extension.return_value=None
-            with self.assertRaisesRegex(ValueError,'code-only authority'):recovery.resolve(run,value,current,recipe_digest())
+            with self.assertRaisesRegex(ValueError,'code-only authority'):recovery.resolve(run,value,current,ORIGINAL_PHASE_RECIPE)
 
     def test_final_source_gate_denies_changed_accepted_history_values_and_roster(self):
         from mta.application.stage_calculation_sources import CalculationSources

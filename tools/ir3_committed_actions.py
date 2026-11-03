@@ -125,6 +125,10 @@ def main(spec_path, preflight_only=False):
                 state = scoped_actions.state_after(run, phase, actual, expected_revision=event.pk)
                 wanted = expected['expected_after_'+operation.lower()]
                 assert storage(state) == wanted and event.after_digest == digest(wanted)
+                assert event.state_sealed and event.run_id == run.pk
+                assert event.phase_acceptance_id == phase.pk
+                assert event.before_digest == baseline['events'][index]['before_digest']
+                assert event.after_digest == baseline['events'][index]['after_digest']
                 current = scoped_selection.selected()
                 assert current.action_revision == event.pk
                 assert publication(current) == baseline['events'][index]['rows']

@@ -119,7 +119,7 @@ def check_request(stored, *, scope, binding_digest, batch_digest, profile_digest
     if stored['status'] in ('EXECUTING', 'FAILED'):
         raise ValueError('Interrupted/failed native work needs reconciliation; no automatic replay')
     if stored['status'] == 'RECOVERABLE':
-        if scope not in TAILS or stored['scope'] != scope or not resume:
+        if scope not in (*TAILS, 'UptoDBM') or stored['scope'] != scope or not resume:
             raise ValueError('Reconciled continuation requires exact scope and explicit --resume')
         return 'RECOVER'
     if stored['scope'] == scope:
@@ -280,7 +280,20 @@ def inspect_native(args, csv, binding, owner, reference, batch, manifest, payloa
     No operation receipt or business capture is created by this inspection.
     """
     from mta.runtime import production_report_placement as engine, scoped_actions
-    if decision in ('CONTINUE', 'RECOVER'):
+    if decision == 'RECOVER' and args.scope == 'UptoDBM':
+        from mta.application.streamed_input import JsonInputFile
+        from mta.runtime.daily_preparation import prepare
+        frozen = ROOT / args.date / 'native-day.json'
+        raw = JsonInputFile(frozen)
+        if csv.file_identity(frozen)['sha256'] != receipt['native_sha256']:
+            raise ValueError('Frozen native input differs')
+        engine.execute(prepare(raw, receipt['native_sha256']), receipt['native_sha256'],
+            scope=args.scope, command_key='csv-' + args.scope + '-' + manifest['digest'],
+            worker_reference='vectorflow-csv-scope', inspect_only=True,
+            recovery_of=receipt['reconciliation']['verification']['recovery_of'],
+            registration_digest=read_json(ROOT / 'registration.json')['registration_digest'],
+            **receipt['parameters'])
+    elif decision in ('CONTINUE', 'RECOVER'):
         from mta.runtime.models import CalculationRun
         run = CalculationRun.objects.get(pk=receipt['run_id'])
         phase = run.phase_acceptances.get(phase='BPR' if args.scope == 'PostBPR' else 'DBM', state_sealed=True)
@@ -451,6 +464,28 @@ def _reconciliation_state(args, run, captured, receipt=None):
     head = workers.head(run.pk)
     action = scoped_actions.revision(run)
     command = 'csv-' + args.scope + '-' + args._batch_digest
+    if args.scope == captured['scope'] == 'UptoDBM' and latest.status == 'FAILED':
+        # An initial scope can fail after accepting PRE_BPR/BPR but before DBM.
+        # Read its existing phase, not a released DBM which does not exist yet.
+        if (run.status != 'RUNNING' or head[0] not in ('PRE_BPR', 'BPR', 'DBM')
+                or latest.scope != args.scope or latest.command_key != command
+                or command != captured['command_key'] or hasattr(latest, 'recovery')
+                or latest.compatibility_digest != captured['compatibility_digest']
+                or latest.input_digest != run.input_digest
+                or latest.input_manifest_digest != run.input_manifest_digest
+                or latest.action_revision != action
+                or latest.worker_reference != 'vectorflow-csv-scope'):
+            raise ValueError('Initial scope recovery requires its exact failed owner and accepted head')
+        source = original._phase(run, head[0], head[1])
+        if (source.attempt.scope != args.scope or source.attempt.command_key != command
+                or source.attempt.compatibility_digest != captured['compatibility_digest']):
+            raise ValueError('Initial scope accepted phase belongs to another command')
+        scope_revisions.require_current(run)
+        return dict(run_id=str(run.pk), scope=args.scope, command_key=command,
+            compatibility_digest=captured['compatibility_digest'], source_phase_id=str(source.pk),
+            source_phase_digest=source.digest, accepted_head=list(head), action_revision=action,
+            latest_attempt=_attempt_evidence(latest), outcome='RECOVERABLE',
+            recovery_of=str(latest.pk)), None
     source_name = 'BPR' if captured['scope'] == 'UptoBPR' else 'DBM'
     source = run.phase_acceptances.select_related('attempt').get(phase=source_name, state_sealed=True)
     source = original._phase(run, source_name, source.digest)
@@ -640,7 +675,7 @@ def _calculate(args, csv, binding, owner, reference, batch, manifest, root, rece
     receipt.update(scope=args.scope, status='EXECUTING')
     _save(csv, root, receipt)  # A crash here must not silently recalculate.
     try:
-        if decision in ('CONTINUE', 'RECOVER'):
+        if decision in ('CONTINUE', 'RECOVER') and args.scope in TAILS:
             run = CalculationRun.objects.get(pk=receipt['run_id'])
             phase = run.phase_acceptances.get(phase='BPR' if args.scope == 'PostBPR' else 'DBM', state_sealed=True)
             options = {} if recovery is None else {'recovery_of': recovery['recovery_of']}
@@ -658,6 +693,7 @@ def _calculate(args, csv, binding, owner, reference, batch, manifest, root, rece
             result = engine.execute(prepared, receipt['native_sha256'], scope=args.scope,
                 command_key=command, registration_digest=registered['registration_digest'],
                 worker_reference=None if args.scope == 'Full' else 'vectorflow-csv-scope',
+                **({'recovery_of': recovery['recovery_of']} if recovery else {}),
                 **receipt['parameters'])
         receipt['results'][args.scope] = result
         receipt.update(run_id=result['run_id'], status='CALCULATED')

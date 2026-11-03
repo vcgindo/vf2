@@ -318,11 +318,22 @@ if ($env:VECTORFLOW_OPERATOR_CASE -eq 'reconcile') {
             shutil.copyfile(ROOT / 'vf.ps1', root / 'vf.ps1')
             shutil.copyfile(ROOT / 'release/powershell_compat.ps1', root / 'release/powershell_compat.ps1')
             (root / 'release/run_csv_scope.ps1').write_text(
-                'param($BusinessDate,$Scope,[switch]$InspectOnly,[switch]$Resume)\n'
+                'param($BusinessDate,$Scope,[switch]$InspectOnly,[switch]$Resume,[switch]$Reconcile)\n'
                 '@{date=$BusinessDate;scope=$Scope;inspect=[bool]$InspectOnly;resume=[bool]$Resume}|ConvertTo-Json -Compress\n')
+            runner = root / 'runner.ps1'
+            runner.write_text('''
+param($Scope)
+function docker {
+    if (($args -join ' ') -ne 'compose --profile daily config --format json') {
+        throw 'Unexpected Docker command in launcher routing test'
+    }
+    $global:LASTEXITCODE=0
+    '{"x-vectorflow-daily":{"state_dir":"state"}}'
+}
+& "$PSScriptRoot/vf.ps1" csv-scope 2026-04-09 -Scope $Scope -InspectOnly
+''')
             for scope in ('Full', 'UptoBPR', 'PostBPR', 'UptoDBM', 'PostDBM'):
-                result = subprocess.run([self.shell, '-NoProfile', '-File', str(root / 'vf.ps1'),
-                    'csv-scope', '2026-04-09', '-Scope', scope, '-InspectOnly'],
+                result = subprocess.run([self.shell, '-NoProfile', '-File', str(runner), '-Scope', scope],
                     capture_output=True, text=True, cwd=root)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(json.loads(result.stdout),
@@ -432,9 +443,23 @@ class ScopeNativePreflightTests(unittest.TestCase):
 @unittest.skipUnless(apps.ready, 'Django bootstrap required; no database connection')
 class TerminalArchivePreparationTests(unittest.TestCase):
     def prepare(self, scope, failure=None):
+        from mta.application.native_input_archive import RESTRICTION
+        from mta.archive_receipt import SCHEMA as ARCHIVE_RECEIPT_SCHEMA
         from mta.runtime.csv_scope_operator import _prepare
-        run = SimpleNamespace(pk='owned-run', output_digest='output',
+        run = SimpleNamespace(pk='owned-run', output_digest='a'*64,
             mdm_input_capture=SimpleNamespace(source=SimpleNamespace(digest='source')))
+        archive_manifest = dict(schema='fresh-native-input-download-v2', restriction=RESTRICTION,
+            run_id=run.pk, business_date='2026-04-09', initialization_id='init',
+            source_digest='b'*64, input_digest='c'*64, input_manifest_digest='d'*64,
+            output_digest=run.output_digest, input_digest_kind='native-prepared-input-v1',
+            captured_input_digest='e'*64, files={
+                'NativeOpeningInput.json': dict(bytes=2, sha256='1'*64),
+                'NativeDailyInput.json': dict(bytes=2, sha256='2'*64),
+                'NativeCapturedInput.json': dict(bytes=2, sha256='e'*64),
+                'NativeInputSchema.json': dict(bytes=2, sha256='d'*64),
+            })
+        archive_result = dict(path='/archive/InputData.zip', sha256='f'*64, bytes=1024,
+            manifest=archive_manifest)
         csv = Mock()
         root = Path('/frozen-operation')
         receipt = dict(run_id='owned-run', scope=scope, status='CALCULATED')
@@ -447,6 +472,7 @@ class TerminalArchivePreparationTests(unittest.TestCase):
             def archive_call(*args):
                 events.append('archive')
                 if failure: raise failure
+                return archive_result
             archive.side_effect = archive_call
             candidate = stack.enter_context(patch('mta.presentation.native_selection.candidate', return_value={}))
             write = stack.enter_context(patch('mta.presentation.native_selection.write', side_effect=lambda *a: events.append('selection')))
@@ -463,6 +489,9 @@ class TerminalArchivePreparationTests(unittest.TestCase):
                 value = _prepare(csv, root, receipt, binding={'_opening_path': '/opening/original.json'})
                 self.assertEqual(value['status'], 'PREPARED')
                 self.assertEqual(events, ['archive', 'selection'])
+                candidate.assert_called_once_with(run, 'publication', 'summary', {},
+                    input_archive=dict(schema=ARCHIVE_RECEIPT_SCHEMA, sha256='f'*64,
+                        bytes=1024, manifest=archive_manifest))
             archive.assert_called_once_with(run, '/opening/original.json', root / 'native-day.json')
 
     def test_full_and_both_completed_tails_prepare_archive_before_selection(self):
@@ -734,6 +763,84 @@ class ScopeReconciliationTests(unittest.TestCase):
             worker_reference='vectorflow-csv-scope',recovery_of='failed')
         self.assertEqual(result['status'],'CALCULATED')
         self.producer.assert_not_called()
+
+    def initial_failure(self):
+        self.args.scope = 'UptoDBM'
+        self.receipt.update(initial_scope='UptoDBM', scope='UptoDBM')
+        self.captured.update(scope='UptoDBM', command_key='csv-UptoDBM-batch')
+        self.attempt.scope = self.source_attempt.scope = 'UptoDBM'
+        self.attempt.command_key = self.source_attempt.command_key = 'csv-UptoDBM-batch'
+        self.source_attempt.status = 'FAILED'
+        self.phase.digest = 'prepared'
+
+    def test_initial_recovery_uses_existing_pre_bpr_without_requiring_dbm(self):
+        self.initial_failure()
+        with patch('mta.runtime.scope_execution.head', return_value=('PRE_BPR', 'prepared')):
+            proof, result = self.state()
+            self.assertEqual(proof['accepted_head'], ['PRE_BPR', 'prepared'])
+            self.assertEqual(proof['recovery_of'], 'failed')
+            self.assertIsNone(result)
+            self.run.phase_acceptances.select_related.assert_not_called()
+            self.phase_reader.assert_called_with(self.run, 'PRE_BPR', 'prepared')
+            for field, value in (('scope', 'PostDBM'), ('command_key', 'foreign'),
+                    ('compatibility_digest', 'foreign'), ('input_digest', 'foreign'),
+                    ('input_manifest_digest', 'foreign'), ('action_revision', 1),
+                    ('worker_reference', 'foreign'), ('recovery', 'claimed')):
+                old = getattr(self.attempt, field, None)
+                setattr(self.attempt, field, value)
+                with self.subTest(field=field), self.assertRaises(ValueError): self.state()
+                if field == 'recovery': delattr(self.attempt, field)
+                else: setattr(self.attempt, field, old)
+            self.source_attempt.command_key = 'foreign'
+            with self.assertRaisesRegex(ValueError, 'another command'): self.state()
+            self.source_attempt.command_key = 'csv-UptoDBM-batch'
+            self.run.status = 'SUCCEEDED'
+            with self.assertRaises(ValueError): self.state()
+            self.run.status = 'RUNNING'
+        for head in (('START', 'none'), ('DAY_FINAL', 'terminal')):
+            with patch('mta.runtime.scope_execution.head', return_value=head), self.assertRaises(ValueError):
+                self.state()
+        self.producer.assert_not_called(); self.continuation.assert_not_called()
+
+    def test_initial_resume_routes_frozen_input_to_existing_recovery_owner(self):
+        self.initial_failure()
+        with patch('mta.runtime.scope_execution.head', return_value=('PRE_BPR', 'prepared')):
+            proof, _ = self.state()
+        receipt = deepcopy(self.receipt)
+        receipt['status'] = 'RECOVERABLE'
+        options = dict(scope='UptoDBM', binding_digest='binding', batch_digest='batch',
+            profile_digest=receipt['profile_digest'], resume=True)
+        self.assertEqual(check_request(receipt, **options), 'RECOVER')
+        with self.assertRaises(ValueError): check_request(receipt, **{**options, 'resume':False})
+        self.producer.side_effect = None
+        self.producer.return_value = dict(run_id='run', scope='UptoDBM', status='RUNNING')
+        before = (self.root/'native-day.json').read_bytes()
+        with patch.object(self.op, '_verify_recovery', return_value=proof) as verify, \
+                patch('mta.runtime.daily_preparation.prepare', return_value='prepared-input'):
+            result = self.op._calculate(self.args, self.csv, self.binding, self.owner,
+                self.reference, {}, self.manifest, self.root, receipt, 'RECOVER')
+        verify.assert_called_once()
+        self.producer.assert_called_once_with('prepared-input', 'native', scope='UptoDBM',
+            command_key='csv-UptoDBM-batch', registration_digest='registration',
+            worker_reference='vectorflow-csv-scope', recovery_of='failed', **receipt['parameters'])
+        self.continuation.assert_not_called()
+        self.assertEqual(result['status'], 'CALCULATED')
+        self.assertEqual((self.root/'native-day.json').read_bytes(), before)
+
+    def test_initial_recovery_inspection_never_routes_to_tail(self):
+        self.initial_failure()
+        receipt = deepcopy(self.receipt)
+        receipt['reconciliation'] = {'verification': {'recovery_of':'failed'}}
+        self.producer.side_effect = None
+        with patch('mta.application.streamed_input.JsonInputFile'), \
+                patch('mta.runtime.daily_preparation.prepare', return_value='prepared-input'):
+            self.op.inspect_native(self.args, self.csv, self.binding, self.owner,
+                self.reference, {}, self.manifest, {}, receipt, 'RECOVER')
+        self.producer.assert_called_once_with('prepared-input', 'native', scope='UptoDBM',
+            command_key='csv-UptoDBM-batch', worker_reference='vectorflow-csv-scope',
+            inspect_only=True, recovery_of='failed', registration_digest='registration',
+            **receipt['parameters'])
+        self.continuation.assert_not_called()
 
     def test_released_prefix_uses_existing_readers_and_no_producer(self):
         self.args.scope='UptoBPR';self.attempt=self.source_attempt
