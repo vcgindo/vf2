@@ -1,4 +1,4 @@
-"""Typed transport for already-calculated dated histories, not yet activated.
+"""Typed transport for already-calculated dated histories.
 
 Only new occurrences and one-time membership closures are written. The caller
 owns initialization/capture and the normal day transaction; SQL independently
@@ -9,7 +9,7 @@ from contextlib import closing
 from django.db import connection, transaction
 
 from mta.serialization import canonical_parts,digest
-from mta.runtime.dated_history_delta import changes,Fact,Removal,Counts,Occurrence,fields,supports_descriptor,_tables
+from mta.runtime.dated_history_delta import changes,Fact,Removal,Counts,Occurrence,fields,supports_descriptor,_tables,FAMILIES
 from mta.runtime.dated_history_reader import FORMAT,Cut,table,read_cut,iter_occurrences,image_metadata
 from mta.runtime.rationing_writer import _Digest
 from mta.runtime.relational_state import copy_rows,db_value,quote,wire_type,wire_value
@@ -106,7 +106,7 @@ def _seal(cut,parent,descriptor,counts,checks,anchor=None):
 
 
 @stage('dated_history_delta_write')
-def write_delta(cut,parent,rows,*,today,horizon=None):
+def write_delta(cut,parent,rows,*,today,horizon=None,unchanged=False):
     """Private adapter. Caller creates a guarded pending cut inside day commit.
 
     SQL independently checks capture/settings and predecessor binding. Runtime
@@ -121,7 +121,7 @@ def write_delta(cut,parent,rows,*,today,horizon=None):
         batch = []
         counts = None
         with closing(iter_occurrences(parent)) as prior:
-            with closing(changes(prior,observed,family=cut.family,today=today,position=cut.position,horizon=horizon)) as events:
+            with closing(changes(prior,observed,family=cut.family,today=today,position=cut.position,horizon=horizon,unchanged=unchanged)) as events:
                 for event in events:
                     if type(event) is Counts:
                         counts = event
@@ -163,3 +163,76 @@ def seal_anchor_rows(cut,item,rows,anchor):
         if source.count != item['count'] or source.value() != item['digest']:
             raise ValueError('History anchor source values/type/order/count differ')
         return _seal(cut,None,item['fields'],Counts(0,0,item['count'],0,item['count']),checks,anchor)
+
+
+def opening_path(family):
+    if family not in FAMILIES:
+        raise ValueError('Unqualified dated history family')
+    return 'input/opening/state/dbm/'+family.rsplit('/',1)[1]+'/values'
+
+
+def begin_initial_anchors(owner):
+    """After opening storage, before its existing immutable initialization seal."""
+    if not connection.in_atomic_block:
+        raise ValueError('History anchors require the existing initialization transaction')
+    cuts={}
+    for family in FAMILIES:
+        item=owner.input_payload['images'].get(opening_path(family))
+        if item is not None and supports_descriptor(family,item['fields'],item['count']):
+            cuts[family]=OperationalStateCut.objects.create(initialization=owner,family=family,position=0,
+                input_digest=owner.input_digest,settings_digest=owner.configuration_digest)
+    return cuts
+
+
+def seal_initial_anchors(cuts,owner):
+    from mta.runtime.opening_storage import iter_image as opening_rows
+    for family,cut in cuts.items():
+        if cut.family!=family or cut.initialization_id!=owner.pk or cut.run_id is not None:
+            raise ValueError('History opening anchor owner differs')
+        item=owner.input_payload['images'][opening_path(family)]
+        anchor=dict(owner_kind='INITIALIZATION',owner_id=str(owner.pk),manifest_digest=owner.input_manifest_digest,
+            image=item['image'],digest=item['digest'],count=item['count'])
+        with closing(opening_rows(owner,item)) as rows:
+            seal_anchor_rows(cut,item,rows,anchor)
+
+
+def write_day(run,family,rows):
+    from mta.runtime.input_reader import read_execution_input
+    frozen=read_execution_input(run,components=('profile','execution_settings','initialization_binding'))
+    return write_frozen_day(run,family,rows,frozen=frozen,profile_digest=digest(frozen['profile']))
+
+
+def write_frozen_day(run,family,rows,*,frozen,profile_digest):
+    """Transport unchanged output using only this run's authenticated controls.
+
+    Like the rationing adapter, finish_run supplies its once-decoded input and
+    just-computed profile hash. SQL independently binds the cut to that capture.
+    None is the explicit legacy codec disposition for an unqualified old source;
+    a missing anchor for a qualified source is an error, never a daily backfill.
+    """
+    if family not in FAMILIES or not connection.in_atomic_block:
+        raise ValueError('History requires its qualified owning day transaction')
+    from mta.runtime.models import ProductionInitialization
+    from mta.runtime.execution_settings import _check_snapshot_digest
+    with transaction.atomic():
+        owner=ProductionInitialization.objects.select_for_update().get(pk=frozen['initialization_binding']['id'])
+        _check_snapshot_digest(owner,profile_digest,frozen.get('execution_settings'),run.business_date)
+        parent_row=OperationalStateCut.objects.filter(initialization=owner,family=family,run_id=run.predecessor_id).first()
+        if parent_row is None:
+            source=(run.predecessor.production_manifest['images'].get(family) if run.predecessor_id
+                    else owner.input_payload['images'].get(opening_path(family)))
+            if source is not None and 'storage_format' not in source and not supports_descriptor(family,source['fields'],source['count']):
+                return None
+            raise ValueError('Qualified history requires its initialized or adopted predecessor anchor')
+        parent=read_cut(parent_row.pk)
+        batch=frozen['profile']['delivery']['batch']
+        horizon=batch['DailyConsumptionHorizonDBM'] if family=='closing/dbm/DailyConsumption' else None
+        unchanged=False
+        if family=='closing/dbm/SuspendHistory':
+            flag=batch['GatherSuspensionHistory']
+            if type(flag) is not int:
+                raise ValueError('Frozen suspension gathering control must be an integer')
+            unchanged=flag!=1  # Exact existing producer predicate, not a new flag domain.
+        cut=OperationalStateCut.objects.create(initialization=owner,family=family,position=parent.position+1,
+            run=run,parent=parent_row,input_digest=run.input_digest,settings_digest=profile_digest)
+        return write_delta(cut,parent,rows,today=run.business_date,horizon=horizon,unchanged=unchanged)

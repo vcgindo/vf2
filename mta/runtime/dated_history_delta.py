@@ -124,7 +124,7 @@ def _same(left, right):
     return type(left) is type(right) and (left.hex() == right.hex() if type(left) is float else left == right)
 
 
-def changes(prior, closing, *, family, today, position, horizon=None):
+def changes(prior, closing, *, family, today, position, horizon=None, unchanged=False):
     """Emit only additions/removals from a qualified ordered history transition.
 
     ``prior`` yields (Occurrence, row), authenticated by its existing storage
@@ -134,6 +134,8 @@ def changes(prior, closing, *, family, today, position, horizon=None):
     Runtime integration must bind horizon to this run's frozen settings.
     """
     columns = fields(family)
+    if type(unchanged) is not bool or unchanged and family != 'closing/dbm/SuspendHistory':
+        raise ValueError('Only disabled suspension gathering has unchanged-history correspondence')
     field, rule, nullable = FAMILIES[family]
     today = _date(today)
     if today is None or type(position) is not int or position < 1:
@@ -164,11 +166,11 @@ def changes(prior, closing, *, family, today, position, horizon=None):
             raise ValueError('History prior occurrence ownership/order differs')
         previous_occurrence = occurrence
         before = _row(original, columns)
-        stamp = _date(before[field]) if rule != 'literal-current' else before[field]
+        stamp = None if unchanged else (_date(before[field]) if rule != 'literal-current' else before[field])
         seen += 1
         # Postrules compare str(value), unlike ingestion's parsed SQL dates.
         # Preserve that owner distinction even for noncanonical direct inputs.
-        keep = stamp != today.isoformat() if rule == 'literal-current' else stamp != today and in_window(stamp)
+        keep = True if unchanged else (stamp != today.isoformat() if rule == 'literal-current' else stamp != today and in_window(stamp))
         if not keep:
             removed += 1
             yield Removal(occurrence)
@@ -181,6 +183,8 @@ def changes(prior, closing, *, family, today, position, horizon=None):
             raise ValueError('Retained history values/type/order differ')
         retained += 1
     for raw in current:
+        if unchanged:
+            raise ValueError('Disabled suspension gathering must retain exactly its prior image')
         row = _row(raw, columns)
         current_day = row[field] == today.isoformat() if rule == 'literal-current' else _date(row[field]) == today
         if not current_day or not in_window(today):

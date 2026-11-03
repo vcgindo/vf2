@@ -9,6 +9,20 @@ from mta.runtime.rationing_reader import FAMILY, IMAGE, TABLE, read_cut
 from mta.runtime.state_cut_models import OperationalStateCut
 
 
+def accepted_terminal(owner):
+    """Existing maintenance transaction holds this initialization's row lock."""
+    captured = CalculationRun.objects.filter(mdm_input_capture__source_id=owner.source_id)
+    if captured.filter(status='RUNNING').exists():
+        raise ValueError('Storage adoption refuses unfinished calculation')
+    accepted = captured.filter(status='SUCCEEDED', mdm_input_capture__status='CONSUMED')
+    parents = CalculationRun.objects.filter(status__in=('RUNNING', 'SUCCEEDED'),
+        predecessor_id__isnull=False).values('predecessor_id')
+    terminal = list(accepted.exclude(pk__in=parents)[:2])
+    if len(terminal)>1 or not terminal and accepted.exists():
+        raise ValueError('Storage adoption requires one exact accepted terminal prefix')
+    return terminal[0] if terminal else None
+
+
 def adopt(owner):
     """Preserve accepted runs; copy only the exact terminal old-format image.
 
@@ -26,17 +40,7 @@ def adopt(owner):
     with transaction.atomic(), connection.cursor() as cursor:
         _provisioner(cursor)
         owner = ProductionInitialization.objects.select_for_update().get(pk=owner.pk)
-        captured = CalculationRun.objects.filter(mdm_input_capture__source_id=owner.source_id)
-        if captured.filter(status='RUNNING').exists():
-            raise ValueError('Storage adoption refuses unfinished calculation')
-        accepted = captured.filter(status='SUCCEEDED', mdm_input_capture__status='CONSUMED')
-        # A branch is an ambiguity, not a reason to choose by date or UUID.
-        parents = CalculationRun.objects.filter(status__in=('RUNNING', 'SUCCEEDED'),
-            predecessor_id__isnull=False).values('predecessor_id')
-        terminal = list(accepted.exclude(pk__in=parents)[:2])
-        if len(terminal) > 1 or not terminal and accepted.exists():
-            raise ValueError('Storage adoption requires one exact accepted terminal prefix')
-        run = terminal[0] if terminal else None
+        run = accepted_terminal(owner)
         existing = OperationalStateCut.objects.filter(initialization=owner, family=FAMILY).order_by('-position').first()
         if existing is not None:
             cut = read_cut(existing.pk)

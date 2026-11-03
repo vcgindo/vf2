@@ -271,12 +271,15 @@ def _initialize(raw, expected_sha256, *, expected_configuration, expected_recipe
         from mta.runtime.input_v3 import opening_aliases
         owner.input_payload = save_input(owner, frame, version=3, aliases=opening_aliases(frame),
             image_writer=opening_storage.save_image, table_selector=initialization_table)
+        from mta.runtime.dated_history_writer import begin_initial_anchors, seal_initial_anchors
+        dated_anchors = begin_initial_anchors(owner)
         owner.input_manifest_digest = digest(owner.input_payload)
         owner.receipt = dict(schema='native-initialization-seal-v1', source_digest=source.digest,
             manifest_digest=owner.input_manifest_digest, content_digest=owner.input_digest)
         owner.receipt_digest = digest(owner.receipt)
         owner.save(update_fields=('input_payload', 'input_manifest_digest', 'receipt', 'receipt_digest'))
         seal_initial_anchor(history_anchor, owner)
+        seal_initial_anchors(dated_anchors, owner)
         owner.opening_date = owner._meta.get_field('opening_date').to_python(owner.opening_date)
         if complete:
             _complete(owner, frame)

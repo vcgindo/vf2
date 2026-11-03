@@ -394,9 +394,13 @@ def save_daily(run,output, *, frozen=None,profile_digest=None):
     defer_bpr = (frozen is not None and output.get('_ReportBoundary') and run.evidence_mode=='production' and output.get('BPRFinal')
                  and btr_import_image.compatible_parent(run))
     def image(path,binding,rows):
+        from mta.runtime import dated_history_writer
         if path=='closing/btr/RationingHistory' and frozen is not None:
             from mta.runtime.rationing_writer import write_frozen_day
             images[path]=write_frozen_day(run,rows,frozen=frozen,profile_digest=profile_digest)
+        elif path in dated_history_writer.FAMILIES and frozen is not None:
+            item=dated_history_writer.write_frozen_day(run,path,rows,frozen=frozen,profile_digest=profile_digest)
+            images[path]=item if item is not None else save_image(run,path,binding,rows)
         else:
             images[path]=save_image(run,path,binding,rows)
         return {'image':path}

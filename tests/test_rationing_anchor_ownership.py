@@ -9,6 +9,16 @@ migration = import_module('mta.runtime.migrations.0254_rationing_anchor_revision
 
 
 class RationingAnchorOwnershipTests(unittest.TestCase):
+    def test_dated_history_anchor_guard_is_exact_and_latest(self):
+        dated=import_module('mta.runtime.migrations.0268_dated_history_anchor_revision')
+        candidate=dict(name='mta.ingestion_watch()',security_definer=True,
+            configuration=['search_path=pg_catalog, mta'],returns='trigger',body=dated.NEW)
+        self.assertTrue(ownership.is_revision_guard(candidate))
+        self.assertFalse(ownership.is_revision_guard(dict(candidate,body=dated.NEW+'\n')))
+        cursor=Mock()
+        cursor.fetchall.return_value=[('0254_rationing_anchor_revision_ownership',),('0268_dated_history_anchor_revision',)]
+        self.assertEqual(ownership.scoped_derived_body(cursor,minimum='0254_rationing_anchor_revision_ownership'),dated.NEW)
+
     def test_exact_frozen_body_and_metadata(self):
         candidate = dict(name='mta.ingestion_watch()', security_definer=True,
             configuration=['search_path=pg_catalog, mta'], returns='trigger', body=migration.NEW)

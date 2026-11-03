@@ -28,7 +28,9 @@ class RationingAdoptionTests(TestCase):
     @contextmanager
     def provisioner(self):
         with connection.cursor() as cursor:
-            cursor.execute('RESET ROLE')
+            # Keep the trusted role local to this rollback-owned fixture;
+            # RESET ROLE also changes the session role seen by later tests.
+            cursor.execute('SET LOCAL ROLE NONE')
         try:
             yield
         finally:
