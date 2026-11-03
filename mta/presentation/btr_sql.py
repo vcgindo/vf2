@@ -6,7 +6,7 @@ other-branch grid work, calculation, cache, or new ordering for tied keys.
 """
 from collections import defaultdict
 import logging
-from django.db import connection
+from django.db import connection, transaction
 
 from mta.presentation import btr, hierarchy
 from mta.presentation.btr_filters import BtrPredicate, unavailable
@@ -237,7 +237,8 @@ def read_btr(run, payload, *, paging, count=False, export=False, read_binding=No
                     projection = [(alias, btr_reporting.substitute_keys(value)) for alias, value in projection]
                     reference = btr_reporting.reference_from(','.join((value for _, value in projection)) + selected_where + ' E.', parent_join=parent_join)
                     query = 'WITH ' + ','.join(local_ctes) + ' SELECT ' + ','.join((value + ' AS ' + quote(alias) for alias, value in projection)) + ' FROM ' + reference + ' LEFT JOIN sd ON ' + equal('J.sku_code', 'sd."SKUCode"') + ' LEFT JOIN ld ON ' + equal('J.location_code', 'ld."WHCode"') + ' LEFT JOIN ld pld ON ' + equal('E."ParentWhCode"', 'pld."WHCode"') + ' LEFT JOIN cd ON ' + equal('B."Category"', 'cd.column1') + selected_auth + ' WHERE ' + selected_where + ' ORDER BY ' + selected_order
-                return (iter_rows(query, values), dates)
+                return (_export_rows(query, values,
+                    dated=reporting and generation.version in (3,4)), dates)
         with connection.cursor() as cursor:
             cursor.execute(query, values)
             if count:
@@ -246,6 +247,28 @@ def read_btr(run, payload, *, paging, count=False, export=False, read_binding=No
                 names = [c[0] for c in cursor.description]
                 result[name] = [{n: '' if v is None else str(v) for n, v in zip(names, row)} for row in cursor.fetchall()]
     return result
+
+
+def _export_rows(query, values, *, dated=False):
+    """Avoid per-export compilation of the wide dated projection.
+
+    Native cursor measurements show compilation dominates first-row latency.
+    Scope this policy to the dated report stream, never the database/session
+    default. The savepoint restores it on SQL failure or consumer disconnect;
+    normal exhaustion restores it explicitly before releasing the savepoint.
+    Source ownership, query values, ordering and SQL limits remain unchanged.
+    """
+    if not (dated and connection.vendor == 'postgresql' and connection.in_atomic_block):
+        yield from iter_rows(query, values)
+        return
+    with transaction.atomic():
+        with connection.cursor() as cursor:
+            cursor.execute('SHOW jit')
+            previous = cursor.fetchone()[0]
+            cursor.execute('SET LOCAL jit=off')
+        yield from iter_rows(query, values)
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT set_config('jit',%s,true)", [previous])
 
 
 def iter_rows(query, values):
