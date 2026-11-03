@@ -66,10 +66,11 @@ def _remarks(run):
     return rows,dict(path=path,capture=meta,include_live=False)
 
 
-def _bundle_work(run,placement,bundle,*,phase=None,action_revision=0,cut,previous_work=None):
-    owner=publication.owner(run,placement,phase=phase,action_revision=action_revision,cut=cut)
+def _bundle_work(run,placement,bundle,*,phase=None,action_revision=0,cut,previous_work=None,admitted=None):
+    admitted = publication.configuration(run) if admitted is None else admitted
+    owner=publication.owner(run,placement,admitted=admitted,phase=phase,action_revision=action_revision,cut=cut)
     expected=_stage_digest(owner,bundle['sources'],bundle['descriptors'])
-    work=publication.prepare(run,placement,sources=bundle['sources'],descriptors=bundle['descriptors'],
+    work=publication.prepare(run,placement,admitted=admitted,sources=bundle['sources'],descriptors=bundle['descriptors'],
         source_owner=owner,previous_work=previous_work)
     authority=_StageAuthority()
     _stage_authorities[authority]=(str(run.pk),work.candidate_id,work.candidate['digest'],expected)
@@ -83,14 +84,16 @@ def calculate_full(run,prior,opening_date,day,profile,execute_calculation,*,open
     """Called inside execute_day's existing calculation boundary, never an entry."""
     from mta.temporal.chain import prepare_day,produce_bpr,produce_dbm
     from mta.runtime.scope_bpr_histories import complete_sources
-    _raw,request,_config,_anchor=publication.configuration(run)
+    admitted=publication.configuration(run)
+    _raw,request,_config,_anchor=admitted
     contract.validate_day(profile,day,request)
     if request['scope']!='Full' or run.scope_attempts.exists():
         raise ValueError('Placement Full requires its original unscoped day owner')
     work=[]
     def emit(placement,bundle,phase,**extra):
         cut=dict(boundaries=list(phase.completed_boundaries),**extra)
-        value=_bundle_work(run,placement,bundle,cut=cut,previous_work=work[-1] if work else None)
+        value=_bundle_work(run,placement,bundle,cut=cut,previous_work=work[-1] if work else None,
+            admitted=admitted)
         work.append(value)
     with native_assignments(True):
         phase=prepare_day(prior,opening_date,day,profile,str(run.pk),execute_calculation,
@@ -129,7 +132,8 @@ def publish_phase(attempt,receipt,value):
         if receipt.run_id!=run.pk:raise ValueError('Foreign report phase')
         if RuntimeReportPublication.objects.filter(run=run,placement=placement).exists():
             return publication.read(run.pk,placement=placement,verify_bytes=True)
-        raw,request,config,_anchor=publication.configuration(run)
+        admitted=publication.configuration(run)
+        raw,request,config,_anchor=admitted
         if request!=value:raise ValueError('Captured placement request differs')
     bound=bind(receipt.pk,expected_digest=receipt.digest,expected_phase=receipt.phase,
         expected_action_revision=attempt.action_revision,expected_profile_digest=digest(raw['profile']),
@@ -141,7 +145,7 @@ def publish_phase(attempt,receipt,value):
             if name in sources and digest(sources[name])!=digest(bag):raise ValueError('Shared phase source differs')
             sources[name]=bag;descriptors[name]=provenance['sources'][name]
     work=_bundle_work(run,placement,dict(sources=sources,descriptors=descriptors),
-        phase=receipt,action_revision=attempt.action_revision,
+        phase=receipt,action_revision=attempt.action_revision,admitted=admitted,
         cut=dict(stage='accepted-'+receipt.phase,snapshot_digest=receipt.snapshot.state_digest))
     with transaction.atomic():
         return publication.register(run,work,attempt=attempt,worker_token=attempt.worker_token)
@@ -149,7 +153,8 @@ def publish_phase(attempt,receipt,value):
 
 def calculate_tail(run,dbm,attempt,phase,sources):
     """After existing final_phase applies the exact accepted action revision."""
-    _raw,request,_config,_anchor=publication.configuration(run)
+    admitted=publication.configuration(run)
+    _raw,request,_config,_anchor=admitted
     if request['scope'] not in ('UptoBPR','UptoDBM'):
         raise ValueError('Scoped placement tail requires its captured source scope')
     # Read all required accepted reports before any new BTR work.
@@ -159,7 +164,7 @@ def calculate_tail(run,dbm,attempt,phase,sources):
         boundary=btr_stage.prepare_btr_boundary(phase,sources=sources,pick_source_digests=phase.pick_source_digests)
         remarks,remark_cut=_remarks(run)
         bundle=btr_inputs.build(boundary,sources=sources,frozen_remarks=remarks,color_sequence=btr_inputs.native_colours())
-        work=_bundle_work(run,'PostBTR',bundle,phase=dbm,action_revision=attempt.action_revision,
+        work=_bundle_work(run,'PostBTR',bundle,phase=dbm,action_revision=attempt.action_revision,admitted=admitted,
             cut=dict(stage='completed-btr-before-final',boundaries=list(phase.completed_boundaries),
                 remarks=remark_cut,action_revision=attempt.action_revision,
                 dbm_state_digest=digest(phase.final_dbm)))

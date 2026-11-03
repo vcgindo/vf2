@@ -24,8 +24,15 @@ def configuration(run):
     from mta.runtime.scope_runtime_reports import require_test_database
     raw=read_input(run,components=('scope_request','profile','pick_output_root','initialization_binding'))
     request=request_contract.validate_read_request(raw.get('scope_request'))
-    require_test_database(runtime_reports=request['runtime_reports'], run=run)
-    config,hook,anchor,policy=request_contract.configuration(request['runtime_reports'])
+    reference = request['runtime_reports']
+    config,hook,anchor,policy=request_contract.configuration(reference)
+    # The reference came from this run's authenticated input above. The
+    # database check still runs against the live owner of that exact reference.
+    if reference.get('purpose') == 'production-generic-placement':
+        from mta.runtime.production_scope_policy import require_database
+        require_database(reference, run=run)
+    else:
+        require_test_database(runtime_reports=reference)
     binding=raw.get('initialization_binding')
     if (run.kind!='DAILY_CHAIN' or run.evidence_mode!='production'
             or request['report_hooks']!=hook or request['dispositions']!=policy
@@ -48,9 +55,9 @@ def variables(run):
     return dict(ReportsDownloadLoc='download',TotalReqReport='TotalReqReport_'+run.business_date.isoformat())
 
 
-def owner(run,placement,*,phase=None,action_revision=0,cut):
+def owner(run,placement,*,admitted,phase=None,action_revision=0,cut):
     """Describe an authenticated caller's cut; registration rechecks its owner."""
-    raw,request,_config,_anchor=configuration(run)
+    raw,request,_config,_anchor=admitted
     if (placement not in PLACEMENTS or type(action_revision) is not int or action_revision<0
             or type(cut) is not dict or not cut):
         raise ValueError('Explicit completed report stage cut required')
@@ -83,8 +90,8 @@ def previous(run,placement,anchor):
     return row,row.metadata['catalogue'],row.metadata['candidate']['last_generated_after']
 
 
-def prepare(run,placement,*,sources,descriptors,source_owner,previous_work=None):
-    raw,_request,config,anchor=configuration(run)
+def prepare(run,placement,*,admitted,sources,descriptors,source_owner,previous_work=None):
+    raw,_request,config,anchor=admitted
     if source_owner.get('run_id')!=str(run.pk) or source_owner.get('placement')!=placement:
         raise ValueError('Placement preparation owner differs')
     if previous_work is None:
