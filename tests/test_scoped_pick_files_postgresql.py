@@ -121,6 +121,27 @@ class ScopedPickFileTests(unittest.TestCase):
         with self.assertRaisesRegex(PickFilesUnavailable,'Unknown'):
             open_file(self.receipt.pk,'../other.csv',expected_digest=self.receipt.digest)
 
+    def test_legacy_recipe_read_and_repair_preserve_original_receipt(self):
+        from mta.runtime import scoped_pick_files as files
+        from mta.runtime.models import ScopePickFiles
+        self.bpr()
+        # Create through the guarded owner using the actual qualified old recipe;
+        # no SQL mutation of an accepted receipt or phase is permitted.
+        legacy=sorted(files._LEGACY_RECIPES)[0]
+        with patch.object(files,'recipe_digest',return_value=legacy):
+            receipt=self.prepare_files()
+        before=ScopePickFiles.objects.filter(pk=receipt.pk).values().get()
+        name=next(iter(receipt.files));directory=self.directory(receipt)
+        original=(directory/'output'/name).read_bytes()
+        self.assertEqual(files.read(self.receipt.pk,expected_digest=self.receipt.digest).pk,receipt.pk)
+        (directory/'download'/name).write_bytes(b'partial')
+        with self.assertRaises(files.PickFilesUnavailable):
+            files.read(self.receipt.pk,expected_digest=self.receipt.digest)
+        repaired=self.prepare_files(repair=True)
+        self.assertEqual(repaired.pk,receipt.pk)
+        self.assertEqual((directory/'download'/name).read_bytes(),original)
+        self.assertEqual(ScopePickFiles.objects.filter(pk=receipt.pk).values().get(),before)
+
     def test_missing_root_wrong_phase_and_raw_receipt_mutations_are_denied(self):
         from django.db import connection,transaction,DatabaseError
         from mta.runtime.models import ScopePickFiles

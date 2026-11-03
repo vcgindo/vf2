@@ -55,11 +55,29 @@ def verify_guards():
             raise PickFilesUnavailable('Scope Pick file custody function differs')
 
 
-def recipe_digest():
+# Qualified old receipts included this reader's source in their recipe, even
+# though its compatibility checks do not produce file bytes. Keep their original
+# identities; recognize them only while the exact file formatter is unchanged.
+_LEGACY_FORMATTER = '3bbb1305268b1ec6298f7a34f49679ff6c48717855e0d0ed3720b0c589a37407'
+_LEGACY_RECIPES = frozenset((
+    '9c8b5606f377c02301f2b8bec03eff49471631a1958287925876af3ab23743c4',
+    'f0351138a54a686cdafb24fad5536b1453001cf0163d877d4c7b5e6c662d1150',
+))
+
+
+def _formatter_digest():
     from mta.application import complete_daily_batch_files, complete_daily_pick_files
-    return digest(dict(owner=inspect.getsource(inspect.getmodule(recipe_digest)),
-        writer=inspect.getsource(complete_daily_batch_files),
+    return digest(dict(writer=inspect.getsource(complete_daily_batch_files),
         projections=inspect.getsource(complete_daily_pick_files)))
+
+
+def recipe_digest():
+    return digest(dict(schema='fresh-scoped-pick-sqlcmd-format-v1',formatter=_formatter_digest()))
+
+
+def _compatible_recipe(recipe):
+    return recipe == recipe_digest() or (recipe in _LEGACY_RECIPES
+        and _formatter_digest() == _LEGACY_FORMATTER)
 
 
 def _accepted(phase_id, expected_digest):
@@ -217,7 +235,7 @@ def read(phase_id, *, expected_digest):
     receipt=ScopePickFiles.objects.filter(phase=phase).first()
     if receipt is None:raise PickFilesUnavailable('Accepted BPR Pick files are not prepared')
     identity=_identity(phase,receipt.recipe_digest,receipt.directory,receipt.files)
-    if (receipt.source_digest!=phase.digest or receipt.recipe_digest!=recipe_digest()
+    if (receipt.source_digest!=phase.digest or not _compatible_recipe(receipt.recipe_digest)
             or receipt.digest!=digest(identity)):
         raise PickFilesUnavailable('Accepted BPR Pick file receipt differs')
     with _directory(root,phase,receipt.directory) as directory:
@@ -260,9 +278,9 @@ def prepare(phase_id, *, expected_digest, repair=False):
                 recipe_digest=recipe,directory=identity,files=files,
                 digest=digest(_identity(current,recipe,identity,files)))
         else:
-            if (existing.source_digest!=current.digest or existing.recipe_digest!=recipe
+            if (existing.source_digest!=current.digest or not _compatible_recipe(existing.recipe_digest)
                     or existing.files!=files
-                    or existing.digest!=digest(_identity(current,recipe,existing.directory,files))):
+                    or existing.digest!=digest(_identity(current,existing.recipe_digest,existing.directory,files))):
                 raise PickFilesUnavailable('Repair cannot replace accepted Pick file contents')
             if repair:
                 with _directory(root,current,existing.directory,create=True) as target, \
