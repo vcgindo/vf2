@@ -1351,3 +1351,4 @@ from mta.runtime.intake_diagnostic_models import (IntakeDiagnostic,IntakeRejecti
     IntakeAbortReason,IntakeFileObservation,IntakeFullkitSetting,IntakeDiagnosticArchive,DiagnosticPublication)
 from mta.runtime.btr_scope_models import BtrScopeDimension
 from mta.runtime.execution_setting_models import ExecutionSettingsVersion, ExecutionSetting
+from mta.runtime.state_cut_models import OperationalStateCut
