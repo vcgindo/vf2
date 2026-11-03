@@ -54,24 +54,23 @@ def _pending_cut(run, work, metadata):
 
 def persist(run, work, metadata):
     cut = _pending_cut(run, work, metadata)
-    descriptor = images.describe(work.candidate_id, history.TABLE, _project(cut, FIELDS))[0]
-    if descriptor != work.source_manifest['images'][history.TABLE]:
+    manifest = images.validate_images(work.source_manifest, candidate_id=work.candidate_id,
+                                      placement=work.placement)
+    expected = manifest['images']
+    if expected.keys() != work.sources.keys() or history.TABLE not in expected:
+        raise ValueError('Prepared PostBTR source roster differs')
+    descriptor = expected[history.TABLE]
+    if images.describe(work.candidate_id, history.TABLE, _project(cut, FIELDS))[0] != descriptor:
         raise ValueError('PostBTR closing projection differs from the prepared source')
-
-    def write(logical, rows):
-        if logical == history.TABLE:
-            # capture() has already checked shape. Bind the current prepared
-            # contents too, before omitting the original typed payload write.
-            if images.describe(work.candidate_id, logical, rows)[0] != descriptor:
-                raise ValueError('PostBTR prepared history changed')
-            return descriptor
-        return images.write(run, work.candidate_id, logical, rows)
-
-    saved = images.capture(run, candidate_id=work.candidate_id, placement=work.placement,
-                           sources=work.sources, row_writer=write)
-    if saved != work.source_manifest:
-        raise ValueError('Persisted report stage differs')
-    return saved, _reference(cut, descriptor)
+    # Validate every prepared bag before the first write. Once the prepared
+    # history and independent cut both match, the receipt needs only the cut.
+    for logical, rows in work.sources.items():
+        if images.describe(work.candidate_id, logical, rows)[0] != expected[logical]:
+            raise ValueError('PostBTR prepared source changed: ' + logical)
+    for logical, rows in work.sources.items():
+        if logical != history.TABLE and images.write(run, work.candidate_id, logical, rows) != expected[logical]:
+            raise ValueError('Persisted report stage differs: ' + logical)
+    return manifest, _reference(cut, descriptor)
 
 
 def read_sources(run, publication, *, fields):
