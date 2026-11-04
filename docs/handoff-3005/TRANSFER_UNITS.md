@@ -1,5 +1,9 @@
 # Selected transfer boundaries
 
+For the separate IR6 validation on a second local machine, use the
+[IR6 transfer handover](IR6_SECOND_MACHINE_TRANSFER.md). The earlier S1
+transfer decisions below apply to their original 3005 scope.
+
 S1 candidate disposition, 13 October 2026. No candidate is imported or accepted merely by appearing here. The source donor is the read-only rejected handoff worktree at `C:/Users/thapa/.codex/worktrees/production-handoff/freshvcf`, commit `457b4832979dc6d2a394c3d756e3937e84817f87`. Its unfinished dirty Planning changes are excluded. Historical H labels below identify code units only; they are not a queue or completion status. The new tracker remains the sole authority.
 
 | Unit | Decision and destination | Purpose, boundary and required proof |
