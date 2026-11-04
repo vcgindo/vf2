@@ -140,6 +140,7 @@ PREPARED_REPORT_READERS = {
     'mta.presentation.bpr_prepared': '82ca88d63d9e86eb79cc5638f53865c629b9e78aa6db4509b294fa51925575b1',
     'mta.presentation.daily_rrr_read': '1e01b6ac9b63b175868675eda3f8f10bf2fd8b16f53d3808d26344730c87bda5',
     'mta.presentation.planning_chart_sql': '27a395793e3c377f7ae18bba0635af85e2e74fd59aec51b3063c75f687b7cde8',
+    'mta.presentation.planning_custom_sql': '449427e173c1b454cb671aa1e2534b422dc87198602d9c6f1a1c4fb800a97bef',
     'mta.presentation.planning_grid_sql': 'a338b91893b952746245332cd80937a826cefddf006b852aabd106a0436e7148',
     'mta.presentation.rrr_export': 'bd925acb777406e0d2bfca89fa1b86c1637e115bcdab142032bbb817cdff7cba',
     'mta.presentation.rrr_prepared_sql': 'e1fee9afec1fe5c5ecfe14cc9ee6f8541e8cc45630f33e9bfa0451fb0a97da21',

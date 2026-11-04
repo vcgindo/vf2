@@ -6,13 +6,16 @@ from mta.presentation.context import scope,PublicationUnavailable
 from mta.presentation.selective import image_query
 from mta.presentation.excess_read import CUSTOM_COLUMNS
 from mta.runtime.models import ExcessInventoryRow,FulfillmentSummaryRow
-from mta.runtime.relational_state import quote
+from mta.runtime.relational_state import quote, table_sql
 from mta.serialization import storage
 
 NMS_ALIASES=dict(sc='SKUCode',sd='SKUDescription',pwc='ParentWhCode',wc='WhCode',wd='WHDescription',
                  mn='MinNorm',rlt='RLT',rcp='RCP',gcp='GCP',ocp='OCP',moc='MinOrderCount',ps='PackSize',
                  frf='FGRMFlag',da='DBMActive',
                  **{p.lower()+str(i):p+str(i) for p in ('SL','LL') for i in range(1,6)})
+
+NMS_PATH = 'closing/consumer_context/NMSAllItems'
+PHYSICAL_NMS = 'SELECT * FROM ' + table_sql('Importer/NMSAllItems') + ' WHERE vf_run_id=%s AND vf_image=%s'
 
 
 def custom_grid(run,payload,paging,*,family,read_binding=None):
@@ -42,7 +45,7 @@ def custom_grid(run,payload,paging,*,family,read_binding=None):
         with connection.cursor() as c:
             c.execute(base+' SELECT COALESCE(sum(weight),0) FROM eligible',params)
             if (paging[0]-1)*paging[1]+1>c.fetchone()[0]:return dict(data=[],uiConfig=config)
-    nms,nms_params=(image_query(run,'closing/consumer_context/NMSAllItems') if read_binding is None else read_binding.image_query('closing/consumer_context/NMSAllItems'))
+    nms,nms_params=(image_query(run,NMS_PATH) if read_binding is None else read_binding.image_query(NMS_PATH))
     ctes.append('A AS NOT MATERIALIZED ('+nms+')');params.extend(nms_params)
     if family=='excess':
         standard,standard_params=(image_query(run,'closing/dbm/SKULocStandardAttributes') if read_binding is None else read_binding.image_query('closing/dbm/SKULocStandardAttributes'))
@@ -59,7 +62,14 @@ def custom_grid(run,payload,paging,*,family,read_binding=None):
     if family=='fulfillment':
         # Different scoped outputs sharing source ROW_NUMBER keys stay denied.
         # This whole-set validation is required even for a small requested page.
-        ambiguity='WITH '+','.join(ctes)+',chosen AS (SELECT * FROM eligible) SELECT 1'+joins
+        chosen = 'chosen AS (SELECT * FROM eligible)'
+        # The terminal fact and physical NMS keys make both joins at most
+        # one-to-one. Only repeated eligible keys can then disagree.
+        if read_binding is None and nms == PHYSICAL_NMS and nms_params == [run.pk, NMS_PATH]:
+            chosen = ('chosen AS MATERIALIZED (SELECT * FROM ('
+                      'SELECT E.*,count(*) OVER (PARTITION BY sku_key,location_key) AS tie_count '
+                      'FROM eligible E) tied WHERE tie_count>1)')
+        ambiguity='WITH '+','.join(ctes)+','+chosen+' SELECT 1'+joins
         ambiguity+=' GROUP BY X.sku_key,X.location_key HAVING count(DISTINCT ROW('+','.join(columns.values())+'))>1 LIMIT 1'
         with connection.cursor() as c:
             c.execute(ambiguity,params)
