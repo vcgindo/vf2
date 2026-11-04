@@ -237,10 +237,19 @@ def read_prepared(run, cutoff, predicate, products, locations, kind, minimum_age
         selected = day + ',' + ','.join(('sum(CASE WHEN ' + colour + "='" + c + "' THEN " + weight + ' ELSE 0 END)' for c in ('Black', 'Red', 'White')))
         tail = ' GROUP BY ' + day + ' ORDER BY ' + day
     else:
+        measure = 'sum(' + ('H.amount::numeric*' + weight if kind == 'excess-value' else weight) + ')'
+        tail = ' GROUP BY ' + day + ',H.location_type'
         if kind == 'excess-sku':
-            where += ' AND ' + equal(colour, "'white'")
-        selected = day + ',H.location_type,sum(' + ('H.amount::numeric*' + weight if kind == 'excess-value' else weight) + ')'
-        tail = ' GROUP BY ' + day + ',H.location_type ORDER BY ' + day + ",coalesce(H.location_type,'-')"
+            white = equal(colour, "'white'")
+            if read_binding is None and not predicate.sql_terms and not predicate.children:
+                # Normalized colour has a poor selectivity estimate. Keep the
+                # base cardinality visible so PostgreSQL can hash the groups.
+                measure += ' FILTER (WHERE ' + white + ')'
+                tail += ' HAVING ' + measure + ' IS NOT NULL'
+            else:
+                where += ' AND ' + white
+        selected = day + ',H.location_type,' + measure
+        tail += ' ORDER BY ' + day + ",coalesce(H.location_type,'-')"
     with connection.cursor() as cursor:
         cursor.execute('WITH ' + ','.join(ctes) + ' SELECT ' + selected + joins + 'WHERE ' + where + tail, params + compiler.params)
         return cursor.fetchall()

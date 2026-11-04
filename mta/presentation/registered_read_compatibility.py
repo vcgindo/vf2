@@ -131,6 +131,7 @@ GUIDED_STATISTICS_READERS = {
 
 # These readers use existing sealed sources without changing producer identities.
 PREPARED_REPORT_READERS = {
+    'mta.presentation.guided_history_prepared': '38e462ce6152ed8f3d4b1cae5d177c40a2386617c88180a19211c16d76bea6ba',
     'mta.presentation.bor_sql': '5a93dd942ad2f85bb361f182f085a46c316afabfebb99f53991faf076b7548fa',
     'mta.presentation.boroa_sql': '196e2fc9c1a837cdbe9d1113d374d322b2ad3d20afa73a29523ed4bf5d27ec32',
     'mta.presentation.bpr_prepared': '82ca88d63d9e86eb79cc5638f53865c629b9e78aa6db4509b294fa51925575b1',
