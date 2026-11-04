@@ -31,6 +31,16 @@ class ProductionRegisteredReadContractTests(unittest.TestCase):
         self.enterContext(patch.object(BaseDatabaseWrapper, 'connect',
             side_effect=AssertionError('Metadata unit proof must not connect')))
 
+    def test_terminal_planning_reader_preserves_exact_prior_expedite_recipe(self):
+        from mta.presentation import registered_read_compatibility as historical, scoped_expedite
+        prior, current = historical.TERMINAL_PLANNING_EXPEDITE_READER
+        self.assertEqual(scoped_expedite.recipe_digest(), current)
+        accepts = historical.compatible_guard_recipe
+        self.assertTrue(accepts('scoped_expedite', prior, current))
+        self.assertFalse(accepts('scoped_expedite', prior, 'unknown-current'))
+        self.assertFalse(accepts('scoped_expedite', 'unknown-prior', current))
+        self.assertFalse(accepts('scoped_planning', prior, current))
+
     def test_production_v1_identity_is_not_a_whole_module_permission(self):
         from mta.presentation import registered_read_compatibility as historical
         config = configuration()

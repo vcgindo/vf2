@@ -21,6 +21,7 @@ def chart_queries(run,payload,category,*,read_binding=None):
                for measure in ('orders','gap') for direction in ('location','sku')]
     else:raise ValueError('Unknown Planning chart category')
     result={}
+    terminal=read_binding is None
     for section,family,direction,amount in specs:
         if not products or not locations:
             result[section]=[]
@@ -32,7 +33,8 @@ def chart_queries(run,payload,category,*,read_binding=None):
             params.extend(v for code in members for v in (code,codes.multiplicities[code]))
         for alias,name in (('M','members'),('D','displays')):
             query,values=relations[name]
-            ctes.append(alias+' AS ('+query+' AND family=%s AND direction=%s)')
+            materialization='NOT MATERIALIZED ' if terminal and alias=='M' else ''
+            ctes.append(alias+' AS '+materialization+'('+query+' AND family=%s AND direction=%s)')
             params.extend([*values,family,direction])
         fact=FAMILIES[family]
         summed=amount or (family=='fulfillment_detail' and direction=='sku')
@@ -43,15 +45,19 @@ def chart_queries(run,payload,category,*,read_binding=None):
             from mta.presentation.scoped_planning_queries import FACTS
             query,values=read_binding.fact_query(FACTS[family])
             ctes.append('F AS ('+query+')');params.extend(values);fact_relation='F'
-        ctes.append('eligible AS (SELECT M.*,('+expression+')*P.weight*L.weight AS value FROM M JOIN '+fact_relation+' A ON A.run_id=M.run_id AND A.ordinal=M.fact_ordinal '
+        eligible_columns='M.ordinal,M.group_ordinal' if terminal else 'M.*'
+        ctes.append('eligible AS (SELECT '+eligible_columns+',('+expression+')*P.weight*L.weight AS value FROM M JOIN '+fact_relation+' A ON A.run_id=M.run_id AND A.ordinal=M.fact_ordinal '
                     'JOIN P ON A."SKUCode"=P.code JOIN L ON A."WhCode"=L.code)')
         # Select the first eligible source occurrence only after live scope.
         # Prepared display membership does not predetermine raw scoped labels.
         ctes.append('totals AS (SELECT group_ordinal,min(ordinal) AS first_ordinal,sum(value)::'
                     +('bigint' if amount else 'integer')+' AS counts FROM eligible GROUP BY group_ordinal)')
+        # The terminal member ordinal is unique within this run/family/direction.
+        # Read its labels after aggregation so they do not spill with the facts.
+        first_member='M' if terminal else 'eligible'
         sql=('WITH '+','.join(ctes)+' SELECT E.code,E.description,E.band,T.counts,'
              +','.join('D.h'+str(i) for i in range(1,6))+' FROM totals T '
-             'JOIN eligible E ON E.ordinal=T.first_ordinal JOIN D ON D.group_ordinal=T.group_ordinal '
+             'JOIN '+first_member+' E ON E.ordinal=T.first_ordinal JOIN D ON D.group_ordinal=T.group_ordinal '
              'ORDER BY T.counts DESC NULLS LAST,T.first_ordinal,D.attribute_ordinal')
         with connection.cursor() as c:
             c.execute(sql,params)

@@ -135,6 +135,7 @@ PREPARED_REPORT_READERS = {
     'mta.presentation.boroa_sql': '196e2fc9c1a837cdbe9d1113d374d322b2ad3d20afa73a29523ed4bf5d27ec32',
     'mta.presentation.bpr_prepared': '82ca88d63d9e86eb79cc5638f53865c629b9e78aa6db4509b294fa51925575b1',
     'mta.presentation.daily_rrr_read': '1e01b6ac9b63b175868675eda3f8f10bf2fd8b16f53d3808d26344730c87bda5',
+    'mta.presentation.planning_chart_sql': '27a395793e3c377f7ae18bba0635af85e2e74fd59aec51b3063c75f687b7cde8',
     'mta.presentation.planning_grid_sql': 'a338b91893b952746245332cd80937a826cefddf006b852aabd106a0436e7148',
     'mta.presentation.rrr_export': 'bd925acb777406e0d2bfca89fa1b86c1637e115bcdab142032bbb817cdff7cba',
     'mta.presentation.rrr_prepared_sql': 'e1fee9afec1fe5c5ecfe14cc9ee6f8541e8cc45630f33e9bfa0451fb0a97da21',
@@ -189,7 +190,15 @@ GUARD_ADMISSION_RECIPES = {'scoped_report_storage': '800d7ee3f1fb602be7caa3dcff1
 
 GUARD_ADMISSION_RECIPES['scoped_expedite'] = '8aabac8c3ccb42b238fd5983f7e85adb0015f434f3df6658d8c75325b60f8067'
 
+# The terminal Planning page change leaves Expedite's shared filters unchanged.
+TERMINAL_PLANNING_EXPEDITE_READER = (
+    '8689ef5816bdc0325a1b54c29f932ca1cd5c3b28b3504dbbf473fd05947c0127',
+    'f575f734075dcb05bb85a3097f934d186affd7e1eb49944d452cfc5865d7352b',
+)
+
 def compatible_guard_recipe(family, observed, current):
     if family not in GUARD_ADMISSION_RECIPES:
         raise ValueError('Unknown guard-admission report contract')
-    return observed == current or observed == GUARD_ADMISSION_RECIPES[family]
+    return (observed == current or observed == GUARD_ADMISSION_RECIPES[family]
+            or (family == 'scoped_expedite'
+                and (observed, current) == TERMINAL_PLANNING_EXPEDITE_READER))
