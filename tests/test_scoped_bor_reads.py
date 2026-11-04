@@ -141,7 +141,8 @@ class ScopedBorReadsTests(unittest.TestCase):
         bound.remarks.return_value=('SELECT * FROM owned_remark',['capture'])
         bound.configuration.return_value={'environment':[dict(ConfigKey='BOROA_DISPATCH_CONDITION',Category='ClientSpecific',ConfigValue='1')]}
         for reader,preparation,name in ((bor_sql,bor_preparation,'read_bor'),(boroa_sql,boroa_preparation,'read_boroa')):
-            cursor=Mock();cursor.fetchone.return_value=(6,);cursor.description=[('SOB',)];cursor.fetchall.return_value=[(100.0,)]
+            cursor=Mock();cursor.fetchone.return_value=(6,);cursor.description=[('SOB',)]
+            cursor.fetchmany.side_effect=[[(100.0,)], []]
             with ExitStack() as stack:
                 stack.enter_context(patch.object(scoped_bor,'require_binding',return_value=bound))
                 stack.enter_context(patch.object(reader,'admitted_sources',side_effect=AssertionError('Full admission')))
@@ -154,7 +155,8 @@ class ScopedBorReadsTests(unittest.TestCase):
                 self.assertIn('owned_prepared',sql);self.assertNotIn('R.run_id=',sql)
                 self.assertEqual(params[:5],['SKU','SKU','WH','WH','WH'])
                 if reader is boroa_sql:self.assertIn('SELECT DISTINCT',sql)
-                getattr(reader,name)({},export=True,read_binding=view)
+                rows = list(getattr(reader,name)({},export=True,read_binding=view))
+                self.assertEqual(rows, [{'SOB': '100' if reader is bor_sql else 100.0}])
                 sql,_=cursor.execute.call_args.args
                 self.assertIn('LEFT JOIN RM',sql);self.assertNotIn('LIMIT',sql)
 

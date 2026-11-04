@@ -12,9 +12,15 @@ from mta.runtime.relational_state import quote
 class Command(BaseCommand):
     help=__doc__
 
-    def add_arguments(self,parser): parser.add_argument('--verify-only',action='store_true')
+    def add_arguments(self,parser):
+        parser.add_argument('--verify-only',action='store_true')
+        parser.add_argument('--run-id')
 
     def handle(self,*args,**options):
+        from mta.presentation.native_publication import enabled
+        if options['run_id'] is not None or enabled():
+            from mta.runtime.management.commands.prepare_bor_membership import native_membership
+            return native_membership('boroa', run_id=options['run_id'], verify_only=options['verify_only'])
         run,source_receipt=admitted_sources()
         source=source_receipt.source_digest
         with transaction.atomic():

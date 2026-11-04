@@ -113,6 +113,10 @@ def read_boroa(payload,*,count=False,export=False,read_binding=None):
             lower=(paging['pageNumber']-1)*paging['recordsPerPage']+1;upper=paging['pageNumber']*paging['recordsPerPage']
             sql+=' WHERE "RN" BETWEEN %s AND %s';params += [lower,upper]
         sql+=' ORDER BY "RN"'
+    if export and not count:
+        from mta.presentation.bpr_prepared import _primed_export
+        from mta.presentation.btr_sql import iter_rows
+        return _primed_export(iter_rows(sql, params))
     with connection.cursor() as c:
         c.execute(sql,params)
         if count:return c.fetchone()[0]

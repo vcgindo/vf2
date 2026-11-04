@@ -498,7 +498,7 @@ def bpr_data(request, payload, *, count=False):
 @endpoint('POST')
 def export_data(request, payload):
     from mta.presentation.rrr_sql import read_rrr
-    from mta.presentation.rrr_export import FIELDS, selected_headers, csv_chunks
+    from mta.presentation.rrr_export import FIELDS, selected_headers, csv_chunks, csv_response
     if payload.get('reportName') == 'RRROA':
         from mta.presentation.daily_rrr_read import read, projection
         from mta.presentation.legacy_ui import RRR_OA_UI_CONFIG
@@ -525,11 +525,9 @@ def export_data(request, payload):
             raise
         except (ValueError, KeyError, TypeError, DatabaseError):
             return envelope(status=500)
-        state = ui_state.get_layout(identity(request)['id'], 'BORColorBandwise')
-        headers = selected_headers(state, ['RN', *[n for n, _ in projection()]], configuration=configuration()['columns'])
-        response = StreamingHttpResponse(csv_chunks(rows, headers), content_type='text/csv')
-        response['Content-Disposition'] = 'attachment'
-        return response
+        return csv_response(rows, lambda: selected_headers(
+            ui_state.get_layout(identity(request)['id'], 'BORColorBandwise'),
+            ['RN', *[n for n, _ in projection()]], configuration=configuration()['columns']))
     if payload.get('reportName') == 'BOR':
         _require_report('bor')
         from mta.presentation.bor_sql import read_bor, projection, BorQueryError
@@ -540,11 +538,9 @@ def export_data(request, payload):
             raise
         except (BorQueryError, ValueError, KeyError, TypeError):
             return envelope(status=500)
-        state = ui_state.get_layout(identity(request)['id'], 'BOR')
-        headers = selected_headers(state, [n for n, _ in projection()], configuration=configuration()['columns'])
-        response = StreamingHttpResponse(csv_chunks(rows, headers), content_type='text/csv')
-        response['Content-Disposition'] = 'attachment'
-        return response
+        return csv_response(rows, lambda: selected_headers(
+            ui_state.get_layout(identity(request)['id'], 'BOR'),
+            [n for n, _ in projection()], configuration=configuration()['columns']))
     if payload.get('reportName') not in ('RRR', 'BTR', 'BPR'):
         raise PublicationUnavailable('selected_report_export_not_connected')
     run = selected_run()

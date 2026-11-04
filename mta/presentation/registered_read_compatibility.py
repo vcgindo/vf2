@@ -131,10 +131,14 @@ GUIDED_STATISTICS_READERS = {
 
 # These readers use existing sealed sources without changing producer identities.
 PREPARED_REPORT_READERS = {
+    'mta.presentation.bor_sql': '5a93dd942ad2f85bb361f182f085a46c316afabfebb99f53991faf076b7548fa',
+    'mta.presentation.boroa_sql': '196e2fc9c1a837cdbe9d1113d374d322b2ad3d20afa73a29523ed4bf5d27ec32',
+    'mta.presentation.rrr_export': 'b91b0ed03edccfa9cf5d2686a741bfec90b59963c1f302a625b527dadf151b94',
+    'mta.presentation.scoped_api': '7a256148d3804d367d8c67911462ce57df3852db2e292333a9dceb5ad75a61d8',
     'mta.presentation.scoped_dbm': '5d45396607d62d9729543d00e6161bba714f1038075ee47bbdf87f4af7216730',
     'mta.presentation.scoped_history': '905f199f4da10d551b702c2231a677b3fa587a8a8468daf5d999b12d9c568477',
     'mta.presentation.scoped_read_graph': 'f1973894ed5f16a749e6c3eb4756d99e9c90ce9630c785c0e84adff8dba0f673',
-    'mta.presentation.views': '47e12496a48b9078bbf7ab825996f957d61861b9ed83ccc88059eadc64663cd7',
+    'mta.presentation.views': 'b4adce411862efb5b054203fcf1571f881c86c263683c4475b55989b267c45ee',
 }
 
 

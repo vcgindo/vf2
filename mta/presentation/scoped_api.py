@@ -344,27 +344,25 @@ def _bor_config(view, name):
 
 def _bor_export(view, request, payload, report):
     from mta.presentation import views, bor_sql, boroa_sql, scoped_bor, bor_configuration
-    from mta.presentation.rrr_export import selected_headers, csv_chunks
+    from mta.presentation.rrr_export import selected_headers, csv_response
     try:
         if report == 'BOROA':
-            rows = boroa_sql.read_boroa(payload, export=True, read_binding=view)
             config = scoped_bor.require_binding(view.run, view).configuration()
             fields = ['RN', *[name for name, _ in boroa_sql.projection()]]
             layout = 'BORColorBandwise'
+            rows = boroa_sql.read_boroa(payload, export=True, read_binding=view)
         else:
-            rows = bor_sql.read_bor(payload, export=True, read_binding=view)
             config = bor_configuration.configuration()
             fields = [name for name, _ in bor_sql.projection()]
             layout = 'BOR'
+            rows = bor_sql.read_bor(payload, export=True, read_binding=view)
     except PublicationUnavailable:
         raise
     except (ValueError, KeyError, TypeError, DatabaseError):
         return views.envelope(status=500)
-    state = views.ui_state.get_layout(views.identity(request)['id'], layout)
-    headers = selected_headers(state, fields, configuration=config['columns'])
-    response = StreamingHttpResponse(csv_chunks(rows, headers), content_type='text/csv')
-    response['Content-Disposition'] = 'attachment'
-    return response
+    return csv_response(rows, lambda: selected_headers(
+        views.ui_state.get_layout(views.identity(request)['id'], layout),
+        fields, configuration=config['columns']))
 
 
 def _planning(view, name, payload, *, count=False):

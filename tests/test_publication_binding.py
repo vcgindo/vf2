@@ -362,6 +362,30 @@ class PublicationBindingTests(SimpleTestCase):
             response.close()
         self.assertEqual(self.events, ['open', 'close', 'open', 'close'])
 
+    def test_primed_csv_export_closes_cursor_before_the_snapshot(self):
+        from mta.presentation.rrr_export import csv_response
+        for consume_header in (False, True):
+            events = []
+
+            def rows():
+                try:
+                    yield {'x': 1}
+                    yield {'x': 2}
+                finally:
+                    events.append(self.active)
+
+            def downstream(request):
+                from mta.presentation.bpr_prepared import _primed_export
+                return csv_response(_primed_export(rows()), lambda: [('X', 'x')])
+
+            _, response, _ = self.call('/api/mta/GetExportDataAsync', self.token, downstream, consume=False)
+            if consume_header:
+                self.assertEqual(next(iter(response.streaming_content)), b'X\r\n')
+            response.close()
+            response.close()
+            self.assertEqual(events, [True])
+            self.assertFalse(self.active)
+
     @override_settings(VF_MTA_NATIVE_PUBLICATION=False)
     def test_legacy_bootstrap_explicit_and_existing_reads_unchanged(self):
         _, body, _ = self.call(binding.BOOTSTRAP)

@@ -231,6 +231,18 @@ def read_bor(payload,*,count=False,export=False,analytics=False,read_binding=Non
                 offset=(paging['pageNumber']-1)*paging['recordsPerPage'];size=paging['recordsPerPage']
                 if offset<0 or size<=0: raise BorQueryError('native pagination invalid')
                 sql+=' LIMIT %s OFFSET %s';params+=[size,offset]
+    if export and not count and not analytics:
+        from contextlib import closing
+        from mta.presentation.bpr_prepared import _primed_export
+        from mta.presentation.btr_sql import iter_rows
+
+        def export_rows():
+            with closing(iter_rows(sql, params)) as rows:
+                for row in rows:
+                    row['SOB'] = format(row['SOB'], '.6g')
+                    yield row
+
+        return _primed_export(export_rows())
     with connection.cursor() as c:
         c.execute(sql,params)
         if count: return c.fetchone()[0]

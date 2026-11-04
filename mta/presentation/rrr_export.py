@@ -70,3 +70,44 @@ def csv_chunks(rows, headers):
     for values in chain(([header for header, _ in headers],),
                         ([invariant(row[code]) for _, code in headers] for row in rows)):
         yield (','.join(field(value) for value in values) + '\r\n').encode('utf-8')
+
+
+class CsvStream:
+    """Close the report cursor even when a response ends before its first byte."""
+
+    def __init__(self, rows, headers):
+        self.rows = rows
+        self.body = csv_chunks(rows, headers)
+        self.closed = False
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        try:
+            return next(self.body)
+        except BaseException:
+            self.close()
+            raise
+
+    def close(self):
+        if self.closed:
+            return
+        self.closed = True
+        self.body.close()
+        close = getattr(self.rows, 'close', None)
+        if close is not None:
+            close()
+
+
+def csv_response(rows, headers):
+    from django.http import StreamingHttpResponse
+    try:
+        response = StreamingHttpResponse(CsvStream(rows, headers()), content_type='text/csv')
+    except BaseException:
+        close = getattr(rows, 'close', None)
+        if close is not None:
+            close()
+        raise
+    response['Content-Disposition'] = 'attachment'
+    return response
