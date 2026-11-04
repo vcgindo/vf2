@@ -84,3 +84,29 @@ class ActionAdmissionTests(unittest.TestCase):
             current.mdm_input_capture.source.production_initialization.pk=str(uuid4())
             with self.assertRaisesRegex(ValueError,'differs from MDM capture'):
                 input_v3._run_initialization_id(owner,None)
+
+
+class ReadSnapshotAdmissionTests(unittest.TestCase):
+    def test_only_a_successful_check_in_the_same_read_snapshot_is_reused(self):
+        from mta.presentation import publication_binding, request_scope
+
+        foreign_cursor = SimpleNamespace(db=object())
+        with (patch.object(publication_binding, 'snapshot_identity') as snapshot,
+              patch.object(scoped_action_ownership, '_verify_guards') as verify,
+              request_scope.read_request('/api/mta/GetResearchInsightData')):
+            snapshot.return_value = (object(), object())
+            verify.side_effect = [ValueError('guard changed'), None, None, None, None]
+            with self.assertRaisesRegex(ValueError, 'guard changed'):
+                scoped_action_ownership.verify_guards()
+            scoped_action_ownership.verify_guards()
+            scoped_action_ownership.verify_guards()
+            self.assertEqual(verify.call_count, 2)
+
+            scoped_action_ownership.verify_guards(foreign_cursor)
+            verify.assert_called_with(foreign_cursor)
+            snapshot.return_value = (object(), object())
+            scoped_action_ownership.verify_guards()
+            self.assertEqual(verify.call_count, 4)
+            snapshot.return_value = None
+            scoped_action_ownership.verify_guards()
+            self.assertEqual(verify.call_count, 5)

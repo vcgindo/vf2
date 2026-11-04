@@ -2,7 +2,9 @@
 from contextlib import contextmanager, nullcontext
 from importlib import import_module
 
-from django.db import connection, transaction, DatabaseError
+from django.db import connection, connections, DEFAULT_DB_ALIAS, transaction, DatabaseError
+
+from mta.presentation.request_scope import in_read_request, once_per_request
 
 
 MIGRATION = '0228_scope_read_action_ownership'
@@ -46,7 +48,19 @@ def verify_guards(cursor=None):
     from mta.presentation.schema_reuse import action_guard
     if action_guard('action',cursor):
         return
+    if in_read_request() and (cursor is None or cursor.db is connections[DEFAULT_DB_ALIAS]):
+        from mta.presentation.publication_binding import snapshot_identity
+        snapshot = snapshot_identity()
+        if snapshot is not None:
+            return _verify_snapshot_guards(snapshot)
     return _verify_guards(cursor)
+
+
+@once_per_request
+def _verify_snapshot_guards(snapshot):
+    # The snapshot pins the catalogue and connection. Live revision checks
+    # still run at their existing callers.
+    return _verify_guards()
 
 
 def _verify_guards(cursor=None):
