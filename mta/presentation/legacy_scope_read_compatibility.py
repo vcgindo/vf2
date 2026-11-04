@@ -76,8 +76,8 @@ def verify_expedite():
         name='mta.presentation.'+module
         actual=hashlib.sha256(inspect.getsource(import_module(name)).encode()).hexdigest()
         if actual!=expected[name]:
-            # The exact terminal page change leaves Expedite's GridFilters intact.
-            if module == 'planning_grid_sql' and PREPARED_REPORT_READERS.get(name) == actual:
+            # The exact page and chart changes preserve the retained reader contract.
+            if module in ('planning_grid_sql','planning_expedite_chart_sql') and PREPARED_REPORT_READERS.get(name) == actual:
                 continue
             raise PublicationUnavailable('legacy_expedite_read_profile_source_differs:'+name)
 

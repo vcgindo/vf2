@@ -131,6 +131,7 @@ GUIDED_STATISTICS_READERS = {
 
 # These readers use existing sealed sources without changing producer identities.
 PREPARED_REPORT_READERS = {
+    'mta.presentation.planning_expedite_chart_sql': '507e3828608f6ba944e7972c516178a804f592bbe05bc1a69d41f4df9718edfb',
     'mta.presentation.guided_history_prepared': '38e462ce6152ed8f3d4b1cae5d177c40a2386617c88180a19211c16d76bea6ba',
     'mta.presentation.bor_sql': '5a93dd942ad2f85bb361f182f085a46c316afabfebb99f53991faf076b7548fa',
     'mta.presentation.boroa_sql': '196e2fc9c1a837cdbe9d1113d374d322b2ad3d20afa73a29523ed4bf5d27ec32',
@@ -191,10 +192,10 @@ GUARD_ADMISSION_RECIPES = {'scoped_report_storage': '800d7ee3f1fb602be7caa3dcff1
 
 GUARD_ADMISSION_RECIPES['scoped_expedite'] = '8aabac8c3ccb42b238fd5983f7e85adb0015f434f3df6658d8c75325b60f8067'
 
-# The terminal Planning page change leaves Expedite's shared filters unchanged.
+# The page and chart changes preserve the stored Expedite occurrence contract.
 TERMINAL_PLANNING_EXPEDITE_READER = (
     '8689ef5816bdc0325a1b54c29f932ca1cd5c3b28b3504dbbf473fd05947c0127',
-    'f575f734075dcb05bb85a3097f934d186affd7e1eb49944d452cfc5865d7352b',
+    'db0c3481dc391f704676da7fcd95d36db80ee39985d3c42025768fba51765773',
 )
 
 def compatible_guard_recipe(family, observed, current):

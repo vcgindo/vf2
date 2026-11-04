@@ -80,27 +80,31 @@ def queries(run,payload,kind,*,read_binding=None):
     pick,pick_params=(production_pick_query(run) if read_binding is None else read_binding.pick_query())
     # Native Pick membership ordinals are the same occurrence identity used
     # by the sealed Post-Pick projection. Never read the fixture staging table.
-    pick_cte=('Q AS (SELECT K.*,Z."PostPipelineInventoryColor" FROM ('+pick+') K '
+    pick_fields='K.vf_source_ordinal,K."SKUCode",K."WhCode",K."ParentWhCode",K."DispatchColor",Z."PostPipelineInventoryColor"'
+    pick_cte=('Q AS (SELECT '+pick_fields+' FROM ('+pick+') K '
         'JOIN mta.fresh_mta_pickpostrow Z ON Z.run_id=%s AND Z.ordinal=K.vf_source_ordinal)')
     pick_values=[*pick_params,run.pk]
     prepost_source='mta.fresh_mta_planningexpediteprepostmember';member_ctes=[];member_params=[]
     if read_binding is not None:
         post,post_params=read_binding.fact_query('PickPost')
-        pick_cte=('Q AS (SELECT K.*,Z."PostPipelineInventoryColor" FROM ('+pick+') K '
+        pick_cte=('Q AS (SELECT '+pick_fields+' FROM ('+pick+') K '
             'JOIN ('+post+') Z ON Z.run_id=%s AND Z.ordinal=K.vf_source_ordinal)')
         pick_values=[*pick_params,*post_params,run.pk]
         if kind=='parent':
             query,values=read_binding.query('prepost');member_ctes=['prepost_members AS ('+query+')'];member_params=values
             prepost_source='prepost_members'
-    for state,field in [('Pre','DispatchColor'),('Post','PostPipelineInventoryColor')]:
-        if kind=='parent':
-            joins=(' FROM '+prepost_source+' H JOIN Q S ON S.vf_source_ordinal=H.scope_ordinal '
-                'JOIN Q T ON T.vf_source_ordinal=H.fact_ordinal JOIN P ON P.code=S."SKUCode" JOIN L ON L.code=S."WhCode" WHERE H.run_id=%s')
-            weight='P.weight*L.weight*H.multiplicity';params=[*permission_params,*member_params,*pick_values,run.pk]
-        else:
-            joins=(' FROM Q T JOIN P ON P.code=T."SKUCode" JOIN L ON L.code=T."WhCode" WHERE NOT '+equal('T."WhCode"','T."ParentWhCode"'))
-            weight='P.weight*L.weight';params=[*permission_params,*pick_values]
-        columns=','.join('COALESCE(sum(CASE WHEN '+key('T."'+field+'"')+"='"+band.lower()+"' THEN "+weight+' ELSE 0 END),0)::integer AS "'+band+'Count"' for band in bands)
-        row=fetch('WITH '+','.join([*permission_ctes,*member_ctes,pick_cte])+' SELECT '+columns+joins,params)[0]
-        tables['pre_post'].append(dict(state=state,**row,TotalCount=0))
+    if kind=='parent':
+        joins=(' FROM '+prepost_source+' H JOIN Q S ON S.vf_source_ordinal=H.scope_ordinal '
+            'JOIN Q T ON T.vf_source_ordinal=H.fact_ordinal JOIN P ON P.code=S."SKUCode" JOIN L ON L.code=S."WhCode" WHERE H.run_id=%s')
+        weight='P.weight*L.weight*H.multiplicity';params=[*permission_params,*member_params,*pick_values,run.pk]
+    else:
+        joins=(' FROM Q T JOIN P ON P.code=T."SKUCode" JOIN L ON L.code=T."WhCode" WHERE NOT '+equal('T."WhCode"','T."ParentWhCode"'))
+        weight='P.weight*L.weight';params=[*permission_params,*pick_values]
+    states=(('Pre','DispatchColor'),('Post','PostPipelineInventoryColor'))
+    # Both states count the same scoped Pick occurrences.
+    columns=','.join('COALESCE(sum(CASE WHEN '+key('T."'+field+'"')+"='"+band.lower()+"' THEN "+weight
+        +' ELSE 0 END),0)::integer AS "'+state+band+'Count"' for state,field in states for band in bands)
+    counts=fetch('WITH '+','.join([*permission_ctes,*member_ctes,pick_cte])+' SELECT '+columns+joins,params)[0]
+    tables['pre_post']=[dict(state=state,**{band+'Count':counts[state+band+'Count'] for band in bands},TotalCount=0)
+                        for state,_ in states]
     return tables
