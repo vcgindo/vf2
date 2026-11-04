@@ -68,6 +68,7 @@ class RrrPreparedTests(unittest.TestCase):
         cursor = MagicMock()
         cursor.description = [('ParentNorm',)]
         cursor.fetchall.return_value = [(None,)]
+        cursor.fetchone.return_value = (True,)
         attributes = {'SkuAttributeData': [], 'LocationAttributeData': []}
         with patch.object(rrr_prepared_sql, 'image_rows', side_effect=lambda run, path: attributes[path.rsplit('/', 1)[1]]), \
              patch.object(rrr_prepared_sql.hierarchy, 'selected_manifest', return_value=None), \
@@ -81,24 +82,33 @@ class RrrPreparedTests(unittest.TestCase):
                 rrr_prepared_sql.read_prepared(
                     run, {'filters': {}}, paging=(1, 5), count=False,
                     relation='SELECT * FROM prepared WHERE run_id=%s', relation_params=['fixture'])
+            cursor.reset_mock()
+            with self.assertRaisesRegex(ValueError, 'ParentNorm NULL conversion'):
+                rrr_prepared_sql.read_prepared(
+                    run, {'filters': {}}, paging=None, count=False, export=True,
+                    relation='SELECT * FROM prepared WHERE run_id=%s', relation_params=['fixture'])
+            self.assertIn('AND A."ParentNorm" IS NULL', cursor.execute.call_args.args[0])
+            cursor.fetchall.assert_not_called()
 
+    @override_settings(VF_MTA_DAILY_PUBLICATION=True)
     def test_existing_receipt_mismatch_fails_closed_instead_of_falling_back(self):
-        run = SimpleNamespace(pk='fixture', kind='LEGACY_UI_FIXTURE', business_date='2026-04-07')
+        run = SimpleNamespace(pk='native', kind='DAILY_CHAIN')
         receipt = SimpleNamespace(source_digest='wrong', dimension_digest='dimension',
                                   pick_digest='pick', recipe_digest=rrr_preparation.recipe_digest())
         queryset = MagicMock(); queryset.first.return_value = receipt
         with patch.object(rrr_prepared_sql.RrrPreparedProjection.objects, 'filter', return_value=queryset), \
-             patch.object(rrr_prepared_sql.fixture, 'binding', return_value=(run, 'source')), \
+             patch('mta.presentation.daily_preparation.source_digest', return_value='source'), \
              patch.object(rrr_prepared_sql, 'source_signatures', return_value=('dimension', 'pick')), \
              patch.object(rrr_prepared_sql, 'verify_guards'):
             with self.assertRaisesRegex(PublicationUnavailable, 'receipt_missing_or_changed'):
                 rrr_prepared_sql.admitted_relation(run)
 
-    def test_configured_fixture_requires_receipt(self):
-        run = SimpleNamespace(pk='fixture', kind='LEGACY_UI_FIXTURE', business_date='2026-04-07')
+    @override_settings(VF_MTA_DAILY_PUBLICATION=True)
+    def test_configured_native_requires_receipt(self):
+        run = SimpleNamespace(pk='native', kind='DAILY_CHAIN')
         queryset = MagicMock(); queryset.first.return_value = None
         with patch.object(rrr_prepared_sql.RrrPreparedProjection.objects, 'filter', return_value=queryset), \
-             patch.object(rrr_prepared_sql.fixture, 'binding', side_effect=AssertionError('no admission work')):
+             patch('mta.presentation.daily_preparation.source_digest', side_effect=AssertionError('no admission work')):
             with self.assertRaisesRegex(PublicationUnavailable, 'receipt_required'):
                 rrr_prepared_sql.admitted_relation(run)
 

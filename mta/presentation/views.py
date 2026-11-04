@@ -509,11 +509,9 @@ def export_data(request, payload):
             raise
         except (ValueError, KeyError, TypeError, DatabaseError):
             return envelope(status=500)
-        state = ui_state.get_layout(identity(request)['id'], 'RRRColorBandWise')
-        headers = selected_headers(state, ['RN', *[n for n, _ in projection()]], configuration=RRR_OA_UI_CONFIG)
-        response = StreamingHttpResponse(csv_chunks(rows, headers), content_type='text/csv')
-        response['Content-Disposition'] = 'attachment'
-        return response
+        return csv_response(rows, lambda: selected_headers(
+            ui_state.get_layout(identity(request)['id'], 'RRRColorBandWise'),
+            ['RN', *[n for n, _ in projection()]], configuration=RRR_OA_UI_CONFIG))
     if payload.get('reportName') == 'BOROA':
         _require_report('boroa')
         from mta.presentation.boroa_sql import read_boroa, projection
@@ -564,27 +562,27 @@ def export_data(request, payload):
             from mta.presentation.bpr_prepared import read_bpr
             state = ui_state.get_layout(identity(request)['id'], 'BPR')
             headers = bpr_headers(state)
-            rows = read_bpr(run, payload, export=True)
-            class ExportChunks:
-                def __iter__(self):
-                    from mta.presentation.bpr_export import transport_chunks
-                    return transport_chunks(rows, headers)
-
-                def close(self):
-                    close = getattr(rows, 'close', None)
-                    if close:
-                        close()
-            response = StreamingHttpResponse(ExportChunks(), content_type='text/csv')
-            response['Content-Disposition'] = 'attachment'
-            return response
+            from mta.presentation.bpr_export import transport_chunks
+            options = {'publication_bound': True} if getattr(request, '_publication_binding', None) else {}
+            rows = read_bpr(run, payload, export=True, **options)
+            return csv_response(rows, lambda: headers, chunks=transport_chunks)
         model, selected = bpr_selected(payload, mode='export')
         rows = model.export(selected)
         state = ui_state.get_layout(identity(request)['id'], 'BPR')
         headers = bpr_headers(state)
     else:
-        rows = read_rrr(run, payload, paging=None)
-        state = ui_state.get_layout(identity(request)['id'], 'RRR')
-        headers = selected_headers(state, FIELDS)
+        from mta.presentation.native_publication import enabled as native_enabled
+        if native_enabled():
+            from mta.presentation.rrr_prepared_sql import admitted_relation, read_prepared
+            admitted = admitted_relation(run)
+            if admitted is None:
+                raise PublicationUnavailable('native_RRR_prepared_reader_required')
+            rows = read_prepared(run, payload, paging=None, count=False, relation=admitted[0],
+                                 relation_params=admitted[1], export=True)
+        else:
+            rows = read_rrr(run, payload, paging=None)
+        return csv_response(rows, lambda: selected_headers(
+            ui_state.get_layout(identity(request)['id'], 'RRR'), FIELDS))
     response = StreamingHttpResponse(csv_chunks(rows, headers), content_type='text/csv')
     response['Content-Disposition'] = 'attachment'
     return response

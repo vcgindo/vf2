@@ -287,7 +287,7 @@ def dispatch(function, request, payload, arguments):
         return views.envelope(data=rows if analytics else [response_row(row, daily_transit=True) for row in rows])
     if name == 'download_report': return _download(view, request, payload, arguments['report_name'])
     if name == 'export_data':
-        from mta.presentation.rrr_export import FIELDS, selected_headers, csv_chunks
+        from mta.presentation.rrr_export import FIELDS, selected_headers, csv_response
         report = payload.get('reportName')
         if report in ('BOR', 'BOROA'):
             return _bor_export(view, request, payload, report)
@@ -300,20 +300,15 @@ def dispatch(function, request, payload, arguments):
                 raise
             except (ValueError, KeyError, TypeError, DatabaseError):
                 return views.envelope(status=500)
-            state = views.ui_state.get_layout(views.identity(request)['id'], 'RRRColorBandWise')
-            headers = selected_headers(state, ['RN', *[n for n, _ in projection()]], configuration=RRR_OA_UI_CONFIG)
-            response = StreamingHttpResponse(csv_chunks(rows, headers), content_type='text/csv')
-            response['Content-Disposition'] = 'attachment'
-            return response
+            return csv_response(rows, lambda: selected_headers(
+                views.ui_state.get_layout(views.identity(request)['id'], 'RRRColorBandWise'),
+                ['RN', *[n for n, _ in projection()]], configuration=RRR_OA_UI_CONFIG))
         if report not in ('BPR', 'RRR', 'BTR'): raise PublicationUnavailable('phase_export_not_prepared')
         state = views.ui_state.get_layout(views.identity(request)['id'], report)
         if report == 'BPR':
             from mta.presentation.bpr_export import selected_headers as headers, transport_chunks
             rows = bpr_rows(view, payload, export=True)
-            class Chunks:
-                def __iter__(self): yield from transport_chunks(rows, headers(state))
-                def close(self): rows.close()
-            chunks = Chunks()
+            return csv_response(rows, lambda: headers(state), chunks=transport_chunks)
         elif report == 'BTR':
             from mta.presentation.scoped_btr import bind
             from mta.presentation.btr_sql import read_btr, export_chunks
@@ -324,8 +319,8 @@ def dispatch(function, request, payload, arguments):
             chunks = export_chunks(rows, headers(state, dates))
         else:
             from mta.presentation.scoped_rrr import read
-            rows = read(view.run, payload, paging=None, read_binding=view.pick)
-            chunks = csv_chunks(rows, selected_headers(state, FIELDS))
+            rows = read(view.run, payload, paging=None, read_binding=view.pick, export=True)
+            return csv_response(rows, lambda: selected_headers(state, FIELDS))
         response = StreamingHttpResponse(chunks, content_type='text/csv')
         response['Content-Disposition'] = 'attachment'
         return response

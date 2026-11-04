@@ -41,7 +41,7 @@ def admitted_relation(run):
     return ('SELECT * FROM mta.' + quote(RrrPreparedMembership._meta.db_table) + ' WHERE run_id=%s', [run.pk])
 
 
-def read_prepared(run, payload, *, paging, count, relation, relation_params, read_binding=None):
+def read_prepared(run, payload, *, paging, count, relation, relation_params, read_binding=None, export=False):
     """Read the same selected fields and bags from exact admitted ordinals."""
     from mta.presentation.rrr_sql import Filters, equal, key
     if read_binding is not None:
@@ -105,12 +105,25 @@ def read_prepared(run, payload, *, paging, count, relation, relation_params, rea
     columns += [(prefix.lower() + str(i), owner + '.' + quote(prefix + str(i))) for owner, prefix in (('C', 'SL'), ('D', 'LL')) for i in range(1, 6)]
     columns += [(prefix + str(i), 'COALESCE(' + owner + '.' + quote('c' + str(i)) + ",'-')") for prefix, owner in (('SKULocAttr', 'B'), ('SKUAttr', 'C'), ('LocAttr', 'D')) for i in range(1, 16)]
     selected = 'count(*)' if count else ','.join((('COALESCE(' + value + ",'-')" if name in NULL_DASH else value) + ' AS ' + quote(name) for name, value in columns))
-    query = 'WITH ' + ','.join(ctes) + ' SELECT ' + selected + joins + ' WHERE ' + where
+    prefix = 'WITH ' + ','.join(ctes)
+    query = prefix + ' SELECT ' + selected + joins + ' WHERE ' + where
+    if export and not count:
+        # A NULL ParentNorm makes the complete export incomparable, including
+        # when it belongs to a row after the first cursor batch.
+        with connection.cursor() as cursor:
+            cursor.execute(prefix + ' SELECT EXISTS(SELECT 1' + joins + ' WHERE (' + where +
+                           ') AND A."ParentNorm" IS NULL)', params)
+            if cursor.fetchone()[0]:
+                raise ValueError('Canonical RRR ParentNorm NULL conversion is not comparable')
     if not count:
         query += ' ORDER BY A.dispatch_color_sequence NULLS FIRST, A.dispatch_pen DESC NULLS LAST,A.location_key,A.sku_key,A.ordinal'
         if paging is not None:
             query += ' LIMIT %s OFFSET %s'
             params.extend((paging[1], (paging[0] - 1) * paging[1]))
+    if export and not count:
+        from mta.presentation.bpr_prepared import _primed_export
+        from mta.presentation.btr_sql import iter_rows
+        return _primed_export(iter_rows(query, params))
     with connection.cursor() as cursor:
         cursor.execute(query, params)
         if count:

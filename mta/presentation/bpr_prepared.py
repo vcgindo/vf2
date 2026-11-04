@@ -1,5 +1,7 @@
 from mta.presentation.native_mode import removed_mode
 """Read the sealed native BPR candidate bag; request semantics remain live."""
+from contextlib import nullcontext
+
 from django.db import connection, transaction
 
 from mta.presentation.bpr_filters import BprPredicate
@@ -209,9 +211,10 @@ def _with_transit(rows, ancillary):
         yield row
 
 
-def _export_rows(run, query, params, ancillary, daily):
+def _export_rows(run, query, params, ancillary, daily, *, publication_bound=False):
     from mta.presentation.report_verification import verification_scope
-    with verification_scope(run), transaction.atomic(), connection.cursor() as control:
+    scope = nullcontext() if publication_bound else verification_scope(run)
+    with scope, transaction.atomic(), connection.cursor() as control:
         control.execute("SELECT current_setting('jit')")
         previous_jit = control.fetchone()[0]
         control.execute('SET LOCAL jit=off')
@@ -262,7 +265,7 @@ def _primed_export(rows):
     return Remaining()
 
 
-def _read_bpr(run, payload, *, paging=None, count=False, analytics=False, export=False):
+def _read_bpr(run, payload, *, paging=None, count=False, analytics=False, export=False, publication_bound=False):
     from mta.presentation.daily_preparation import production_branch
     daily = production_branch(run)
     if not daily:
@@ -309,7 +312,7 @@ def _read_bpr(run, payload, *, paging=None, count=False, analytics=False, export
             return [{prefix + color: 0 for prefix in ('OnHand', 'Pipeline') for color in ('Black', 'Red', 'Yellow', 'Green', 'White', 'Blue', 'Grey')}]
         return 0 if count else []
     if export:
-        return _export_rows(run, query, params, ancillary, daily)
+        return _export_rows(run, query, params, ancillary, daily, publication_bound=publication_bound)
     with transaction.atomic(), connection.cursor() as cursor:
         cursor.execute("SELECT current_setting('jit')")
         previous_jit = cursor.fetchone()[0]
@@ -326,17 +329,20 @@ def _read_bpr(run, payload, *, paging=None, count=False, analytics=False, export
         return result
 
 
-def read_bpr(run, payload, *, paging=None, count=False, analytics=False, export=False):
+def read_bpr(run, payload, *, paging=None, count=False, analytics=False, export=False, publication_bound=False):
     if not export:
         return _read_bpr(run, payload, paging=paging, count=count, analytics=analytics)
     if count or analytics:
         raise ValueError('BPR_export_mode_conflict')
+    if publication_bound and not connection.in_atomic_block:
+        raise PublicationUnavailable('BPR_export_publication_snapshot_required')
     def verified_rows():
         from mta.presentation.report_verification import verification_scope
         # Own admission from eager metadata/receipt validation through the last
         # cursor batch; a scope around only HTTP construction expires too early.
-        with verification_scope(run):
-            rows = _read_bpr(run, payload, paging=paging, export=True)
+        scope = nullcontext() if publication_bound else verification_scope(run)
+        with scope:
+            rows = _read_bpr(run, payload, paging=paging, export=True, publication_bound=publication_bound)
             try:
                 yield from rows
             finally:

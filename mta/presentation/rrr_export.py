@@ -75,9 +75,9 @@ def csv_chunks(rows, headers):
 class CsvStream:
     """Close the report cursor even when a response ends before its first byte."""
 
-    def __init__(self, rows, headers):
+    def __init__(self, rows, headers, *, chunks=csv_chunks):
         self.rows = rows
-        self.body = csv_chunks(rows, headers)
+        self.body = chunks(rows, headers)
         self.closed = False
 
     def __iter__(self):
@@ -100,10 +100,10 @@ class CsvStream:
             close()
 
 
-def csv_response(rows, headers):
+def csv_response(rows, headers, *, chunks=csv_chunks):
     from django.http import StreamingHttpResponse
     try:
-        response = StreamingHttpResponse(CsvStream(rows, headers()), content_type='text/csv')
+        response = StreamingHttpResponse(CsvStream(rows, headers(), chunks=chunks), content_type='text/csv')
     except BaseException:
         close = getattr(rows, 'close', None)
         if close is not None:

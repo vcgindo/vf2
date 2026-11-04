@@ -157,6 +157,10 @@ def read(run, payload, *, count=False, export=False, read_binding=None):
             params.extend(((paging['pageNumber']-1)*paging['recordsPerPage']+1,
                            paging['pageNumber']*paging['recordsPerPage']))
         sql += ' ORDER BY "RN"'
+    if export and not count:
+        from mta.presentation.bpr_prepared import _primed_export
+        from mta.presentation.btr_sql import iter_rows
+        return _primed_export(iter_rows(sql, params))
     with connection.cursor() as cursor:
         cursor.execute(sql, params)
         if count:
