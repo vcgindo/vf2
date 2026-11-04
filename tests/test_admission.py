@@ -167,7 +167,7 @@ class AdmissionTest(unittest.TestCase):
                 for header in ('true', 'false'):
                     require.reset_mock()
                     app({'PATH_INFO':path, 'HTTP_X_BUFFER_RECEIPTS':header}, Mock())
-                    require.assert_called_once_with()
+                require.assert_called_once_with(report_path=None)
 
     @override_settings(VF_BTR_REPORTING_GENERATION='selected')
     def test_reporting_identity_follows_native_validation_and_keeps_full_binding(self):

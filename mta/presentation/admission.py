@@ -52,11 +52,11 @@ CONFIG_SETTINGS = (
 )
 
 
-def binding(run=None):
+def binding(run=None, *, report_path=None):
     from mta.presentation import scoped_selection
     if scoped_selection.enabled():
         from mta.presentation.scoped_admission import binding as phase_binding
-        return phase_binding(run)
+        return phase_binding(run, report_path=report_path)
     run, identity = native_binding(run)
     if getattr(settings, 'VF_BTR_REPORTING_GENERATION', ''):
         from mta.presentation.btr_reporting import admission_identity
@@ -179,13 +179,13 @@ def admit():
     return result
 
 
-def require_admission():
+def require_admission(*, report_path=None):
     """Fail closed on changed identity; do not revalidate inside a request."""
     global _admitted
     if _admitted is None:
         raise PublicationUnavailable('publication_not_admitted')
     try:
-        _, current = binding()
+        _, current = binding(report_path=report_path)
         if current != _admitted:
             raise PublicationUnavailable('publication_admission_changed_restart_required')
     except (OperationalError, InterfaceError):
@@ -244,7 +244,7 @@ class AdmittedApplication:
             if scoped_selection.enabled():
                 # Certified phase readiness owns its preflight transaction.
                 # Do not move that separate contract into the report snapshot.
-                return self._dispatch(environ, start_response)
+                return self._dispatch(environ, start_response, report_path=path)
             # The Full native report middleware performs the same live admission
             # inside its read-only snapshot, then owns that request scope through
             # lazy body consumption. A preflight here would repeat validation
@@ -254,7 +254,7 @@ class AdmittedApplication:
         with read_request(environ.get('PATH_INFO', '')):
             return self._dispatch(environ, start_response)
 
-    def _dispatch(self, environ, start_response):
+    def _dispatch(self, environ, start_response, *, report_path=None):
         if environ.get('PATH_INFO', '').startswith('/api/mta/'):
             try:
                 from mta.presentation.installation_metadata import (
@@ -274,7 +274,7 @@ class AdmittedApplication:
                     # this metadata-only lifetime before constructing any part
                     # of the downstream response or entering a write handler.
                     with admission_preflight(enabled=scoped_dbm):
-                        admitted = require_admission()
+                        admitted = require_admission(report_path=report_path)
                     environ['vectorflow.admitted_publication'] = admitted
             except Exception:
                 connections.close_all()

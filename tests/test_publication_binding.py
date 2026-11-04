@@ -262,8 +262,9 @@ class PublicationBindingTests(SimpleTestCase):
         from mta.presentation import admission, scoped_selection
         app = admission.AdmittedApplication.__new__(admission.AdmittedApplication)
         app.application = WSGIHandler()
-        def preflight():
+        def preflight(*, report_path):
             self.assertFalse(self.active)
+            self.assertIn(report_path, (binding.BOOTSTRAP, '/api/mta/RRRData'))
             return 'scoped-admitted'
         self.admission_reader.side_effect = preflight
         for schema in ('fresh-selected-bpr-v1', scoped_selection.DBM_SCHEMA):
@@ -281,7 +282,7 @@ class PublicationBindingTests(SimpleTestCase):
                     response = app(request.environ, start)
                     body = b''.join(response); response.close()
                     self.assertEqual(start.call_args.args[0], '200 OK', body)
-                    self.admission_reader.assert_called_once_with()
+                    self.admission_reader.assert_called_once_with(report_path=route)
                     self.assertFalse(self.active)
 
     def test_bootstrap_metadata_reuse_ends_at_each_request(self):

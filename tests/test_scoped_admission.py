@@ -1,4 +1,5 @@
 """Phase WSGI wiring and fail-closed identities; native serving needs PG proof."""
+from contextlib import contextmanager
 from datetime import date
 import hashlib
 import json
@@ -88,6 +89,38 @@ class ScopedAdmissionTests(unittest.TestCase):
                 setattr(target, key, before)
         with self.assertRaises(PublicationUnavailable):
             scoped_admission.binding(SimpleNamespace(pk=uuid4()))
+
+    def test_report_read_scope_starts_after_certification_and_ends_after_binding(self):
+        from mta.presentation.request_scope import in_read_request
+        expected = scoped_admission.binding()
+        events = []
+
+        def certified(_):
+            self.assertFalse(in_read_request())
+            events.append('certified')
+            return self.source
+
+        @contextmanager
+        def snapshot():
+            events.append('snapshot')
+            try:
+                yield
+            finally:
+                self.assertFalse(in_read_request())
+                events.append('closed')
+
+        select = scoped_admission._selection_identity
+
+        def selection(*args):
+            self.assertTrue(in_read_request())
+            events.append('selection')
+            return select(*args)
+
+        with patch.object(self.certified, 'side_effect', certified), \
+                patch('mta.presentation.publication_binding.snapshot', snapshot), \
+                patch.object(scoped_admission, '_selection_identity', selection):
+            self.assertEqual(scoped_admission.binding(report_path='/api/mta/PublicationBinding'), expected)
+        self.assertEqual(events, ['certified', 'snapshot', 'selection', 'closed'])
 
     def test_changed_file_configuration_or_recipe_cannot_be_reused(self):
         with override_settings(VF_MTA_PUBLISHED_RUN=str(uuid4())):

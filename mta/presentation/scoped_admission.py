@@ -13,8 +13,7 @@ from mta.runtime.ingestion_admission import certified_source
 from mta.serialization import digest
 
 
-def binding(expected_run=None):
-    from mta.presentation.admission import CONFIG_SETTINGS
+def binding(expected_run=None, *, report_path=None):
     if not scoped_selection.enabled():
         raise PublicationUnavailable('phase_selection_required')
     anchor = scoped_selection.read(settings.VF_MTA_PHASE_SELECTION_FILE)
@@ -45,6 +44,18 @@ def binding(expected_run=None):
     source = certified_source(source_digest)
     if source is None or source.pk != capture.source_id:
         raise PublicationUnavailable('phase_certified_source_required')
+    if report_path and expected_phase == 'BPR':
+        from mta.presentation.publication_binding import snapshot
+        from mta.presentation.request_scope import read_request
+        # Certification owns its transaction above. The remaining admission
+        # reads can share one pinned view of the sealed input and receipts.
+        with snapshot(), read_request(report_path):
+            return _selection_identity(anchor, run, phase, source, source_digest, expected_phase)
+    return _selection_identity(anchor, run, phase, source, source_digest, expected_phase)
+
+
+def _selection_identity(anchor, run, phase, source, source_digest, expected_phase):
+    from mta.presentation.admission import CONFIG_SETTINGS
     permission_catalogue()
     if (settings.VF_MTA_PERMISSIONS_SHA256 != anchor['permissions_sha256']
             or scoped_selection.recipe_for_run(run) != anchor['recipe_digest']):
