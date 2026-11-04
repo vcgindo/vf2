@@ -1,7 +1,7 @@
 """Browser publication binding; no selection, session or business-state writer.
 
-Only report reads participate. Installation/MDM metadata and commands retain
-their existing contracts. A read-only snapshot survives lazy export iteration.
+A read-only snapshot survives lazy export iteration. Native DBM actions check
+the selected grid's binding while holding the existing writer locks.
 """
 from contextlib import ExitStack, contextmanager
 from contextvars import ContextVar
@@ -22,6 +22,7 @@ SCOPE_HEADER = 'X-VectorFLOW-Report-Scope'
 ENVIRON_HEADER = 'HTTP_X_VECTORFLOW_PUBLICATION'
 BOOTSTRAP = '/api/mta/PublicationBinding'
 _read_snapshot = ContextVar('publication_read_snapshot', default=None)
+DBM_ACTIONS = frozenset(('/api/mta/DBMApplySelectedNorms', '/api/mta/DBMUpdateSleepTbl'))
 
 # These are report consumers, not the wider metadata/MDM read-cache allowlist.
 REPORTS = frozenset('''GetLastRunDate GetOrderAllocationReportData GetOrderAllocationReportDataCount
@@ -162,6 +163,8 @@ class PublicationBindingMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        if enabled() and request.method == 'POST' and request.path.rstrip('/') in DBM_ACTIONS:
+            return self.dbm_action(request)
         bootstrap = request.path == BOOTSTRAP
         if not bootstrap and not report_path(request.path):
             return self.get_response(request)
@@ -243,3 +246,51 @@ class PublicationBindingMiddleware:
         except BaseException:
             stack.close()
             raise
+
+    def dbm_action(self, request):
+        from mta.presentation import scoped_selection
+        from mta.presentation.admission import require_admission
+        from mta.presentation.views import identity as gateway_identity
+        from mta.runtime.models import CalculationRun, RemarkOwner
+        from mta.runtime.scope_execution import _source_lock
+
+        gateway = gateway_identity(request)
+        if gateway is None:
+            return JsonResponse({'error': 'gateway_identity_required'}, status=403)
+        token = request.headers.get(HEADER)
+        scoped = scoped_selection.enabled()
+        try:
+            if token and token != ACQUIRE:
+                with transaction.atomic():
+                    if scoped:
+                        # The scoped writer uses this same upgrade/source/run/
+                        # remark lock order. Keep it through the nested write.
+                        anchor = scoped_selection.read(settings.VF_MTA_PHASE_SELECTION_FILE)
+                        if anchor != settings.VF_MTA_PHASE_SELECTION:
+                            raise PublicationUnavailable('phase_action_selection_changed')
+                        run_id = anchor['run_id']
+                        with connection.cursor() as cursor:
+                            cursor.execute("SELECT pg_advisory_xact_lock_shared(hashtextextended('fresh.production.initialization',0))")
+                        _source_lock(run_id)
+                    else:
+                        run_id = settings.VF_MTA_PUBLISHED_RUN
+                    CalculationRun.objects.select_for_update().get(pk=run_id)
+                    if scoped:
+                        RemarkOwner.objects.select_for_update().get(pk='BPRReport_RemarkDetails')
+                        if str(scoped_selection.selected().run_id) != str(run_id):
+                            raise PublicationUnavailable('phase_action_selection_changed')
+                        # Certified scoped readiness owns a separate snapshot.
+                        # The WSGI preflight admitted this anchor, and the
+                        # scoped writer rechecks live authority in its own cut.
+                        admitted = request.META.get('vectorflow.admitted_publication')
+                        if not admitted:
+                            raise PublicationUnavailable('publication_not_admitted')
+                    else:
+                        admitted = require_admission()
+                    current = scoped_identity(identity(admitted), {
+                        'id': gateway['id'], 'report_scope_digest': request.headers.get(SCOPE_HEADER)})
+                    if token == current:
+                        return self.get_response(request)
+        except (PublicationUnavailable, CalculationRun.DoesNotExist):
+            return JsonResponse({'error': 'publication_not_admitted'}, status=503)
+        return JsonResponse({'error': 'publication_binding_missing_or_stale'}, status=409)

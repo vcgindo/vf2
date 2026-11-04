@@ -1,4 +1,4 @@
-import { refreshMtaReportBinding, isMtaReportCurrent } from "../../../../../config/mta-publication-binding"
+import { PUBLICATION_HEADER, refreshMtaReportBinding, isMtaReportCurrent } from "../../../../../config/mta-publication-binding"
 import { useCallback } from 'react';
 import { loadDailyData } from '../../../../../components/VectorFLOW/commons/DailyDataGraphModal/loadDailyData';
 import { useState,useMemo,useEffect,useRef } from "react"
@@ -33,7 +33,8 @@ const useDBM =()=>{
     useEffect(() => () => { reportRequest.current++; }, []);
     const gridRef = useRef<GridRef>();
     const tempRef:any = useRef()
-    const [DBMRowData,setDBMRowData] = useState<any[]>([])
+    const [{rows: DBMRowData, publicationBinding},setDBMGrid] =
+        useState<{rows: any[], publicationBinding?: string}>({rows: []})
     const [DBMDataCount, setDBMDataCount]=useState<any>();
     // const [recordCount,setRecordCount] = useState<number>(0)
 
@@ -273,12 +274,16 @@ const useDBM =()=>{
                 notifyError("No Rows Selected.");
                 return;
             }
+            if (selectedRows.some(row => !DBMRowData.includes(row))) {
+                throw new Error("Selected rows changed. Select them again before submitting.");
+            }
             const extractedData:any = selectedRows?.map (items => ({
                 SKUCode:items.SKUCode,
                 WHCode:items.LocCode
             }));
 
                 const response = await getDBMApplySelectedNorm({
+                    publicationBinding,
                     data:extractedData,
                     filters:[],
                     paginationParameter:{
@@ -305,12 +310,16 @@ const useDBM =()=>{
                 notifyError("No Rows Selected.");
                 return;
             }
+            if (selectedRows.some(row => !DBMRowData.includes(row))) {
+                throw new Error("Selected rows changed. Select them again before submitting.");
+            }
             const extractedDataForSleep:any = selectedRows?.map (items => ({
                 SKUCode:items.SKUCode,
                 WHCode:items.LocCode
             }));
 
                 const response = await getDBMUpdateSleepTbl({
+                    publicationBinding,
                     data:extractedDataForSleep,
                 });
             if (response?.status >= 400) throw new Error("Unable to submit norms");
@@ -372,12 +381,12 @@ const useDBM =()=>{
             if (version !== reportRequest.current || !isMtaReportCurrent(count) || !isMtaReportCurrent(grid)) return;
             if (count?.status >= 400 || grid?.status >= 400) throw new Error("Unable to load report data");
             setDBMDataCount(count?.data?.recordCount);
-            setDBMRowData(grid?.data?.data || []);
+            setDBMGrid({rows: grid?.data?.data || [], publicationBinding: grid?.headers?.[PUBLICATION_HEADER.toLowerCase()]});
             notifySuccess("Data Loaded Successfully");
         } catch (error) {
             if (version !== reportRequest.current) return;
             setDBMDataCount(undefined);
-            setDBMRowData([]);
+            setDBMGrid({rows: []});
             notifyError(error);
         } finally {
             toast.dismiss(toastId);

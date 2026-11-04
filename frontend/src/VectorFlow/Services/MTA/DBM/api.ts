@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 import axios from "axios";
+import { PUBLICATION_HEADER } from "../../../../config/mta-publication-binding";
 
 export namespace DBMServices {
     
@@ -19,9 +20,9 @@ export namespace DBMServices {
         });
       }
 
-      export const getDBMApplySelectedNorm = async (body:{data:Array<{SKUCode:string,LocCode:string}>,paginationParameter:{pageNumber:number,recordsPerPage:number},filters:Array<{attributeName:string,op:string,value:string}>}) => {
+    export const getDBMApplySelectedNorm = async (body:{data:Array<{SKUCode:string,LocCode:string}>,paginationParameter:{pageNumber:number,recordsPerPage:number},filters:Array<{attributeName:string,op:string,value:string}>}, publicationBinding?: string) => {
         return await axios.post(process.env.REACT_APP_API_HOST+ `api/mta/DBMApplySelectedNorms`,body,{
-          headers:{ 'Content-Type': 'application/json' }
+          headers:{ 'Content-Type': 'application/json', ...(publicationBinding && {[PUBLICATION_HEADER]: publicationBinding}) }
         });
       }
 
@@ -31,9 +32,9 @@ export namespace DBMServices {
       //   });
       // }
 
-      export const getDBMUpdateSleepTbl = async (body:{data: Array<{SKUCode:string,WHCode:string}>}) => {
+      export const getDBMUpdateSleepTbl = async (body:{data: Array<{SKUCode:string,WHCode:string}>}, publicationBinding?: string) => {
         return await axios.post(process.env.REACT_APP_API_HOST+ `api/mta/DBMUpdateSleepTbl`,body,{
-          headers:{ 'Content-Type': 'application/json' }
+          headers:{ 'Content-Type': 'application/json', ...(publicationBinding && {[PUBLICATION_HEADER]: publicationBinding}) }
         });
       }
 

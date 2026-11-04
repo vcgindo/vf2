@@ -27,8 +27,8 @@ export const useGetDBMUIConfiguration =  () => {
     })
   }
   export const useGetDBMApplySelectedNorm  = ()=>{
-    return useMutation(QUERY_KEYS.useGetDBMApplySelectedNorm,async (body:{data:Array<{SKUCode:string,LocCode:string}>,paginationParameter:{pageNumber:number,recordsPerPage:number},filters:any})=>{
-      return await DBMServices.getDBMApplySelectedNorm(body);
+    return useMutation(QUERY_KEYS.useGetDBMApplySelectedNorm,async ({publicationBinding,...body}:{publicationBinding?:string,data:Array<{SKUCode:string,LocCode:string}>,paginationParameter:{pageNumber:number,recordsPerPage:number},filters:any})=>{
+      return await DBMServices.getDBMApplySelectedNorm(body, publicationBinding);
     })
   }
   // export const useGetDBMUpdateSleepTbl  = ()=>{
@@ -38,8 +38,8 @@ export const useGetDBMUIConfiguration =  () => {
   // }
 
   export const useGetDBMUpdateSleepTbl  = ()=>{
-    return useMutation(QUERY_KEYS.useGetDBMUpdateSleepTbl,async (body:{data:Array<{SKUCode:string,WHCode:string}>})=>{
-      return await DBMServices.getDBMUpdateSleepTbl(body);
+    return useMutation(QUERY_KEYS.useGetDBMUpdateSleepTbl,async ({publicationBinding,...body}:{publicationBinding?:string,data:Array<{SKUCode:string,WHCode:string}>})=>{
+      return await DBMServices.getDBMUpdateSleepTbl(body, publicationBinding);
     })
   }
 

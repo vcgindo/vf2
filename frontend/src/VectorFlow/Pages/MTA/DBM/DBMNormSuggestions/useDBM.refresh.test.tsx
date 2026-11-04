@@ -24,7 +24,7 @@ jest.mock('./SuggestionCategoryCellRendere',()=>()=>null);
 
 beforeEach(()=>{
   jest.clearAllMocks();
-  mockRows.mockResolvedValue({status:200,data:{data:[{SKUCode:'before'}]}});
+  mockRows.mockResolvedValue({status:200,headers:{'x-vectorflow-publication':'grid-token'},data:{data:[{SKUCode:'before'}]}});
   mockCount.mockResolvedValue({status:200,data:{recordCount:1}});
   mockConfig.mockResolvedValue({data:{data:[]}});
   mockState.mockResolvedValue({data:{data:''}});
@@ -35,11 +35,12 @@ beforeEach(()=>{
 test.each(['Apply','Sleep'])('%s commits one new count/grid pair and never replays the mutation',async action=>{
   const {result}=renderHook(useDBM);
   await act(async()=>{});
-  (result.current.gridRef as any).current={api:{getSelectedRows:()=>[{SKUCode:'sku',LocCode:'loc'}]}};
+  (result.current.gridRef as any).current={api:{getSelectedRows:()=>result.current.DBMRowData}};
   mockRows.mockResolvedValueOnce({status:200,data:{data:[{SKUCode:'after'}]}});
   mockCount.mockResolvedValueOnce({status:200,data:{recordCount:2}});
   await act(async()=>{await (action==='Apply'?result.current.handleGoButton(1):result.current.handleGoButtonForSleep(1));});
   expect(action==='Apply'?mockApply:mockSleep).toHaveBeenCalledTimes(1);
+  expect(action==='Apply'?mockApply:mockSleep).toHaveBeenCalledWith(expect.objectContaining({publicationBinding:'grid-token'}));
   expect(mockRows).toHaveBeenCalledTimes(2);
   expect(mockCount).toHaveBeenCalledTimes(2);
   expect(result.current.DBMRowData).toEqual([{SKUCode:'after'}]);
@@ -50,7 +51,7 @@ test.each(['Apply','Sleep'])('%s commits one new count/grid pair and never repla
 test('a failed post-action refresh can retry reads without repeating Apply',async()=>{
   const {result}=renderHook(useDBM);
   await act(async()=>{});
-  (result.current.gridRef as any).current={api:{getSelectedRows:()=>[{SKUCode:'sku',LocCode:'loc'}]}};
+  (result.current.gridRef as any).current={api:{getSelectedRows:()=>result.current.DBMRowData}};
   mockCount.mockRejectedValueOnce(new Error('publication changed'));
   await act(async()=>{await result.current.handleGoButton(1);});
   expect(result.current.DBMRowData).toEqual([]);
@@ -58,4 +59,15 @@ test('a failed post-action refresh can retry reads without repeating Apply',asyn
   await act(async()=>{await result.current.handleApplyFilter({kept:true});});
   expect(result.current.DBMRowData).toEqual([{SKUCode:'before'}]);
   expect(mockApply).toHaveBeenCalledTimes(1);
+});
+
+test('rows from an earlier grid cannot be submitted with a newer grid token',async()=>{
+  const {result}=renderHook(useDBM);
+  await act(async()=>{});
+  const priorRows=result.current.DBMRowData;
+  (result.current.gridRef as any).current={api:{getSelectedRows:()=>priorRows}};
+  mockRows.mockResolvedValueOnce({status:200,headers:{'x-vectorflow-publication':'new-token'},data:{data:[{SKUCode:'after'}]}});
+  await act(async()=>{await result.current.handleApplyFilter({kept:true});});
+  await act(async()=>{await result.current.handleGoButton(1);});
+  expect(mockApply).not.toHaveBeenCalled();
 });

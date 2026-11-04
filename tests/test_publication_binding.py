@@ -107,6 +107,35 @@ class PublicationBindingTests(SimpleTestCase):
         for route in ('GetState', 'GetMasterData', 'GetCount', 'DBMApplySelectedNorms', 'AddRemark'):
             self.assertEqual(self.call('/api/mta/' + route)[0], 200)
 
+    def test_native_dbm_writes_require_the_live_grid_binding_under_the_run_lock(self):
+        from mta.runtime.models import CalculationRun
+
+        @contextmanager
+        def write_transaction():
+            self.events.append('begin-write')
+            yield
+            self.events.append('end-write')
+
+        def admit_locked():
+            self.assertEqual(self.events[-1], 'run-locked')
+            return 'admitted'
+
+        with patch.object(binding.transaction, 'atomic', write_transaction), \
+                patch('mta.presentation.scoped_selection.enabled', return_value=False), \
+                patch.object(CalculationRun.objects, 'select_for_update') as lock:
+            lock.return_value.get.side_effect = lambda **kwargs: self.events.append('run-locked')
+            self.admission_reader.side_effect = admit_locked
+            for route in binding.DBM_ACTIONS:
+                target = Mock(return_value=JsonResponse({'ok': True}))
+                for token in (None, binding.ACQUIRE, 'stale'):
+                    self.assertEqual(self.call(route, token, target, method='POST')[0], 409)
+                target.assert_not_called()
+                target.side_effect = lambda request: (
+                    self.assertEqual(self.events[-1], 'run-locked') or JsonResponse({'ok': True}))
+                self.assertEqual(self.call(route, self.token, target, method='POST')[0], 200)
+                self.assertEqual(self.events[-1], 'end-write')
+                target.assert_called_once()
+
     def test_explicit_acquisition_returns_owner_date_in_same_snapshot_only_for_reads(self):
         value = json.loads(self.call(binding.BOOTSTRAP)[1])
         self.assertTrue(value['report_acquisition'])
