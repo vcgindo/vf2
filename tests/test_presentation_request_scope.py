@@ -1,8 +1,33 @@
 import unittest
+from unittest.mock import MagicMock, Mock, patch
 from mta.presentation.request_scope import once_per_request, read_request
 
 
 class RequestScopeTests(unittest.TestCase):
+    def test_validation_admits_history_cte_and_rejects_writes_and_locks(self):
+        from mta.presentation.request_scope import remark_validation, validation_reads
+
+        connection = MagicMock(in_atomic_block=True)
+        execute = Mock()
+        with patch('django.db.connection', connection), remark_validation(), validation_reads():
+            guard, = connection.execute_wrapper.call_args.args
+            history = 'WITH prior AS (SELECT 1), changes AS (SELECT 2) SELECT * FROM prior'
+            guard(execute, history, (), False, {})
+            execute.assert_called_once_with(history, (), False, {})
+            execute.reset_mock()
+
+            for sql in (
+                'WITH prior AS (DELETE FROM history RETURNING *) SELECT * FROM prior',
+                'WITH prior AS (SELECT 1) UPDATE history SET value = 0',
+                'WITH prior AS (SELECT 1) SELECT * INTO scratch FROM prior',
+                'WITH prior AS (SELECT * FROM history FOR SHARE) SELECT * FROM prior',
+                'WITH prior AS (SELECT 1) SELECT * FROM prior FOR UPDATE',
+                'WITH prior AS (SELECT 1) SELECT * FROM prior; SET ROLE other_user',
+            ):
+                with self.subTest(sql=sql), self.assertRaises(ValueError):
+                    guard(execute, sql, (), False, {})
+            execute.assert_not_called()
+
     def test_typed_scalar_arguments_do_not_alias_boolean_integer_or_float(self):
         calls = []
         @once_per_request

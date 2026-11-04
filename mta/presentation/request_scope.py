@@ -68,13 +68,18 @@ def validation_reads():
         # read helpers. Producer SQL, DDL, role changes and nested transactions
         # belong outside this phase and must never inherit a read cache.
         words = sql.lstrip().split(None, 1) if isinstance(sql, str) else []
-        if not words or words[0].upper() != 'SELECT':
+        command = words[0].upper() if words else None
+        if command not in ('SELECT', 'WITH'):
             raise ValueError('SQL write or control statement inside remark validation')
-        if ';' in sql:
+        if command == 'WITH' or ';' in sql:
             import sqlparse
             statements = sqlparse.parse(sql)
             if (len(statements) != 1 or statements[0].get_type() != 'SELECT'
-                    or any(token.ttype in sqlparse.tokens.Keyword.DML and token.value.upper() != 'SELECT'
+                    or any((token.ttype in sqlparse.tokens.Keyword.DML and token.normalized != 'SELECT')
+                           or token.ttype in sqlparse.tokens.Keyword.DDL
+                           or token.ttype in sqlparse.tokens.Keyword.TCL
+                           or (token.ttype in sqlparse.tokens.Keyword
+                               and token.normalized.split()[0] in ('INTO', 'FOR'))
                         for token in statements[0].flatten())):
                 raise ValueError('Multiple or modifying statements inside remark validation')
         return execute(sql, params, many, context)
