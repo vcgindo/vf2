@@ -20,7 +20,7 @@ def _fail():
     raise PublicationUnavailable('phase_dbm_source_owner_differs')
 
 
-def _opening_rows(sources, name):
+def _opening_rows(sources, name, *, pair=None):
     inherited = sources.inherited_btr
     if inherited is None:
         _fail()
@@ -55,8 +55,6 @@ def _opening_rows(sources, name):
             or type(item.get('count')) is not int or item['count'] < 0
             or not isinstance(item.get('fields'), list)):
         _fail()
-    if item['count'] == 0 and item['digest'] != digest([]):
-        _fail()
     columns = dict(typed.STORAGE_TABLES[table])
     seen = set()
     for field in item['fields']:
@@ -65,6 +63,18 @@ def _opening_rows(sources, name):
                 or field[2] not in ('str', 'int', 'float', 'bool')):
             _fail()
         seen.add(field[0])
+    if inherited.locator['owner_kind'] == 'PREDECESSOR':
+        from mta.runtime import dated_history_reader
+        if dated_history_reader.owns(item):
+            if pair is None:
+                return dated_history_reader.load_image(owner, item)
+            from mta.presentation.dbm_read import _selected_rows
+            location = next((field for field in ('WhCode', 'WHCode', 'LocCode') if field in seen), 'WhCode')
+            if item['count'] and location not in seen:
+                _fail()
+            return _selected_rows(owner, path, {'SKUCode': pair[0], location: pair[1]}, metadata=item)
+    if item['count'] == 0 and item['digest'] != digest([]):
+        _fail()
     reader = opening_storage.load_image if inherited.locator['owner_kind'] == 'INITIALIZATION' else typed.load_image
     return reader(owner, deepcopy(item))
 

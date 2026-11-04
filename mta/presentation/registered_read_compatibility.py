@@ -129,9 +129,10 @@ GUIDED_STATISTICS_READERS = {
     'mta.presentation.scoped_guided_availability': '9a1b4f5a92f0293b08451d6e2a08531f23df587c9baff26b2d9dc68ab9948dc7',
 }
 
-# These readers change routing only. Sealed producer and generation identities
-# still belong to the original recipes and are checked by their owners.
+# These readers use existing sealed sources without changing producer identities.
 PREPARED_REPORT_READERS = {
+    'mta.presentation.scoped_dbm': '5d45396607d62d9729543d00e6161bba714f1038075ee47bbdf87f4af7216730',
+    'mta.presentation.scoped_history': '905f199f4da10d551b702c2231a677b3fa587a8a8468daf5d999b12d9c568477',
     'mta.presentation.scoped_read_graph': 'f1973894ed5f16a749e6c3eb4756d99e9c90ce9630c785c0e84adff8dba0f673',
     'mta.presentation.views': '47e12496a48b9078bbf7ab825996f957d61861b9ed83ccc88059eadc64663cd7',
 }

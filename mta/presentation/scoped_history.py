@@ -37,7 +37,7 @@ def daily(view, payload):
     # histories have not run for N. Preserve their actual earlier row dates.
     for name in ('DailyConsumption', 'SuspendHistory', 'NormChangeLogTbl',
                  'SuggestionsLog', 'SuspendStockType', 'SuspendConsumptionType'):
-        state[name] = scoped_dbm._opening_rows(view.bpr.sources, name)
+        state[name] = scoped_dbm._opening_rows(view.bpr.sources, name, pair=(sku, location))
     marker = view.bpr.sources.rows('metadata/bpr/LastBatchRunTbl')
     state['LastBatchRunTbl'] = marker
     return daily_graph(state, sku, location)
