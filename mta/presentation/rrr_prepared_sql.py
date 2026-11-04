@@ -88,7 +88,10 @@ def read_prepared(run, payload, *, paging, count, relation, relation_params, rea
         ctes.append('K AS NOT MATERIALIZED (' + bands + ')')
         params.extend(values)
         band_join = ' JOIN K ON K.ordinal=H.band_ordinal'
-    ctes.append('A AS (SELECT H.*,' + ','.join(a_selections()) + ' FROM H JOIN R ON R.vf_ordinal=H.rationed_ordinal' + band_join + ')')
+    # Resolve scoped membership against its rationed and band ordinals before
+    # joining dimensions. Inlining let PostgreSQL combine the dimensions first.
+    membership_cte = 'A AS MATERIALIZED' if read_binding is not None else 'A AS'
+    ctes.append(membership_cte + ' (SELECT H.*,' + ','.join(a_selections()) + ' FROM H JOIN R ON R.vf_ordinal=H.rationed_ordinal' + band_join + ')')
     for alias, codes in (('P', products), ('L', locations)):
         members = [code for code in sorted(codes) for _ in range(codes.multiplicities[code])]
         ctes.append(alias + ' AS (VALUES ' + ','.join(['(%s)'] * len(members)) + ')')

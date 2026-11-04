@@ -136,7 +136,7 @@ PREPARED_REPORT_READERS = {
     'mta.presentation.bpr_prepared': '82ca88d63d9e86eb79cc5638f53865c629b9e78aa6db4509b294fa51925575b1',
     'mta.presentation.daily_rrr_read': '1e01b6ac9b63b175868675eda3f8f10bf2fd8b16f53d3808d26344730c87bda5',
     'mta.presentation.rrr_export': 'bd925acb777406e0d2bfca89fa1b86c1637e115bcdab142032bbb817cdff7cba',
-    'mta.presentation.rrr_prepared_sql': '38c4be164032068ab323320a8d723b57e193e06676e7bd08c8055479df298a05',
+    'mta.presentation.rrr_prepared_sql': 'e1fee9afec1fe5c5ecfe14cc9ee6f8541e8cc45630f33e9bfa0451fb0a97da21',
     'mta.presentation.scoped_api': 'dbbc47158e87250f49b0473661873b6edddadd9bfa95d3c98d9485ff2a99f06b',
     'mta.presentation.scoped_rrr': '3a4b2a8e9072936be23e3ffd5160a7c885a97b4fa984550f6833c0b470222919',
     'mta.presentation.scoped_dbm': '5d45396607d62d9729543d00e6161bba714f1038075ee47bbdf87f4af7216730',
