@@ -150,10 +150,10 @@ def read_chronic(run, payload, kind, *, read_binding=None):
         cur.execute("SELECT current_setting('jit'),current_setting('enable_mergejoin')")
         previous_jit,previous_merge=cur.fetchone()
         cur.execute('SET LOCAL jit=off')
-        # The qualified grid plan sorted both complete 97k occurrence bags to
-        # serve 3,340 rows and spilled them. Hash joins retain the same raw keys
-        # and duplicates; ordering is applied explicitly only to the result.
-        if grid:cur.execute('SET LOCAL enable_mergejoin=off')
+        # The qualified grid and terminal SKU chart both spilled while sorting
+        # near-complete source bags. Their result order is explicit.
+        if grid or (kind == 'chronic-sku' and read_binding is None and run.kind == 'DAILY_CHAIN'):
+            cur.execute('SET LOCAL enable_mergejoin=off')
         cur.execute(sql,params)
         rows=cur.fetchall()
         cur.execute("SELECT set_config('jit',%s,true),set_config('enable_mergejoin',%s,true)",
