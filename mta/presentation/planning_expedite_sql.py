@@ -194,7 +194,12 @@ def child_grid(run, payload,*,read_binding=None):
     fields = [*FIELDS, 'sap', 'ec', 'rlt', 'sl4', 'sl5', 'll4', 'll5', 'pk']
     from mta.presentation.logistics_live import enabled as logistics_enabled
     target_fields = ['parentWhCode'] if logistics_enabled() else []
-    with connection.cursor() as c:
+    with transaction.atomic(), connection.cursor() as c:
+        # The permission-weighted ranking estimate can trigger compilation
+        # even for a small page. Keep the setting local to this grid read.
+        c.execute("SELECT current_setting('jit')")
+        previous_jit = c.fetchone()[0]
+        c.execute('SET LOCAL jit=off')
         c.execute('WITH selected AS (' + selected + ') SELECT 1 FROM selected GROUP BY branch,age,sk,lk,pk HAVING count(DISTINCT ROW(' + ','.join(map(quote, fields)) + '))>1 LIMIT 1', params)
         if c.fetchone():
             raise PublicationUnavailable('child_expedite_ambiguous_row_number')
@@ -206,6 +211,7 @@ def child_grid(run, payload,*,read_binding=None):
         c.execute(query + ' ORDER BY branch,rn', params)
         names = [col[0] for col in c.description]
         rows = [dict(zip(names, row)) for row in c.fetchall()]
+        c.execute("SELECT set_config('jit',%s,true)", [previous_jit])
     result = dict(expediteDispatches=[], createAvailabilityAtParent=[])
     for row in rows:
         target = 'expediteDispatches' if row.pop('branch') == 'dispatch' else 'createAvailabilityAtParent'

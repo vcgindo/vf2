@@ -131,6 +131,7 @@ GUIDED_STATISTICS_READERS = {
 
 # These readers use existing sealed sources without changing producer identities.
 PREPARED_REPORT_READERS = {
+    'mta.presentation.planning_expedite_sql': 'ecfd557c56350e29453f3abe684863ed457d1aa304f212d7a2e140321d1c2245',
     'mta.presentation.planning_expedite_chart_sql': '507e3828608f6ba944e7972c516178a804f592bbe05bc1a69d41f4df9718edfb',
     'mta.presentation.guided_history_prepared': '38e462ce6152ed8f3d4b1cae5d177c40a2386617c88180a19211c16d76bea6ba',
     'mta.presentation.bor_sql': '5a93dd942ad2f85bb361f182f085a46c316afabfebb99f53991faf076b7548fa',
@@ -195,7 +196,7 @@ GUARD_ADMISSION_RECIPES['scoped_expedite'] = '8aabac8c3ccb42b238fd5983f7e85adb00
 # The page and chart changes preserve the stored Expedite occurrence contract.
 TERMINAL_PLANNING_EXPEDITE_READER = (
     '8689ef5816bdc0325a1b54c29f932ca1cd5c3b28b3504dbbf473fd05947c0127',
-    'db0c3481dc391f704676da7fcd95d36db80ee39985d3c42025768fba51765773',
+    '8c743ba15fb5eea3ffb572c66ab92ef31ce116a6e90fc90b1ccae107487a31c4',
 )
 
 def compatible_guard_recipe(family, observed, current):
