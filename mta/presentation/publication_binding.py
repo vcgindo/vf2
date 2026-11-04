@@ -4,6 +4,7 @@ Only report reads participate. Installation/MDM metadata and commands retain
 their existing contracts. A read-only snapshot survives lazy export iteration.
 """
 from contextlib import ExitStack, contextmanager
+from contextvars import ContextVar
 from inspect import unwrap
 import json
 
@@ -20,6 +21,7 @@ ACQUIRE = 'acquire'
 SCOPE_HEADER = 'X-VectorFLOW-Report-Scope'
 ENVIRON_HEADER = 'HTTP_X_VECTORFLOW_PUBLICATION'
 BOOTSTRAP = '/api/mta/PublicationBinding'
+_read_snapshot = ContextVar('publication_read_snapshot', default=None)
 
 # These are report consumers, not the wider metadata/MDM read-cache allowlist.
 REPORTS = frozenset('''GetLastRunDate GetOrderAllocationReportData GetOrderAllocationReportDataCount
@@ -104,7 +106,20 @@ def snapshot():
     with transaction.atomic():
         with connection.cursor() as cursor:
             cursor.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY')
-        yield
+        token = _read_snapshot.set((connection.connection, object()))
+        try:
+            yield
+        finally:
+            _read_snapshot.reset(token)
+
+
+def snapshot_identity():
+    identity = _read_snapshot.get()
+    if identity is not None:
+        physical, _ = identity
+        if (connection.connection is physical and connection.in_atomic_block and
+                not connection.needs_rollback and not physical.closed):
+            return identity
 
 
 def date_envelope(request):

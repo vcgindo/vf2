@@ -77,7 +77,7 @@ def _database_identity():
 
 
 from mta.presentation.request_scope import (
-    once_per_metadata_operation, once_per_request, in_validation_reads)
+    once_per_metadata_operation, once_per_request, in_read_request, in_validation_reads)
 
 
 @once_per_metadata_operation
@@ -869,12 +869,13 @@ def save_input(owner, raw, *, image_writer, table_selector, aliases=None,
 def read_input(owner, *, components=None, image_reader, materialized_roots=(),
                identity_resolver=None, batch_resolver=None, owner_resolver=None,
                master_resolver=None):
-    # A locked action's pure traversal admits this sealed input owner once.
-    # All component consumers then use that same admitted reader instead of
-    # traversing its identity/reference graph and decoding its rows again.
-    if (in_validation_reads() and components is not None
-            and all(value is None for value in
-                    (identity_resolver, batch_resolver, owner_resolver, master_resolver))):
+    # Each locked action or pinned report snapshot can reuse its admitted input.
+    snapshot = None
+    if components is not None and in_read_request():
+        from mta.presentation.publication_binding import snapshot_identity
+        snapshot = snapshot_identity()
+    if (components is not None and (snapshot is not None or in_validation_reads()) and
+            all(value is None for value in (identity_resolver, batch_resolver, owner_resolver, master_resolver))):
         from mta.runtime.opening_storage import load_image as opening_image
         from mta.runtime.relational_state import load_image as run_image
         if image_reader in (opening_image, run_image):
@@ -882,7 +883,7 @@ def read_input(owner, *, components=None, image_reader, materialized_roots=(),
             # Changed caller data cannot inherit another model's admission.
             caller = (digest(owner.input_payload),
                 digest(getattr(owner, 'production_manifest', {})),
-                getattr(getattr(owner, '_state', None), 'db', None))
+                getattr(getattr(owner, '_state', None), 'db', None), snapshot)
             reader = _validation_reader(owner, image_reader, tuple(materialized_roots), caller)
             # Keep ordinary mutable results independent. RecordRows already
             # preserves immutable streaming rows without a population copy.

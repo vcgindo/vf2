@@ -88,6 +88,19 @@ class InputValidationAdmissionTests(unittest.TestCase):
             self.read(image_reader=self.reader, identity_resolver=lambda owner: self.identity)
         self.assertEqual(self.verify.call_count, 6)
 
+    def test_report_reuse_expires_with_the_snapshot_even_inside_one_request(self):
+        first, second = object(), object()
+        with request_scope.read_request('/api/mta/GetBPRData'), \
+                patch('mta.presentation.publication_binding.snapshot_identity',
+                      side_effect=[first, first, second, None]):
+            value = self.read()
+            value['profile']['values'][0] = 999
+            self.assertEqual(self.read()['profile']['values'], [1, None, 1])
+            self.assertEqual(self.verify.call_count, 1)
+            self.read()
+            self.read()
+        self.assertEqual(self.verify.call_count, 3)
+
     def test_writes_end_reuse_and_large_immutable_rows_are_not_copied(self):
         with request_scope.remark_validation():
             with request_scope.validation_reads():

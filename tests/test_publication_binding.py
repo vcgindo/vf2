@@ -415,11 +415,18 @@ class SnapshotContractTests(unittest.TestCase):
         with patch.object(binding, 'connection') as connection, patch.object(binding.transaction, 'atomic') as atomic:
             connection.vendor = 'postgresql'
             connection.in_atomic_block = False
+            connection.needs_rollback = False
+            connection.connection.closed = False
             with binding.snapshot():
+                connection.in_atomic_block = True
+                self.assertIs(binding.snapshot_identity()[0], connection.connection)
+                with patch.object(connection, 'connection'):
+                    self.assertIsNone(binding.snapshot_identity())
                 atomic.return_value.__enter__.assert_called_once()
                 connection.cursor.return_value.__enter__.return_value.execute.assert_called_once_with(
                     'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY')
             atomic.return_value.__exit__.assert_called_once()
+            self.assertIsNone(binding.snapshot_identity())
 
     def test_nested_or_non_postgres_snapshot_fails_closed(self):
         with patch.object(binding, 'connection') as connection:
