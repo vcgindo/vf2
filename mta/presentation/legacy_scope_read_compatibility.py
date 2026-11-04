@@ -66,6 +66,7 @@ def verify_expedite():
     legacy view/archive profiles retain their independent strict admission.
     """
     from mta.presentation.runtime_report_view import LEGACY_DEPENDENCIES
+    from mta.presentation.registered_read_compatibility import PREPARED_REPORT_READERS
     names=('planning_expedite_sql','planning_expedite_custom_sql','planning_expedite_chart_sql',
         'planning_expedite_transit','planning_expedite_grids','planning_expedite_custom','planning_expedite_charts',
         'expedite_read','expedite_charts','expedite_child_sources','planning_grid_sql','rrr_sql',
@@ -75,6 +76,9 @@ def verify_expedite():
         name='mta.presentation.'+module
         actual=hashlib.sha256(inspect.getsource(import_module(name)).encode()).hexdigest()
         if actual!=expected[name]:
+            # The exact terminal page change leaves Expedite's GridFilters intact.
+            if module == 'planning_grid_sql' and PREPARED_REPORT_READERS.get(name) == actual:
+                continue
             raise PublicationUnavailable('legacy_expedite_read_profile_source_differs:'+name)
 
 

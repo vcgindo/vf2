@@ -121,24 +121,42 @@ def read_grid(run, payload, *, family, paging, count=False, resolved_scope=None,
         with connection.cursor() as cursor:
             cursor.execute(sql, params)
             return int(cursor.fetchone()[0])
-    order = ('H.location_key DESC,H.sku_key ASC' if family == 'excess' else
-             'A."Gap" DESC NULLS LAST,H.sku_key DESC,H.location_key DESC')
+    order_keys = ([('H.location_key', ' DESC'), ('H.sku_key', ' ASC')] if family == 'excess' else
+                  [('A."Gap"', ' DESC NULLS LAST'), ('H.sku_key', ' DESC'), ('H.location_key', ' DESC')])
     # The occurrence ordinal preserves the existing selector's stable source
     # order inside SQL ties, not a new claim of legacy deterministic tie order.
-    order += ',H.ordinal,copies.n'
+    order_keys.extend((('H.ordinal', ''), ('copies.n', '')))
+    order = ','.join(column + direction for column, direction in order_keys)
     fields = [f.name for f in model._meta.local_fields if f.name not in ('id', 'run', 'ordinal')]
     selected = ','.join('A.' + quote(name) for name in fields)
     selected += ',H.sku_description AS "SKUName",H.location_description AS "WHName"'
     selected += ',' + ','.join('H.' + prefix + str(i) for prefix in ('sl', 'll') for i in range(1, 6))
     if family == 'excess':
         selected += ',H.parent_description AS "ParentWHName"'
-    ctes.append('selected AS (SELECT row_number() OVER (ORDER BY ' + order + ') AS rn,' + selected
-                + joins + ' CROSS JOIN LATERAL generate_series(1,P.weight*L.weight) copies(n) WHERE ' + where + ')')
-    sql = 'WITH ' + ','.join(ctes) + ' SELECT * FROM selected'
-    if paging is not None:
+    selection = joins + ' CROSS JOIN LATERAL generate_series(1,P.weight*L.weight) copies(n) WHERE ' + where
+    if read_binding is None and paging is not None and min(paging) > 0:
         page, size = paging
-        sql += ' WHERE rn BETWEEN %s AND %s'
-        params.extend(((page-1)*size+1, page*size))
+        offset = (page - 1) * size
+        keys = [(column, 'page_key_' + str(i), direction) for i, (column, direction) in enumerate(order_keys)]
+        page_order = ','.join('E.' + alias + direction for _, alias, direction in keys)
+        ctes[0] = 'H AS NOT MATERIALIZED (' + relation + ')'
+        # Page the narrow occurrence keys before fetching wide display cells.
+        # The sealed (run_id, ordinal) keys make both lookups one-to-one.
+        ctes.append('eligible AS MATERIALIZED (SELECT H.run_id,H.ordinal AS membership_ordinal,H.fact_ordinal,'
+                    + ','.join(column + ' AS ' + alias for column, alias, _ in keys) + selection
+                    + ' ORDER BY ' + order + ' LIMIT %s OFFSET %s)')
+        sql = ('WITH ' + ','.join(ctes) + ' SELECT row_number() OVER (ORDER BY ' + page_order
+               + ')+%s AS rn,' + selected + ' FROM eligible E'
+               + ' JOIN H ON H.run_id=E.run_id AND H.ordinal=E.membership_ordinal'
+               + ' JOIN ' + fact_relation + ' A ON A.run_id=E.run_id AND A.ordinal=E.fact_ordinal')
+        params.extend((size, offset, offset))
+    else:
+        ctes.append('selected AS (SELECT row_number() OVER (ORDER BY ' + order + ') AS rn,' + selected + selection + ')')
+        sql = 'WITH ' + ','.join(ctes) + ' SELECT * FROM selected'
+        if paging is not None:
+            page, size = paging
+            sql += ' WHERE rn BETWEEN %s AND %s'
+            params.extend(((page-1)*size+1, page*size))
     sql += ' ORDER BY rn'
     with transaction.atomic(), connection.cursor() as cursor:
         # Compilation dominates both measured prepared-page queries. Keep this
