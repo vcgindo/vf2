@@ -112,11 +112,15 @@ class ChildGitTests(SimpleTestCase):
         for nested in ('[{"SKUCode":"P1","Price":7,"wt":1.25,"eoc":null}]',
                        [dict(SKUCode='P1',Price=7,wt=Decimal('1.25'),eoc=None)]):
             with patch.object(subject,'transporter_query',return_value=('SELECT 1',[])), \
+                    patch.object(subject.transaction,'atomic'), \
                     patch.object(connections['default'],'cursor') as cursor:
                 result=cursor.return_value.__enter__.return_value
+                result.fetchone.return_value=('on','off')
                 result.description=[(name,) for name in names]
                 result.fetchall.return_value=[(1,'T','O',Decimal('20.9'),'P','D',False,nested)]
                 rows=subject.transporter_grid(Obj(pk='own'),{},set(),set())
+                result.execute.assert_any_call(
+                    "SELECT set_config('enable_nestloop',%s,true),set_config('jit',%s,true)", ('on','off'))
             self.assertEqual(rows,[dict(rn=1,tc='T',on='O',phy=20.9,
                 transit=[dict(SKUCode='P1',Price=7,wt=1.25,eoc=None)])])
 

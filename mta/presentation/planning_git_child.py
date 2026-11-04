@@ -7,7 +7,7 @@ by this module. Parent/count/chart owners and persisted business facts stay put.
 from types import SimpleNamespace
 import json
 from mta.presentation.native_mode import removed_mode
-from django.db import connection, DatabaseError
+from django.db import connection, DatabaseError, transaction
 from mta.presentation.planning_git import admitted_git
 from mta.presentation.planning_grid_sql import GridFilters
 from mta.presentation.planning_sources import admitted_sources
@@ -231,8 +231,7 @@ def transporter_query(run, payload, products, locations, *, read_binding=None):
         ' JOIN la ON ' + equal('a."WhCode"', 'la."WHCode"') +
         ' JOIN nms ON ' + equal('a."SKUCode"', 'nms."SKUCode"') + ' AND ' + equal('a."WhCode"', 'nms."WhCode"') +
         ' JOIN P ON ' + equal('a."SKUCode"', 'P.code') +
-        ' JOIN L ON ' + equal('a."ParentWhCode"', 'L.code') +
-        ' CROSS JOIN LATERAL generate_series(1,P.weight*L.weight) permission_copy(n)')
+        ' JOIN L ON ' + equal('a."ParentWhCode"', 'L.code'))
     if filters.children:
         joins += (' JOIN la parent ON ' + equal('a."ParentWhCode"', 'parent."WHCode"') + ' AND (' +
                   ' OR '.join(equal('parent."LocationType"', '%s') for _ in filters.children) + ')')
@@ -241,7 +240,7 @@ def transporter_query(run, payload, products, locations, *, read_binding=None):
     aggregates = dict(st='max(a."Status")', phy='max(a."PhysicalInventoryPen")',
         tn='max(a."TransporterName")', tc='max(a."TransporterCode")',
         fc='max(pd."WHDescription")', wc='max(wd."WHDescription")',
-        tq='sum(a."InTransitQty")::integer', trc='max(a."TransporterContact")',
+        tq='sum(a."InTransitQty"::bigint*P.weight*L.weight)::integer', trc='max(a."TransporterContact")',
         cd='max(a."CreationDate")', slt='max(a."SLT")', ag='max(a."Ageing")',
         eta='max(a."ETA")', cl='max(a."CurrentLocation")', re='max(a."Remark")')
     aggregates['on'] = 'max(a."OrderNo")'
@@ -268,17 +267,22 @@ def transporter_query(run, payload, products, locations, *, read_binding=None):
         ('Business','c."SL1"'), ('Category','c."SL2"'), ('wt','own_nms."Weight"'),
         ('v','own_nms."Volume"'), ('eoc','own_nms."ElephantOrderCapping"'),
         ('Price','ta."Price"'), ('SL1','c."SL1"'), ('SL2','c."SL2"')]
-    nested_sql = ('SELECT ' + ','.join(expression + ' AS ' + quote(name) for name, expression in nested) +
-        ' FROM a ta JOIN sd b ON ' + equal('ta."SKUCode"','b."SKUCode"') +
+    group_match = ' AND '.join(equal('ta.' + quote(field), 'g.' + quote(alias))
+        for field, alias in zip(GROUP_FIELDS, ('tc','on','_parent','_wh')))
+    ctes.append('details AS (SELECT g.rn AS group_rank,' +
+        ','.join(expression + ' AS ' + quote(name) for name, expression in nested) +
+        ' FROM selected g JOIN a ta ON ' + group_match +
+        ' JOIN sd b ON ' + equal('ta."SKUCode"','b."SKUCode"') +
         ' JOIN sa c ON ' + equal('ta."SKUCode"','c."SKUCode"') +
         ' LEFT JOIN sla own_pair ON ' + equal('ta."SKUCode"','own_pair."SKUCode"') +
         ' AND ' + equal('ta."WhCode"','own_pair."LocCode"') +
         ' JOIN nms own_nms ON ' + equal('ta."SKUCode"','own_nms."SKUCode"') +
-        ' AND ' + equal('ta."WhCode"','own_nms."WhCode"') +
-        ' WHERE ' + ' AND '.join(equal('ta.' + quote(field), 'g.' + quote(alias))
-            for field, alias in zip(GROUP_FIELDS, ('tc','on','_parent','_wh'))))
-    return ('WITH ' + ','.join(ctes) + ' SELECT g.*,COALESCE((SELECT jsonb_agg(to_jsonb(detail)) FROM (' +
-            nested_sql + ") detail),'[]'::jsonb) AS transit FROM selected g ORDER BY rn", params)
+        ' AND ' + equal('ta."WhCode"','own_nms."WhCode"') + ')')
+    ctes.append("nested_groups AS (SELECT group_rank,jsonb_agg(to_jsonb(details)-'group_rank') AS transit "
+                'FROM details GROUP BY group_rank)')
+    return ('WITH ' + ','.join(ctes) +
+            " SELECT g.*,COALESCE(nested_groups.transit,'[]'::jsonb) AS transit FROM selected g "
+            'LEFT JOIN nested_groups ON nested_groups.group_rank=g.rn ORDER BY g.rn', params)
 
 
 def transporter_grid(run, payload, products, locations, *, read_binding=None):
@@ -292,10 +296,19 @@ def transporter_grid(run, payload, products, locations, *, read_binding=None):
             return {name: wire(item) for name, item in value.items()}
         return value
     sql, params = transporter_query(run, payload, products, locations, read_binding=read_binding)
-    with connection.cursor() as cursor:
+    with transaction.atomic(), connection.cursor() as cursor:
+        cursor.execute("SELECT current_setting('enable_nestloop'),current_setting('jit')")
+        previous = cursor.fetchone()
+        # New typed generations can be estimated at one row. Prefer the
+        # equality joins over repeated source scans for this statement only.
+        cursor.execute('SET LOCAL enable_nestloop=off')
+        # The scoped reader's larger plan can spend seconds compiling these
+        # joins even when execution takes milliseconds.
+        cursor.execute('SET LOCAL jit=off')
         cursor.execute(sql, params)
         names = [column[0] for column in cursor.description]
         rows = [dict(zip(names, row)) for row in cursor.fetchall()]
+        cursor.execute("SELECT set_config('enable_nestloop',%s,true),set_config('jit',%s,true)", previous)
     for index, row in enumerate(rows):
         if row.pop('_ambiguous_key'):
             raise PublicationUnavailable('GIT_child_group_key_spelling_ambiguous')
