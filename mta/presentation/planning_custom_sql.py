@@ -1,5 +1,6 @@
 """Scope and page prepared custom occurrences before display expansion."""
-from django.db import connection
+from contextlib import nullcontext
+from django.db import connection, transaction
 from mta.presentation.planning_custom import admitted_custom
 from mta.presentation.bpr_sql import _projected_attributes
 from mta.presentation.context import scope,PublicationUnavailable
@@ -82,10 +83,18 @@ def custom_grid(run,payload,paging,*,family,read_binding=None):
         ctes.append('chosen AS (SELECT * FROM numbered WHERE rn BETWEEN %s AND %s)')
         params.extend(((paging[0]-1)*paging[1]+1,paging[0]*paging[1]))
     sql='WITH '+','.join(ctes)+' SELECT X.rn,'+','.join(value+' AS '+quote(alias) for alias,value in columns.items())+joins+' ORDER BY X.rn'
-    with connection.cursor() as c:
+    bounded_excess_page = family == 'excess' and read_binding is None and paging is not None
+    with (transaction.atomic() if bounded_excess_page else nullcontext()), connection.cursor() as c:
+        # Compilation dominates this bounded page on mature data.
+        if bounded_excess_page:
+            c.execute("SELECT current_setting('jit')")
+            previous_jit = c.fetchone()[0]
+            c.execute('SET LOCAL jit=off')
         c.execute(sql,params)
         names=['RN',*columns]
         rows=storage([dict(zip(names,values)) for values in c.fetchall()])
+        if bounded_excess_page:
+            c.execute("SELECT set_config('jit',%s,true)", [previous_jit])
     if family=='excess':
         for row in rows:
             for field in ('Price','tpp','epp'):
