@@ -75,6 +75,19 @@ class NativeExcessHistoryTests(unittest.TestCase):
             with self.assertRaisesRegex(PublicationUnavailable,'readback_changed'):
                 native_excess_history._projection(current,verify_rows=True)
 
+    def test_locked_layer_checks_predecessor_projection_without_full_predecessor_audit(self):
+        root = run(date(2037, 4, 10))
+        current = run(date(2037, 4, 11), root)
+        for locked in (False, True):
+            with patch('mta.presentation.report_verification.check_active_owner', return_value=locked) as owner, \
+                    patch('mta.presentation.native_publication.identity',
+                          return_value={'initialization': {'id': 'own'}}) as identity, \
+                    patch.object(native_excess_history, '_projection', return_value={}) as projection:
+                native_excess_history.identity(current, verify_rows=True)
+            owner.assert_called_once_with(root)
+            self.assertEqual([call.kwargs['verify_rows'] for call in identity.call_args_list], [True, not locked])
+            self.assertEqual([call.kwargs['verify_rows'] for call in projection.call_args_list], [True, True])
+
     def test_native_insert_carries_fact_owner_and_strict_cutoff(self):
         current = run(date(2037, 4, 12))
         history = {'storage_cutoff': '2037-04-10', 'lineage': [

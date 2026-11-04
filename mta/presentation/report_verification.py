@@ -214,6 +214,15 @@ def immutable_audit(run, name, audit):
         active['audits'][key] = True
 
 
+def check_active_owner(run):
+    """Verify the source locks and guards for a dependency of this operation."""
+    active = _current.get()
+    if active is None:
+        return False
+    active['check'](run)
+    return True
+
+
 def profile_reference(run, owner):
     """Authenticate a v3 same-opening alias without hydrating its policy graph.
 

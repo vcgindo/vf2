@@ -48,6 +48,7 @@ def identity(run, verify_rows=False):
     cutoff would ask for a day before either retained storage or the root day.
     """
     from mta.presentation.native_publication import identity as native_identity
+    from mta.presentation.report_verification import check_active_owner
 
     lineage = []
     node = run
@@ -58,7 +59,11 @@ def identity(run, verify_rows=False):
             raise PublicationUnavailable('native_guided_excess_history_duplicate_day')
         seen_runs.add(node.pk)
         seen_dates.add(node.business_date)
-        native = native_identity(node, verify_rows=verify_rows)
+        # In the locked report operation, a predecessor contributes only its
+        # Excess projection. Verify those rows and inputs below. The current
+        # day's full audit and standalone predecessor audits remain exhaustive.
+        guarded_predecessor = verify_rows and node is not run and check_active_owner(node)
+        native = native_identity(node, verify_rows=verify_rows and not guarded_predecessor)
         if initialization is None:
             initialization = native['initialization']
         elif native['initialization'] != initialization:
